@@ -138,7 +138,7 @@ export default defineConfig({
 
     footer: {
       message: '本地搭建 · Markdown 驱动 · 由 VitePress 生成',
-      copyright: '© 2026 我的 Wiki'
+      copyright: '© 2026 葬火之后'
     }
   }
 })
