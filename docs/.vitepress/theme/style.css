@@ -1,0 +1,70 @@
+/**
+ * 主题微调：改这里就能换配色、圆角、字号。
+ * 颜色用 VitePress 自带的 CSS 变量覆盖即可，深浅色模式分别生效。
+ */
+
+:root {
+  --vp-c-brand-1: #2f7d63;
+  --vp-c-brand-2: #3c9a7a;
+  --vp-c-brand-3: #4bb891;
+  --vp-c-brand-soft: rgba(60, 154, 122, 0.14);
+
+  /* 站点名用品牌色；想要渐变文字就把下面两行换成 name-color: transparent + background 渐变 */
+  --vp-home-hero-name-color: var(--vp-c-brand-1);
+  --vp-home-hero-name-background: transparent;
+
+  --vp-font-family-base: 'Inter', 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC',
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  --vp-layout-max-width: 1440px;
+}
+
+.dark {
+  --vp-c-brand-1: #63c6a3;
+  --vp-c-brand-2: #4bb891;
+  --vp-c-brand-3: #3c9a7a;
+  --vp-c-brand-soft: rgba(99, 198, 163, 0.16);
+}
+
+/* 正文阅读宽度和对齐，中文长文本更舒服 */
+.vp-doc {
+  line-height: 1.8;
+}
+
+.vp-doc h2 {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--vp-c-divider);
+}
+
+.vp-doc table {
+  display: table;
+  width: 100%;
+}
+
+/* 首页 hero 稍微收一点，避免大屏太空 */
+.VPHero .name,
+.VPHero .text {
+  letter-spacing: -0.02em;
+}
+
+/* hero 插画尺寸 */
+.VPHero .image-src {
+  max-width: 240px;
+  max-height: 240px;
+}
+
+.VPHero .image-bg {
+  width: 280px;
+  height: 280px;
+}
+
+@media (min-width: 960px) {
+  /* hero 副标题比默认小一号，避免「知识库」被拆到第二行 */
+  .VPHero .text {
+    font-size: 42px;
+    line-height: 1.25;
+    max-width: 640px;
+  }
+}
+
