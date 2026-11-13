@@ -1,17 +1,23 @@
 import { defineConfig } from 'vitepress'
 
+// 仓库名决定线上路径；换成你的仓库名时只改这一行
+const base = '/after-the-pyre/'
+
 export default defineConfig({
   lang: 'zh-CN',
-  title: '我的 Wiki',
-  description: '一个用 Markdown 写成的知识库',
+  title: '葬火之后',
+  description: '葬火之后的公共 Wiki',
 
-  // 生成 /guide/writing 这样的干净链接
-  cleanUrls: true,
+  // 部署在 https://<用户名>.github.io/after-the-pyre/ 这样的子路径下
+  base,
+
+  // GitHub Pages 不支持无扩展名 URL，所以保持 .html；目录仍是 /guide/ 形式
+  cleanUrls: false,
   // 在每页底部显示最后更新时间（取 git 提交时间，未提交时取文件修改时间）
   lastUpdated: true,
 
   head: [
-    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }],
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: `${base}logo.svg` }],
     ['meta', { name: 'theme-color', content: '#3c8772' }]
   ],
 

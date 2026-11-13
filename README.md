@@ -1,14 +1,16 @@
-# 我的 Wiki
+# 葬火之后 Wiki
 
-用 Markdown 写的本地 Wiki，基于 [VitePress](https://vitepress.dev/zh/)。
+用 Markdown 写的 Wiki，基于 [VitePress](https://vitepress.dev/zh/)。
 内容全在 `docs/` 目录，构建产物是纯静态文件。
+
+线上地址：https://<你的用户名>.github.io/after-the-pyre/
 
 ## 快速开始
 
 ```bash
 cd wiki
 npm install      # 首次运行
-npm run dev      # 打开 http://localhost:5199
+npm run dev      # 打开 http://localhost:5199/after-the-pyre/
 ```
 
 ## 命令
@@ -18,6 +20,8 @@ npm run dev      # 打开 http://localhost:5199
 | `npm run dev` | 开发预览，改 Markdown 自动刷新 |
 | `npm run build` | 构建到 `docs/.vitepress/dist` |
 | `npm run preview` | 预览构建结果（http://localhost:5200） |
+
+推送到 GitHub 的 `main` 分支后，`.github/workflows/deploy.yml` 会自动构建并发布到 GitHub Pages。
 
 ## 我要改什么
 

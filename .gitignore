@@ -5,3 +5,4 @@ docs/.vitepress/dist
 .DS_Store
 Thumbs.db
 .preview
+.publish

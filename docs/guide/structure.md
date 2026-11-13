@@ -19,7 +19,7 @@ wiki/
 
 ## 几个约定
 
-- **文件路径 = 网址路径**。`docs/notes/读书笔记.md` 对应 `/notes/读书笔记`（`cleanUrls` 已开启，不带 `.html`）。
+- **文件路径 = 网址路径**。`docs/notes/读书笔记.md` 对应 `/notes/读书笔记.html`；目录页 `/notes/` 会自动指向 `notes/index.html`。
 - **`index.md` 是目录页**。`docs/notes/index.md` 就是 `/notes/`。
 - **`public/` 里的文件不做处理**。放 `docs/public/diagram.png`，正文用 `![图](/diagram.png)` 引用。
 - **下划线开头的文件不会被当成页面**，适合放草稿或片段。

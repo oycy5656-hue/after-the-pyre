@@ -2,7 +2,7 @@
 layout: home
 
 hero:
-  name: 我的 Wiki
+  name: 葬火之后
   text: 用 Markdown 写的知识库
   tagline: 本地编辑、中文全文搜索、一条命令生成网站
   image:

@@ -11,17 +11,14 @@ npm run preview    # 本地起一个服务预览构建结果
 
 ## 发布到 GitHub Pages
 
-如果仓库叫 `my-wiki`，站点地址会是 `https://<用户名>.github.io/my-wiki/`，需要先告诉 VitePress 它挂在子路径下：
+这个站点已经按仓库名 `after-the-pyre` 配好了，线上地址是 `https://<用户名>.github.io/after-the-pyre/`：
 
 ```ts
 // docs/.vitepress/config.mts
-export default defineConfig({
-  base: '/my-wiki/',
-  // ...
-})
+const base = '/after-the-pyre/'   // 换仓库名时改这一行
 ```
 
-然后在仓库里加 `.github/workflows/deploy.yml`：
+仓库里已经带好 `.github/workflows/deploy.yml`，推送到 `main` 就会自动构建并发布。内容如下，需要时可以直接照抄到别的仓库：
 
 ```yaml
 name: Deploy
@@ -84,7 +81,7 @@ jobs:
 
 ## 其他去处
 
-`dist/` 也能直接丢到对象存储（OSS / COS / R2）、内网 Nginx、或本地直接双击 `index.html`（需用 `npm run preview` 或任意静态服务器，因为路由依赖服务端回退到 `index.html`）。
+`dist/` 也能直接丢到对象存储（OSS / COS / R2）、内网 Nginx 或任意静态服务器上；只要把 `dist/` 挂到 `base` 对应的路径（这里是 `/after-the-pyre/`）即可。
 
 ::: warning 直接双击打开会有问题
 `file://` 协议下 VitePress 的客户端路由和资源路径会失效。务必通过 HTTP 访问。
