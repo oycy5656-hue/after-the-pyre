@@ -6,3 +6,4 @@ docs/.vitepress/dist
 Thumbs.db
 .preview
 .publish
+.tools
