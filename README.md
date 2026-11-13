@@ -3,7 +3,8 @@
 用 Markdown 写的 Wiki，基于 [VitePress](https://vitepress.dev/zh/)。
 内容全在 `docs/` 目录，构建产物是纯静态文件。
 
-线上地址：https://<你的用户名>.github.io/after-the-pyre/
+线上地址：https://oycy5656-hue.github.io/after-the-pyre/
+仓库：https://github.com/oycy5656-hue/after-the-pyre
 
 ## 快速开始
 
