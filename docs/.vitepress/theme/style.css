@@ -37,10 +37,7 @@
   border-top: 1px solid var(--vp-c-divider);
 }
 
-.vp-doc table {
-  display: table;
-  width: 100%;
-}
+/* 表格保持 VitePress 默认的横向滚动行为 */
 
 /* 首页 hero 稍微收一点，避免大屏太空 */
 .VPHero .name,
