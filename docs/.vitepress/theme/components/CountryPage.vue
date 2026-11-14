@@ -69,7 +69,7 @@ const toc = computed(() => [
   ['overview', '概览'],
   ['region', '风土'],
   ['ruler', '统治者'],
-  ['factions', '势力格局'],
+  ...(factions.value.length ? [['factions', '势力格局']] : []),
   ['military', '军事'],
   ...(wonders.value.length ? [['wonders', '奇观']] : []),
   ...(modifiers.value.length ? [['policies', '国策']] : [])
@@ -120,7 +120,7 @@ const toc = computed(() => [
         </div>
       </section>
 
-      <section id="factions" class="wp-section">
+      <section v-if="factions.length" id="factions" class="wp-section">
         <h2>势力格局</h2>
         <div class="wp-factions">
           <svg class="wp-donut" viewBox="0 0 100 100" role="img" aria-label="派系影响力占比">
@@ -229,12 +229,13 @@ const toc = computed(() => [
 
       <section v-if="modifiers.length" id="policies" class="wp-section">
         <h2>国策与修正</h2>
-        <dl class="wp-modifiers">
-          <template v-for="m in modifiers" :key="m.id">
-            <dt>{{ m.name }}</dt>
-            <dd>{{ m.effect }}</dd>
-          </template>
-        </dl>
+        <div class="wp-mod-list">
+          <article v-for="m in modifiers" :key="m.id" class="wp-mod">
+            <h3>{{ m.name }}</h3>
+            <p v-if="m.desc" class="wp-mod-desc">{{ m.desc }}</p>
+            <p v-if="m.effect" class="wp-mod-effect"><span>效果</span>{{ m.effect }}</p>
+          </article>
+        </div>
       </section>
 
       <p class="wp-categories">
@@ -758,22 +759,51 @@ const toc = computed(() => [
   color: var(--vp-c-text-1);
 }
 
-.wp-modifiers {
-  margin: 0;
+.wp-mod-list {
+  display: grid;
+  gap: 12px;
 }
 
-.wp-modifiers dt {
-  margin-top: 14px;
+.wp-mod {
+  padding: 14px 18px;
+  border: 1px solid var(--vp-c-divider);
+  border-left: 3px solid color-mix(in srgb, var(--accent) 60%, transparent);
+  border-radius: 0 8px 8px 0;
+  background: var(--vp-c-bg-soft);
+}
+
+.wp-mod h3 {
+  margin: 0 0 6px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--vp-c-text-1);
 }
 
-.wp-modifiers dd {
-  margin: 4px 0 0;
-  padding-left: 12px;
-  border-left: 2px solid var(--vp-c-divider);
+.wp-mod-desc {
+  margin: 0;
   font-size: 13.5px;
+  line-height: 1.75;
   color: var(--vp-c-text-2);
+}
+
+.wp-mod-effect {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  margin: 10px 0 0;
+  padding-top: 8px;
+  border-top: 1px dashed var(--vp-c-divider);
+  font-size: 13px;
+  color: var(--vp-c-text-1);
+}
+
+.wp-mod-effect span {
+  flex: 0 0 auto;
+  padding: 1px 7px;
+  font-size: 11.5px;
+  color: #fff;
+  background: color-mix(in srgb, var(--accent) 80%, #000);
+  border-radius: 4px;
 }
 
 .wp-categories {

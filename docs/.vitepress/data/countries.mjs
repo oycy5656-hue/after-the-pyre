@@ -205,7 +205,7 @@ export default [
       "leader": {
         "name": "天照命",
         "title": "大御神大人",
-        "avatar": null,
+        "avatar": "/countries/c03-leader.jpg",
         "traits": [
           "勇敢",
           "野心勃勃",
@@ -260,7 +260,7 @@ export default [
           "title": "持剑守护",
           "stars": 7,
           "bio": "伴随雷霆的威光，月读命便同姐姐降临于彼时仍是蛮荒的苇原大地上，在阴影中以持剑守护的身份保护天照命，为其斩去阻碍天照命的一切敌人",
-          "avatar": null
+          "avatar": "/countries/c03-hero-1.jpg"
         }
       ]
     },
@@ -889,7 +889,7 @@ export default [
       "leader": {
         "name": "第七百六十四位拉让米",
         "title": "凯撒",
-        "avatar": null,
+        "avatar": "/countries/c07-leader.jpg",
         "traits": [
           "野心勃勃",
           "古怪",
@@ -1427,7 +1427,7 @@ export default [
       "leader": {
         "name": "巫王",
         "title": "巫王",
-        "avatar": null,
+        "avatar": "/countries/c09-leader.jpg",
         "traits": [
           "暴怒",
           "虐待狂",
@@ -2434,7 +2434,7 @@ export default [
       "leader": {
         "name": "梅露施坦因",
         "title": "水龙",
-        "avatar": null,
+        "avatar": "/countries/c12-leader.jpg",
         "traits": [
           "冷酷",
           "急躁",
@@ -2822,7 +2822,7 @@ export default [
     "race": "人类",
     "capital": "雅典",
     "faith": "图腾崇拜",
-    "bio": "",
+    "bio": "智者聚集于教令院，试图在这里求索智慧的真谛，苏格拉底的根须是那支撑起教令院的基地，可神明的化身并不理解“智慧”的含义，只是懵懂地回应学者们的请求，将其落地实施。而今，派别与派别之间的矛盾日益尖锐，可这位“智者”对此却不以为然，让他们继续吵吧，又与我何关！",
     "accent": "#5489a2",
     "region": {
       "name": "昉土",
@@ -2852,422 +2852,73 @@ export default [
           "learning": 4,
           "prowess": 2
         },
-        "bio": ""
+        "bio": "古人定向培育的智慧生命，不善言辞，不善辩论"
       },
       "factions": [
         {
-          "id": "f_1",
-          "name": "近卫贵族庭",
-          "leader": "",
-          "influence": 50,
+          "id": "f_1794638546307",
+          "name": "生论派",
+          "leader": "纳菲斯",
+          "influence": 13,
           "color": "#5489a2"
+        },
+        {
+          "id": "f_1794638546485",
+          "name": "知论派",
+          "leader": "卡瓦贾",
+          "influence": 19,
+          "color": "#b29357"
+        },
+        {
+          "id": "f_1794638548556",
+          "name": "明论派",
+          "leader": "阿扎尔",
+          "influence": 18,
+          "color": "#518c76"
+        },
+        {
+          "id": "f_1794638548949",
+          "name": "素论派",
+          "leader": "居勒什",
+          "influence": 22,
+          "color": "#b36e67"
+        },
+        {
+          "id": "f_1794638579182",
+          "name": "因论派",
+          "leader": "伊斯坎德",
+          "influence": 17,
+          "color": "#7b6899"
+        },
+        {
+          "id": "f_1794638583715",
+          "name": "妙论派",
+          "leader": "赞迪克",
+          "influence": 11,
+          "color": "#4c7387"
         }
       ],
-      "modifiers": [],
-      "wonders": [],
+      "modifiers": [
+        {
+          "id": "m_1794638476136",
+          "name": "缄默之神",
+          "desc": "派别与派别之间，因理想、利益等纠纷的矛盾日益尖锐，而苏格拉底甚至无法介入其中——他完全无法理解，他们为什么要打起来？",
+          "effect": "“学城的学者正在催生愚行，而神的智慧对此并无意见”"
+        }
+      ],
+      "wonders": [
+        {
+          "id": "w_1794638476401",
+          "name": "教令院",
+          "desc": "而雅典最初的教令院，便是由长久地去追随苏格拉底的学者组成，他们各司其职，协助苏格拉底管理雅典。最能理解苏格拉底的力量和哲思的，只能是教令院了",
+          "avatar": "/countries/c16-wonder-1.jpg"
+        }
+      ],
       "heroes": []
     },
     "military": {
-      "legions": [
-        {
-          "id": "leg_1794580859586",
-          "name": "第I坚冰铁卫军团",
-          "training": "老练精兵",
-          "loyalty": 4,
-          "composition": [
-            {
-              "name": "霜原卫戍重步兵",
-              "count": 1,
-              "role": "正面坚阵",
-              "race": "人类",
-              "size": 800,
-              "total": 800,
-              "modifiers": "严寒抗性 · 盾墙防线",
-              "traits": [],
-              "gear": [
-                {
-                  "slot": "helmet",
-                  "slotLabel": "头部",
-                  "name": "头盔",
-                  "desc": "通用制式头盔。"
-                },
-                {
-                  "slot": "neckguard",
-                  "slotLabel": "护颈",
-                  "name": "护颈",
-                  "desc": "垂在颈后的护片，防止劈砍伤及颈项。"
-                },
-                {
-                  "slot": "armor",
-                  "slotLabel": "护甲",
-                  "name": "盔甲",
-                  "desc": "通用制式护甲。"
-                },
-                {
-                  "slot": "gloves",
-                  "slotLabel": "手部",
-                  "name": "手套",
-                  "desc": "通用护手。"
-                },
-                {
-                  "slot": "legs",
-                  "slotLabel": "腿部",
-                  "name": "腿甲",
-                  "desc": "覆盖大腿与膝部的甲片。"
-                },
-                {
-                  "slot": "weapons",
-                  "slotLabel": "武器",
-                  "name": "近战主武器",
-                  "desc": "通用的近战主手武器。"
-                },
-                {
-                  "slot": "weapons",
-                  "slotLabel": "武器",
-                  "name": "副手/盾牌",
-                  "desc": "副手持用的盾牌。"
-                },
-                {
-                  "slot": "weapons",
-                  "slotLabel": "武器",
-                  "name": "远程兵械",
-                  "desc": "通用的远程投射兵器。"
-                },
-                {
-                  "slot": "weapons",
-                  "slotLabel": "武器",
-                  "name": "战备佩刃",
-                  "desc": "随身佩戴的备用短刃。"
-                },
-                {
-                  "slot": "mount",
-                  "slotLabel": "坐骑",
-                  "name": "战马",
-                  "desc": "训练有素的战马，可供骑乘冲锋。"
-                }
-              ],
-              "desc": "身着覆身钢甲、手执两米塔盾的重装步兵战阵，专司抵御猛兽与骑兵冲击。"
-            },
-            {
-              "name": "北境雪鸮游侠",
-              "count": 1,
-              "role": "斥候/游击",
-              "race": "人类",
-              "size": 400,
-              "total": 400,
-              "modifiers": "风雪伪装 · 致命贯穿",
-              "traits": [],
-              "gear": [
-                {
-                  "slot": "helmet",
-                  "slotLabel": "头部",
-                  "name": "头盔",
-                  "desc": "通用制式头盔。"
-                },
-                {
-                  "slot": "neckguard",
-                  "slotLabel": "护颈",
-                  "name": "护颈",
-                  "desc": "垂在颈后的护片，防止劈砍伤及颈项。"
-                },
-                {
-                  "slot": "armor",
-                  "slotLabel": "护甲",
-                  "name": "盔甲",
-                  "desc": "通用制式护甲。"
-                },
-                {
-                  "slot": "gloves",
-                  "slotLabel": "手部",
-                  "name": "手套",
-                  "desc": "通用护手。"
-                },
-                {
-                  "slot": "legs",
-                  "slotLabel": "腿部",
-                  "name": "腿甲",
-                  "desc": "覆盖大腿与膝部的甲片。"
-                },
-                {
-                  "slot": "weapons",
-                  "slotLabel": "武器",
-                  "name": "近战主武器",
-                  "desc": "通用的近战主手武器。"
-                },
-                {
-                  "slot": "weapons",
-                  "slotLabel": "武器",
-                  "name": "副手/盾牌",
-                  "desc": "副手持用的盾牌。"
-                },
-                {
-                  "slot": "weapons",
-                  "slotLabel": "武器",
-                  "name": "远程兵械",
-                  "desc": "通用的远程投射兵器。"
-                },
-                {
-                  "slot": "weapons",
-                  "slotLabel": "武器",
-                  "name": "战备佩刃",
-                  "desc": "随身佩戴的备用短刃。"
-                },
-                {
-                  "slot": "mount",
-                  "slotLabel": "坐骑",
-                  "name": "战马",
-                  "desc": "训练有素的战马，可供骑乘冲锋。"
-                }
-              ],
-              "desc": "猎手出身的精准射手，擅长借助雪原风暴掩护进行冷箭狙杀。"
-            }
-          ],
-          "total": 1200,
-          "cards": 2
-        }
-      ],
-      "units": [
-        {
-          "id": "u_1",
-          "name": "霜原卫戍重步兵",
-          "role": "正面坚阵",
-          "race": "人类",
-          "size": 800,
-          "modifiers": "严寒抗性 · 盾墙防线",
-          "traits": [],
-          "gear": [
-            {
-              "slot": "helmet",
-              "slotLabel": "头部",
-              "name": "头盔",
-              "desc": "通用制式头盔。"
-            },
-            {
-              "slot": "neckguard",
-              "slotLabel": "护颈",
-              "name": "护颈",
-              "desc": "垂在颈后的护片，防止劈砍伤及颈项。"
-            },
-            {
-              "slot": "armor",
-              "slotLabel": "护甲",
-              "name": "盔甲",
-              "desc": "通用制式护甲。"
-            },
-            {
-              "slot": "gloves",
-              "slotLabel": "手部",
-              "name": "手套",
-              "desc": "通用护手。"
-            },
-            {
-              "slot": "legs",
-              "slotLabel": "腿部",
-              "name": "腿甲",
-              "desc": "覆盖大腿与膝部的甲片。"
-            },
-            {
-              "slot": "weapons",
-              "slotLabel": "武器",
-              "name": "近战主武器",
-              "desc": "通用的近战主手武器。"
-            },
-            {
-              "slot": "weapons",
-              "slotLabel": "武器",
-              "name": "副手/盾牌",
-              "desc": "副手持用的盾牌。"
-            },
-            {
-              "slot": "weapons",
-              "slotLabel": "武器",
-              "name": "远程兵械",
-              "desc": "通用的远程投射兵器。"
-            },
-            {
-              "slot": "weapons",
-              "slotLabel": "武器",
-              "name": "战备佩刃",
-              "desc": "随身佩戴的备用短刃。"
-            },
-            {
-              "slot": "mount",
-              "slotLabel": "坐骑",
-              "name": "战马",
-              "desc": "训练有素的战马，可供骑乘冲锋。"
-            }
-          ],
-          "desc": "身着覆身钢甲、手执两米塔盾的重装步兵战阵，专司抵御猛兽与骑兵冲击。",
-          "equipment": {
-            "helmet": {
-              "name": "头盔",
-              "desc": ""
-            },
-            "neckguard": {
-              "name": "护颈",
-              "desc": ""
-            },
-            "armor": {
-              "name": "盔甲",
-              "desc": ""
-            },
-            "gloves": {
-              "name": "手套",
-              "desc": ""
-            },
-            "legs": {
-              "name": "腿甲",
-              "desc": ""
-            },
-            "weapons": [
-              {
-                "name": "近战主武器",
-                "desc": "",
-                "category": "长剑"
-              },
-              {
-                "name": "副手/盾牌",
-                "desc": "",
-                "category": "圆盾"
-              },
-              {
-                "name": "远程兵械",
-                "desc": "",
-                "category": "重弩"
-              },
-              {
-                "name": "战备佩刃",
-                "desc": "",
-                "category": "短匕"
-              }
-            ],
-            "mount": {
-              "name": "战马",
-              "desc": ""
-            }
-          }
-        },
-        {
-          "id": "u_2",
-          "name": "北境雪鸮游侠",
-          "role": "斥候/游击",
-          "race": "人类",
-          "size": 400,
-          "modifiers": "风雪伪装 · 致命贯穿",
-          "traits": [],
-          "gear": [
-            {
-              "slot": "helmet",
-              "slotLabel": "头部",
-              "name": "头盔",
-              "desc": "通用制式头盔。"
-            },
-            {
-              "slot": "neckguard",
-              "slotLabel": "护颈",
-              "name": "护颈",
-              "desc": "垂在颈后的护片，防止劈砍伤及颈项。"
-            },
-            {
-              "slot": "armor",
-              "slotLabel": "护甲",
-              "name": "盔甲",
-              "desc": "通用制式护甲。"
-            },
-            {
-              "slot": "gloves",
-              "slotLabel": "手部",
-              "name": "手套",
-              "desc": "通用护手。"
-            },
-            {
-              "slot": "legs",
-              "slotLabel": "腿部",
-              "name": "腿甲",
-              "desc": "覆盖大腿与膝部的甲片。"
-            },
-            {
-              "slot": "weapons",
-              "slotLabel": "武器",
-              "name": "近战主武器",
-              "desc": "通用的近战主手武器。"
-            },
-            {
-              "slot": "weapons",
-              "slotLabel": "武器",
-              "name": "副手/盾牌",
-              "desc": "副手持用的盾牌。"
-            },
-            {
-              "slot": "weapons",
-              "slotLabel": "武器",
-              "name": "远程兵械",
-              "desc": "通用的远程投射兵器。"
-            },
-            {
-              "slot": "weapons",
-              "slotLabel": "武器",
-              "name": "战备佩刃",
-              "desc": "随身佩戴的备用短刃。"
-            },
-            {
-              "slot": "mount",
-              "slotLabel": "坐骑",
-              "name": "战马",
-              "desc": "训练有素的战马，可供骑乘冲锋。"
-            }
-          ],
-          "desc": "猎手出身的精准射手，擅长借助雪原风暴掩护进行冷箭狙杀。",
-          "equipment": {
-            "helmet": {
-              "name": "头盔",
-              "desc": ""
-            },
-            "neckguard": {
-              "name": "护颈",
-              "desc": ""
-            },
-            "armor": {
-              "name": "盔甲",
-              "desc": ""
-            },
-            "gloves": {
-              "name": "手套",
-              "desc": ""
-            },
-            "legs": {
-              "name": "腿甲",
-              "desc": ""
-            },
-            "weapons": [
-              {
-                "name": "近战主武器",
-                "desc": "",
-                "category": "长剑"
-              },
-              {
-                "name": "副手/盾牌",
-                "desc": "",
-                "category": "圆盾"
-              },
-              {
-                "name": "远程兵械",
-                "desc": "",
-                "category": "重弩"
-              },
-              {
-                "name": "战备佩刃",
-                "desc": "",
-                "category": "短匕"
-              }
-            ],
-            "mount": {
-              "name": "战马",
-              "desc": ""
-            }
-          }
-        }
-      ]
+      "legions": [],
+      "units": []
     },
     "stats": {
       "diplomacy": 2,
@@ -3286,8 +2937,8 @@ export default [
     "race": "人类",
     "capital": "鸾城",
     "faith": "先祖崇拜",
-    "bio": "",
-    "accent": "#2f7d63",
+    "bio": "黄金时代已然过去，辽阔的国土已然大半沦陷于敌人之手，不幸的王啊，被他的宫相所架空，不知能否创造新的奇迹，还是说成为最后一任鸾尾王朝的统治者？",
+    "accent": "#5489a2",
     "region": {
       "name": "昉土",
       "traits": [
@@ -3316,16 +2967,150 @@ export default [
           "learning": 11,
           "prowess": 2
         },
-        "bio": ""
+        "bio": "因丧失过多领土而被嘲笑为失地王的鸾尾王朝第七代皇帝"
       },
-      "factions": [],
-      "modifiers": [],
+      "factions": [
+        {
+          "id": "f_1794637459854",
+          "name": "鸾尾家族",
+          "leader": "洛泰尔·德·鸾尾",
+          "influence": 18,
+          "color": "#5489a2"
+        },
+        {
+          "id": "f_1794637473392",
+          "name": "凡多姆海恩家族",
+          "leader": "夏尔·凡多姆海恩",
+          "influence": 82,
+          "color": "#b29357"
+        }
+      ],
+      "modifiers": [
+        {
+          "id": "m_1794625702932",
+          "name": "行将就木的王朝",
+          "desc": "帝国的荣光已逐渐离开鸾尾王朝，意图终结王朝的安茹大军正步步进逼鸾城，众叛亲离的洛泰尔·德·鸾尾，诸神是否垂怜这位不幸之人？",
+          "effect": "“诸神请垂怜我”"
+        },
+        {
+          "id": "m_1794636883874",
+          "name": "宫相的统治",
+          "desc": "纵然王位更迭三代，夏尔公爵仍旧牢牢把持着鸾尾王朝的宫廷，他既维持了鸾尾王朝对于地方的基本统治，亦是洛泰尔亲政的最大敌人...",
+          "effect": "“忠不可言呐”"
+        }
+      ],
       "wonders": [],
       "heroes": []
     },
     "military": {
       "legions": [],
-      "units": []
+      "units": [
+        {
+          "id": "u_1794625679670",
+          "name": "鸢尾花卫士",
+          "role": "核心突击",
+          "race": "人类",
+          "size": 60,
+          "modifiers": "【迅捷如风】【嗜血好战】",
+          "traits": [
+            {
+              "name": "迅捷如风",
+              "desc": ""
+            },
+            {
+              "name": "嗜血好战",
+              "desc": ""
+            }
+          ],
+          "gear": [
+            {
+              "slot": "helmet",
+              "slotLabel": "头部",
+              "name": "波奥蒂亚头盔",
+              "desc": ""
+            },
+            {
+              "slot": "armor",
+              "slotLabel": "护甲",
+              "name": "亚麻胸甲",
+              "desc": ""
+            },
+            {
+              "slot": "legs",
+              "slotLabel": "腿部",
+              "name": "皮质胫甲",
+              "desc": ""
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "骑枪",
+              "desc": ""
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "青铜弯刀",
+              "desc": ""
+            },
+            {
+              "slot": "mount",
+              "slotLabel": "坐骑",
+              "name": "鸾尾战马",
+              "desc": ""
+            }
+          ],
+          "desc": "",
+          "equipment": {
+            "helmet": {
+              "name": "波奥蒂亚头盔",
+              "desc": ""
+            },
+            "neckguard": {
+              "name": "无",
+              "desc": ""
+            },
+            "armor": {
+              "name": "亚麻胸甲",
+              "desc": ""
+            },
+            "gloves": {
+              "name": "无",
+              "desc": ""
+            },
+            "legs": {
+              "name": "皮质胫甲",
+              "desc": ""
+            },
+            "weapons": [
+              {
+                "name": "骑枪",
+                "desc": "",
+                "category": "长柄武器"
+              },
+              {
+                "name": "青铜弯刀",
+                "desc": "",
+                "category": "短剑"
+              },
+              {
+                "name": "无",
+                "desc": "",
+                "category": "无"
+              },
+              {
+                "name": "无",
+                "desc": "",
+                "category": "无"
+              }
+            ],
+            "mount": {
+              "name": "鸾尾战马",
+              "desc": ""
+            }
+          }
+        }
+      ]
     },
     "stats": {
       "diplomacy": 9,
@@ -3344,7 +3129,7 @@ export default [
     "race": "人类",
     "capital": "学城",
     "faith": "无",
-    "bio": "",
+    "bio": "百年前的纯水精灵化作人的模样，纠集人手，筑起了那高耸入云的自体自身之塔，如今，夹在大国之间的学城，其的独立地位岌岌可危，两方的王都希望大巫妖能为其卖命，而在塔内，杰出的学者们正在串联，试图提出挑战格兰的课题...",
     "accent": "#5489a2",
     "region": {
       "name": "央土",
@@ -3374,422 +3159,59 @@ export default [
           "learning": 6,
           "prowess": 6
         },
-        "bio": ""
+        "bio": "由纯水化作的人，试图将央土所有的人都吸纳进自体自身之塔中..."
       },
       "factions": [
         {
-          "id": "f_1",
-          "name": "近卫贵族庭",
-          "leader": "",
-          "influence": 50,
+          "id": "f_1794640797109",
+          "name": "青蛙社",
+          "leader": "格兰",
+          "influence": 62,
           "color": "#5489a2"
+        },
+        {
+          "id": "f_1794640806327",
+          "name": "朝露社",
+          "leader": "玛丽安",
+          "influence": 8,
+          "color": "#b29357"
+        },
+        {
+          "id": "f_1794640806490",
+          "name": "科学社",
+          "leader": "阿兰·吉约丹",
+          "influence": 11,
+          "color": "#518c76"
+        },
+        {
+          "id": "f_1794640806640",
+          "name": "超越社",
+          "leader": "雷内·德·佩特莉可",
+          "influence": 19,
+          "color": "#b36e67"
         }
       ],
-      "modifiers": [],
-      "wonders": [],
+      "modifiers": [
+        {
+          "id": "m_1794640886921",
+          "name": "叛乱的结社",
+          "desc": "伟大的巫妖以其的阴谋与力量铸就了这座象征“自我”的高塔，而今，杰出的学者们正团结起来，试图挑战格兰于这自体自身之塔不可撼动的统治",
+          "effect": "“与我加入勇者斗恶龙的游戏来吧”(朝露、科学、超越，三个社团的影响力之和不能超过青蛙社）"
+        }
+      ],
+      "wonders": [
+        {
+          "id": "w_1794640809912",
+          "name": "自体自身之塔",
+          "desc": "由格兰所设计，体现人类灵魂的进化以及世界的奥秘无穷的高塔，如今是央土学者们求知的乐园，是结社割据的场所...",
+          "avatar": "/countries/c18-wonder-1.jpg"
+        }
+      ],
       "heroes": []
     },
     "military": {
-      "legions": [
-        {
-          "id": "leg_1794580860154",
-          "name": "第I坚冰铁卫军团",
-          "training": "老练精兵",
-          "loyalty": 4,
-          "composition": [
-            {
-              "name": "霜原卫戍重步兵",
-              "count": 1,
-              "role": "正面坚阵",
-              "race": "人类",
-              "size": 800,
-              "total": 800,
-              "modifiers": "严寒抗性 · 盾墙防线",
-              "traits": [],
-              "gear": [
-                {
-                  "slot": "helmet",
-                  "slotLabel": "头部",
-                  "name": "头盔",
-                  "desc": "通用制式头盔。"
-                },
-                {
-                  "slot": "neckguard",
-                  "slotLabel": "护颈",
-                  "name": "护颈",
-                  "desc": "垂在颈后的护片，防止劈砍伤及颈项。"
-                },
-                {
-                  "slot": "armor",
-                  "slotLabel": "护甲",
-                  "name": "盔甲",
-                  "desc": "通用制式护甲。"
-                },
-                {
-                  "slot": "gloves",
-                  "slotLabel": "手部",
-                  "name": "手套",
-                  "desc": "通用护手。"
-                },
-                {
-                  "slot": "legs",
-                  "slotLabel": "腿部",
-                  "name": "腿甲",
-                  "desc": "覆盖大腿与膝部的甲片。"
-                },
-                {
-                  "slot": "weapons",
-                  "slotLabel": "武器",
-                  "name": "近战主武器",
-                  "desc": "通用的近战主手武器。"
-                },
-                {
-                  "slot": "weapons",
-                  "slotLabel": "武器",
-                  "name": "副手/盾牌",
-                  "desc": "副手持用的盾牌。"
-                },
-                {
-                  "slot": "weapons",
-                  "slotLabel": "武器",
-                  "name": "远程兵械",
-                  "desc": "通用的远程投射兵器。"
-                },
-                {
-                  "slot": "weapons",
-                  "slotLabel": "武器",
-                  "name": "战备佩刃",
-                  "desc": "随身佩戴的备用短刃。"
-                },
-                {
-                  "slot": "mount",
-                  "slotLabel": "坐骑",
-                  "name": "战马",
-                  "desc": "训练有素的战马，可供骑乘冲锋。"
-                }
-              ],
-              "desc": "身着覆身钢甲、手执两米塔盾的重装步兵战阵，专司抵御猛兽与骑兵冲击。"
-            },
-            {
-              "name": "北境雪鸮游侠",
-              "count": 1,
-              "role": "斥候/游击",
-              "race": "人类",
-              "size": 400,
-              "total": 400,
-              "modifiers": "风雪伪装 · 致命贯穿",
-              "traits": [],
-              "gear": [
-                {
-                  "slot": "helmet",
-                  "slotLabel": "头部",
-                  "name": "头盔",
-                  "desc": "通用制式头盔。"
-                },
-                {
-                  "slot": "neckguard",
-                  "slotLabel": "护颈",
-                  "name": "护颈",
-                  "desc": "垂在颈后的护片，防止劈砍伤及颈项。"
-                },
-                {
-                  "slot": "armor",
-                  "slotLabel": "护甲",
-                  "name": "盔甲",
-                  "desc": "通用制式护甲。"
-                },
-                {
-                  "slot": "gloves",
-                  "slotLabel": "手部",
-                  "name": "手套",
-                  "desc": "通用护手。"
-                },
-                {
-                  "slot": "legs",
-                  "slotLabel": "腿部",
-                  "name": "腿甲",
-                  "desc": "覆盖大腿与膝部的甲片。"
-                },
-                {
-                  "slot": "weapons",
-                  "slotLabel": "武器",
-                  "name": "近战主武器",
-                  "desc": "通用的近战主手武器。"
-                },
-                {
-                  "slot": "weapons",
-                  "slotLabel": "武器",
-                  "name": "副手/盾牌",
-                  "desc": "副手持用的盾牌。"
-                },
-                {
-                  "slot": "weapons",
-                  "slotLabel": "武器",
-                  "name": "远程兵械",
-                  "desc": "通用的远程投射兵器。"
-                },
-                {
-                  "slot": "weapons",
-                  "slotLabel": "武器",
-                  "name": "战备佩刃",
-                  "desc": "随身佩戴的备用短刃。"
-                },
-                {
-                  "slot": "mount",
-                  "slotLabel": "坐骑",
-                  "name": "战马",
-                  "desc": "训练有素的战马，可供骑乘冲锋。"
-                }
-              ],
-              "desc": "猎手出身的精准射手，擅长借助雪原风暴掩护进行冷箭狙杀。"
-            }
-          ],
-          "total": 1200,
-          "cards": 2
-        }
-      ],
-      "units": [
-        {
-          "id": "u_1",
-          "name": "霜原卫戍重步兵",
-          "role": "正面坚阵",
-          "race": "人类",
-          "size": 800,
-          "modifiers": "严寒抗性 · 盾墙防线",
-          "traits": [],
-          "gear": [
-            {
-              "slot": "helmet",
-              "slotLabel": "头部",
-              "name": "头盔",
-              "desc": "通用制式头盔。"
-            },
-            {
-              "slot": "neckguard",
-              "slotLabel": "护颈",
-              "name": "护颈",
-              "desc": "垂在颈后的护片，防止劈砍伤及颈项。"
-            },
-            {
-              "slot": "armor",
-              "slotLabel": "护甲",
-              "name": "盔甲",
-              "desc": "通用制式护甲。"
-            },
-            {
-              "slot": "gloves",
-              "slotLabel": "手部",
-              "name": "手套",
-              "desc": "通用护手。"
-            },
-            {
-              "slot": "legs",
-              "slotLabel": "腿部",
-              "name": "腿甲",
-              "desc": "覆盖大腿与膝部的甲片。"
-            },
-            {
-              "slot": "weapons",
-              "slotLabel": "武器",
-              "name": "近战主武器",
-              "desc": "通用的近战主手武器。"
-            },
-            {
-              "slot": "weapons",
-              "slotLabel": "武器",
-              "name": "副手/盾牌",
-              "desc": "副手持用的盾牌。"
-            },
-            {
-              "slot": "weapons",
-              "slotLabel": "武器",
-              "name": "远程兵械",
-              "desc": "通用的远程投射兵器。"
-            },
-            {
-              "slot": "weapons",
-              "slotLabel": "武器",
-              "name": "战备佩刃",
-              "desc": "随身佩戴的备用短刃。"
-            },
-            {
-              "slot": "mount",
-              "slotLabel": "坐骑",
-              "name": "战马",
-              "desc": "训练有素的战马，可供骑乘冲锋。"
-            }
-          ],
-          "desc": "身着覆身钢甲、手执两米塔盾的重装步兵战阵，专司抵御猛兽与骑兵冲击。",
-          "equipment": {
-            "helmet": {
-              "name": "头盔",
-              "desc": ""
-            },
-            "neckguard": {
-              "name": "护颈",
-              "desc": ""
-            },
-            "armor": {
-              "name": "盔甲",
-              "desc": ""
-            },
-            "gloves": {
-              "name": "手套",
-              "desc": ""
-            },
-            "legs": {
-              "name": "腿甲",
-              "desc": ""
-            },
-            "weapons": [
-              {
-                "name": "近战主武器",
-                "desc": "",
-                "category": "长剑"
-              },
-              {
-                "name": "副手/盾牌",
-                "desc": "",
-                "category": "圆盾"
-              },
-              {
-                "name": "远程兵械",
-                "desc": "",
-                "category": "重弩"
-              },
-              {
-                "name": "战备佩刃",
-                "desc": "",
-                "category": "短匕"
-              }
-            ],
-            "mount": {
-              "name": "战马",
-              "desc": ""
-            }
-          }
-        },
-        {
-          "id": "u_2",
-          "name": "北境雪鸮游侠",
-          "role": "斥候/游击",
-          "race": "人类",
-          "size": 400,
-          "modifiers": "风雪伪装 · 致命贯穿",
-          "traits": [],
-          "gear": [
-            {
-              "slot": "helmet",
-              "slotLabel": "头部",
-              "name": "头盔",
-              "desc": "通用制式头盔。"
-            },
-            {
-              "slot": "neckguard",
-              "slotLabel": "护颈",
-              "name": "护颈",
-              "desc": "垂在颈后的护片，防止劈砍伤及颈项。"
-            },
-            {
-              "slot": "armor",
-              "slotLabel": "护甲",
-              "name": "盔甲",
-              "desc": "通用制式护甲。"
-            },
-            {
-              "slot": "gloves",
-              "slotLabel": "手部",
-              "name": "手套",
-              "desc": "通用护手。"
-            },
-            {
-              "slot": "legs",
-              "slotLabel": "腿部",
-              "name": "腿甲",
-              "desc": "覆盖大腿与膝部的甲片。"
-            },
-            {
-              "slot": "weapons",
-              "slotLabel": "武器",
-              "name": "近战主武器",
-              "desc": "通用的近战主手武器。"
-            },
-            {
-              "slot": "weapons",
-              "slotLabel": "武器",
-              "name": "副手/盾牌",
-              "desc": "副手持用的盾牌。"
-            },
-            {
-              "slot": "weapons",
-              "slotLabel": "武器",
-              "name": "远程兵械",
-              "desc": "通用的远程投射兵器。"
-            },
-            {
-              "slot": "weapons",
-              "slotLabel": "武器",
-              "name": "战备佩刃",
-              "desc": "随身佩戴的备用短刃。"
-            },
-            {
-              "slot": "mount",
-              "slotLabel": "坐骑",
-              "name": "战马",
-              "desc": "训练有素的战马，可供骑乘冲锋。"
-            }
-          ],
-          "desc": "猎手出身的精准射手，擅长借助雪原风暴掩护进行冷箭狙杀。",
-          "equipment": {
-            "helmet": {
-              "name": "头盔",
-              "desc": ""
-            },
-            "neckguard": {
-              "name": "护颈",
-              "desc": ""
-            },
-            "armor": {
-              "name": "盔甲",
-              "desc": ""
-            },
-            "gloves": {
-              "name": "手套",
-              "desc": ""
-            },
-            "legs": {
-              "name": "腿甲",
-              "desc": ""
-            },
-            "weapons": [
-              {
-                "name": "近战主武器",
-                "desc": "",
-                "category": "长剑"
-              },
-              {
-                "name": "副手/盾牌",
-                "desc": "",
-                "category": "圆盾"
-              },
-              {
-                "name": "远程兵械",
-                "desc": "",
-                "category": "重弩"
-              },
-              {
-                "name": "战备佩刃",
-                "desc": "",
-                "category": "短匕"
-              }
-            ],
-            "mount": {
-              "name": "战马",
-              "desc": ""
-            }
-          }
-        }
-      ]
+      "legions": [],
+      "units": []
     },
     "stats": {
       "diplomacy": 10,
@@ -3807,8 +3229,8 @@ export default [
     "name": "维瑞亚帝国",
     "race": "人类",
     "capital": "基尼格",
-    "faith": "",
-    "bio": "",
+    "faith": "原始崇拜",
+    "bio": "尽管过去帝国的武德曾照耀四海，但绵延的内战已然深深打击了她的国力——四个家族为了皇位的争夺而大打出手，昔日因理想而团结起来的诸民族之乐园，如今已成为了各自的绞肉机。脆弱的统一曾由哈巴哲家族用武力再度建立，可随着其的神秘死亡，纷争再度撕碎了帝国，戴伦元首是否能拼起帝国的碎片，还是任由帝国就此分崩离析？",
     "accent": "#5489a2",
     "region": {
       "name": "央土",
@@ -3822,7 +3244,7 @@ export default [
     "politics": {
       "system": "封建君主制",
       "leader": {
-        "name": "受诅咒的阿道夫·基尼格",
+        "name": "受诅咒的戴伦·基尼格",
         "title": "元首",
         "avatar": null,
         "traits": [
@@ -3838,417 +3260,611 @@ export default [
           "learning": 10,
           "prowess": 7
         },
-        "bio": ""
+        "bio": "戴伦·基尼格是基尼格家族的私生子，尽管通过迎娶蒙格家族的长女试图缓和自己的正统性，但随着内战的再次到来无功而返"
       },
       "factions": [
         {
-          "id": "f_1",
-          "name": "近卫贵族庭",
-          "leader": "",
-          "influence": 50,
+          "id": "f_1794649440709",
+          "name": "基尼格家族",
+          "leader": "戴伦·基尼格",
+          "influence": 30,
           "color": "#5489a2"
+        },
+        {
+          "id": "f_1794649440895",
+          "name": "蒙格家族",
+          "leader": "罗伊·蒙格",
+          "influence": 17,
+          "color": "#b29357"
+        },
+        {
+          "id": "f_1794649440999",
+          "name": "哈巴哲家族",
+          "leader": "萨曼·哈巴哲",
+          "influence": 30,
+          "color": "#518c76"
+        },
+        {
+          "id": "f_1794649441620",
+          "name": "斯皮格家族",
+          "leader": "卡尔·斯皮格",
+          "influence": 23,
+          "color": "#b36e67"
         }
       ],
-      "modifiers": [],
+      "modifiers": [
+        {
+          "id": "m_1794644341626",
+          "name": "大争之世",
+          "desc": "维瑞亚的短暂统一因上任哈巴哲家族的神秘死亡而分裂，尽管戴伦通过贿赂的方式成功让议会的议员们拥簇其为新一任的皇帝，但维瑞亚的其他三个家族却不怎么认为——作为基尼格家族的合法私生子，其的正统一直饱受争议，于皇都传播的流言蜚语将其同哈巴哲的死亡相联系...",
+          "effect": "“无论如何，戴伦必须通过铁腕手段彰显其的‘正统’不可撼动”"
+        }
+      ],
       "wonders": [],
       "heroes": []
     },
     "military": {
       "legions": [
         {
-          "id": "leg_1794580861530",
-          "name": "第I坚冰铁卫军团",
-          "training": "老练精兵",
-          "loyalty": 4,
+          "id": "leg_1794652700611",
+          "name": "维瑞亚第一军团",
+          "training": "百战老兵",
+          "loyalty": 3,
           "composition": [
             {
-              "name": "霜原卫戍重步兵",
-              "count": 1,
-              "role": "正面坚阵",
+              "name": "维瑞亚长柄矛手",
+              "count": 4,
+              "role": "炮灰",
               "race": "人类",
-              "size": 800,
-              "total": 800,
-              "modifiers": "严寒抗性 · 盾墙防线",
-              "traits": [],
+              "size": 500,
+              "total": 2000,
+              "modifiers": "【炮灰】【狂暴】",
+              "traits": [
+                {
+                  "name": "炮灰",
+                  "desc": ""
+                },
+                {
+                  "name": "狂暴",
+                  "desc": ""
+                }
+              ],
               "gear": [
-                {
-                  "slot": "helmet",
-                  "slotLabel": "头部",
-                  "name": "头盔",
-                  "desc": "通用制式头盔。"
-                },
-                {
-                  "slot": "neckguard",
-                  "slotLabel": "护颈",
-                  "name": "护颈",
-                  "desc": "垂在颈后的护片，防止劈砍伤及颈项。"
-                },
                 {
                   "slot": "armor",
                   "slotLabel": "护甲",
-                  "name": "盔甲",
-                  "desc": "通用制式护甲。"
-                },
-                {
-                  "slot": "gloves",
-                  "slotLabel": "手部",
-                  "name": "手套",
-                  "desc": "通用护手。"
-                },
-                {
-                  "slot": "legs",
-                  "slotLabel": "腿部",
-                  "name": "腿甲",
-                  "desc": "覆盖大腿与膝部的甲片。"
+                  "name": "轻便布甲",
+                  "desc": "轻薄的布甲，牺牲防护换取机动。"
                 },
                 {
                   "slot": "weapons",
                   "slotLabel": "武器",
-                  "name": "近战主武器",
-                  "desc": "通用的近战主手武器。"
-                },
-                {
-                  "slot": "weapons",
-                  "slotLabel": "武器",
-                  "name": "副手/盾牌",
-                  "desc": "副手持用的盾牌。"
-                },
-                {
-                  "slot": "weapons",
-                  "slotLabel": "武器",
-                  "name": "远程兵械",
-                  "desc": "通用的远程投射兵器。"
-                },
-                {
-                  "slot": "weapons",
-                  "slotLabel": "武器",
-                  "name": "战备佩刃",
-                  "desc": "随身佩戴的备用短刃。"
-                },
-                {
-                  "slot": "mount",
-                  "slotLabel": "坐骑",
-                  "name": "战马",
-                  "desc": "训练有素的战马，可供骑乘冲锋。"
+                  "name": "石制长矛",
+                  "desc": ""
                 }
               ],
-              "desc": "身着覆身钢甲、手执两米塔盾的重装步兵战阵，专司抵御猛兽与骑兵冲击。"
+              "desc": ""
             },
             {
-              "name": "北境雪鸮游侠",
-              "count": 1,
-              "role": "斥候/游击",
+              "name": "维瑞亚重步兵",
+              "count": 3,
+              "role": "坚阵中锋",
               "race": "人类",
-              "size": 400,
-              "total": 400,
-              "modifiers": "风雪伪装 · 致命贯穿",
-              "traits": [],
+              "size": 120,
+              "total": 360,
+              "modifiers": "【尚武造诣】【狂暴】【引发恐惧】",
+              "traits": [
+                {
+                  "name": "尚武造诣",
+                  "desc": "部队长期操练武艺，白刃相接时更有章法，近战杀伤与士气略高。"
+                },
+                {
+                  "name": "狂暴",
+                  "desc": ""
+                },
+                {
+                  "name": "引发恐惧",
+                  "desc": "军容凶悍，接敌瞬间便足以震慑对手，削弱敌军士气。"
+                }
+              ],
               "gear": [
                 {
                   "slot": "helmet",
                   "slotLabel": "头部",
-                  "name": "头盔",
-                  "desc": "通用制式头盔。"
-                },
-                {
-                  "slot": "neckguard",
-                  "slotLabel": "护颈",
-                  "name": "护颈",
-                  "desc": "垂在颈后的护片，防止劈砍伤及颈项。"
+                  "name": "青铜全覆头盔",
+                  "desc": ""
                 },
                 {
                   "slot": "armor",
                   "slotLabel": "护甲",
-                  "name": "盔甲",
-                  "desc": "通用制式护甲。"
-                },
-                {
-                  "slot": "gloves",
-                  "slotLabel": "手部",
-                  "name": "手套",
-                  "desc": "通用护手。"
+                  "name": "青铜胸甲",
+                  "desc": ""
                 },
                 {
                   "slot": "legs",
                   "slotLabel": "腿部",
-                  "name": "腿甲",
-                  "desc": "覆盖大腿与膝部的甲片。"
+                  "name": "青铜护胫",
+                  "desc": ""
                 },
                 {
                   "slot": "weapons",
                   "slotLabel": "武器",
-                  "name": "近战主武器",
-                  "desc": "通用的近战主手武器。"
+                  "name": "青铜长矛",
+                  "desc": ""
                 },
                 {
                   "slot": "weapons",
                   "slotLabel": "武器",
-                  "name": "副手/盾牌",
-                  "desc": "副手持用的盾牌。"
+                  "name": "大圆盾",
+                  "desc": ""
                 },
                 {
                   "slot": "weapons",
                   "slotLabel": "武器",
-                  "name": "远程兵械",
-                  "desc": "通用的远程投射兵器。"
-                },
-                {
-                  "slot": "weapons",
-                  "slotLabel": "武器",
-                  "name": "战备佩刃",
-                  "desc": "随身佩戴的备用短刃。"
-                },
-                {
-                  "slot": "mount",
-                  "slotLabel": "坐骑",
-                  "name": "战马",
-                  "desc": "训练有素的战马，可供骑乘冲锋。"
+                  "name": "反曲刀",
+                  "desc": ""
                 }
               ],
-              "desc": "猎手出身的精准射手，擅长借助雪原风暴掩护进行冷箭狙杀。"
+              "desc": ""
+            },
+            {
+              "name": "维瑞亚弓箭手",
+              "count": 2,
+              "role": "远程弓兵",
+              "race": "人类",
+              "size": 250,
+              "total": 500,
+              "modifiers": "【尚武造诣】",
+              "traits": [
+                {
+                  "name": "尚武造诣",
+                  "desc": "部队长期操练武艺，白刃相接时更有章法，近战杀伤与士气略高。"
+                }
+              ],
+              "gear": [
+                {
+                  "slot": "armor",
+                  "slotLabel": "护甲",
+                  "name": "轻便布甲",
+                  "desc": "轻薄的布甲，牺牲防护换取机动。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "维瑞亚短弓",
+                  "desc": ""
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "青铜匕首",
+                  "desc": ""
+                }
+              ],
+              "desc": ""
+            },
+            {
+              "name": "维瑞亚战争术士",
+              "count": 2,
+              "role": "战线撕裂者",
+              "race": "人类",
+              "size": 50,
+              "total": 100,
+              "modifiers": "【尚武造诣】【引发恐惧】【惊骇敌军】",
+              "traits": [
+                {
+                  "name": "尚武造诣",
+                  "desc": "部队长期操练武艺，白刃相接时更有章法，近战杀伤与士气略高。"
+                },
+                {
+                  "name": "引发恐惧",
+                  "desc": "军容凶悍，接敌瞬间便足以震慑对手，削弱敌军士气。"
+                },
+                {
+                  "name": "惊骇敌军",
+                  "desc": ""
+                }
+              ],
+              "gear": [
+                {
+                  "slot": "helmet",
+                  "slotLabel": "头部",
+                  "name": "青铜全覆头盔",
+                  "desc": ""
+                },
+                {
+                  "slot": "armor",
+                  "slotLabel": "护甲",
+                  "name": "维瑞亚肌肉甲",
+                  "desc": ""
+                },
+                {
+                  "slot": "legs",
+                  "slotLabel": "腿部",
+                  "name": "青铜护胫",
+                  "desc": ""
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "维瑞亚大剑",
+                  "desc": ""
+                }
+              ],
+              "desc": ""
             }
           ],
-          "total": 1200,
-          "cards": 2
+          "total": 2960,
+          "cards": 11
         }
       ],
       "units": [
         {
-          "id": "u_1",
-          "name": "霜原卫戍重步兵",
-          "role": "正面坚阵",
+          "id": "u_1794652016686",
+          "name": "维瑞亚长柄矛手",
+          "role": "炮灰",
           "race": "人类",
-          "size": 800,
-          "modifiers": "严寒抗性 · 盾墙防线",
-          "traits": [],
+          "size": 500,
+          "modifiers": "【炮灰】【狂暴】",
+          "traits": [
+            {
+              "name": "炮灰",
+              "desc": ""
+            },
+            {
+              "name": "狂暴",
+              "desc": ""
+            }
+          ],
           "gear": [
-            {
-              "slot": "helmet",
-              "slotLabel": "头部",
-              "name": "头盔",
-              "desc": "通用制式头盔。"
-            },
-            {
-              "slot": "neckguard",
-              "slotLabel": "护颈",
-              "name": "护颈",
-              "desc": "垂在颈后的护片，防止劈砍伤及颈项。"
-            },
             {
               "slot": "armor",
               "slotLabel": "护甲",
-              "name": "盔甲",
-              "desc": "通用制式护甲。"
-            },
-            {
-              "slot": "gloves",
-              "slotLabel": "手部",
-              "name": "手套",
-              "desc": "通用护手。"
-            },
-            {
-              "slot": "legs",
-              "slotLabel": "腿部",
-              "name": "腿甲",
-              "desc": "覆盖大腿与膝部的甲片。"
+              "name": "轻便布甲",
+              "desc": "轻薄的布甲，牺牲防护换取机动。"
             },
             {
               "slot": "weapons",
               "slotLabel": "武器",
-              "name": "近战主武器",
-              "desc": "通用的近战主手武器。"
-            },
-            {
-              "slot": "weapons",
-              "slotLabel": "武器",
-              "name": "副手/盾牌",
-              "desc": "副手持用的盾牌。"
-            },
-            {
-              "slot": "weapons",
-              "slotLabel": "武器",
-              "name": "远程兵械",
-              "desc": "通用的远程投射兵器。"
-            },
-            {
-              "slot": "weapons",
-              "slotLabel": "武器",
-              "name": "战备佩刃",
-              "desc": "随身佩戴的备用短刃。"
-            },
-            {
-              "slot": "mount",
-              "slotLabel": "坐骑",
-              "name": "战马",
-              "desc": "训练有素的战马，可供骑乘冲锋。"
+              "name": "石制长矛",
+              "desc": ""
             }
           ],
-          "desc": "身着覆身钢甲、手执两米塔盾的重装步兵战阵，专司抵御猛兽与骑兵冲击。",
+          "desc": "",
           "equipment": {
             "helmet": {
-              "name": "头盔",
+              "name": "无",
               "desc": ""
             },
             "neckguard": {
-              "name": "护颈",
+              "name": "无",
               "desc": ""
             },
             "armor": {
-              "name": "盔甲",
+              "name": "轻便布甲",
               "desc": ""
             },
             "gloves": {
-              "name": "手套",
+              "name": "无",
               "desc": ""
             },
             "legs": {
-              "name": "腿甲",
+              "name": "无",
               "desc": ""
             },
             "weapons": [
               {
-                "name": "近战主武器",
+                "name": "石制长矛",
                 "desc": "",
-                "category": "长剑"
+                "category": "长柄武器"
               },
               {
-                "name": "副手/盾牌",
+                "name": "无",
                 "desc": "",
-                "category": "圆盾"
+                "category": "无"
               },
               {
-                "name": "远程兵械",
+                "name": "无",
                 "desc": "",
-                "category": "重弩"
+                "category": "无"
               },
               {
-                "name": "战备佩刃",
+                "name": "无",
                 "desc": "",
-                "category": "短匕"
+                "category": "无"
               }
             ],
             "mount": {
-              "name": "战马",
+              "name": "无",
               "desc": ""
             }
           }
         },
         {
-          "id": "u_2",
-          "name": "北境雪鸮游侠",
-          "role": "斥候/游击",
+          "id": "u_1794652018224",
+          "name": "维瑞亚重步兵",
+          "role": "坚阵中锋",
           "race": "人类",
-          "size": 400,
-          "modifiers": "风雪伪装 · 致命贯穿",
-          "traits": [],
+          "size": 120,
+          "modifiers": "【尚武造诣】【狂暴】【引发恐惧】",
+          "traits": [
+            {
+              "name": "尚武造诣",
+              "desc": "部队长期操练武艺，白刃相接时更有章法，近战杀伤与士气略高。"
+            },
+            {
+              "name": "狂暴",
+              "desc": ""
+            },
+            {
+              "name": "引发恐惧",
+              "desc": "军容凶悍，接敌瞬间便足以震慑对手，削弱敌军士气。"
+            }
+          ],
           "gear": [
             {
               "slot": "helmet",
               "slotLabel": "头部",
-              "name": "头盔",
-              "desc": "通用制式头盔。"
-            },
-            {
-              "slot": "neckguard",
-              "slotLabel": "护颈",
-              "name": "护颈",
-              "desc": "垂在颈后的护片，防止劈砍伤及颈项。"
+              "name": "青铜全覆头盔",
+              "desc": ""
             },
             {
               "slot": "armor",
               "slotLabel": "护甲",
-              "name": "盔甲",
-              "desc": "通用制式护甲。"
-            },
-            {
-              "slot": "gloves",
-              "slotLabel": "手部",
-              "name": "手套",
-              "desc": "通用护手。"
+              "name": "青铜胸甲",
+              "desc": ""
             },
             {
               "slot": "legs",
               "slotLabel": "腿部",
-              "name": "腿甲",
-              "desc": "覆盖大腿与膝部的甲片。"
+              "name": "青铜护胫",
+              "desc": ""
             },
             {
               "slot": "weapons",
               "slotLabel": "武器",
-              "name": "近战主武器",
-              "desc": "通用的近战主手武器。"
+              "name": "青铜长矛",
+              "desc": ""
             },
             {
               "slot": "weapons",
               "slotLabel": "武器",
-              "name": "副手/盾牌",
-              "desc": "副手持用的盾牌。"
+              "name": "大圆盾",
+              "desc": ""
             },
             {
               "slot": "weapons",
               "slotLabel": "武器",
-              "name": "远程兵械",
-              "desc": "通用的远程投射兵器。"
-            },
-            {
-              "slot": "weapons",
-              "slotLabel": "武器",
-              "name": "战备佩刃",
-              "desc": "随身佩戴的备用短刃。"
-            },
-            {
-              "slot": "mount",
-              "slotLabel": "坐骑",
-              "name": "战马",
-              "desc": "训练有素的战马，可供骑乘冲锋。"
+              "name": "反曲刀",
+              "desc": ""
             }
           ],
-          "desc": "猎手出身的精准射手，擅长借助雪原风暴掩护进行冷箭狙杀。",
+          "desc": "",
           "equipment": {
             "helmet": {
-              "name": "头盔",
+              "name": "青铜全覆头盔",
               "desc": ""
             },
             "neckguard": {
-              "name": "护颈",
+              "name": "无",
               "desc": ""
             },
             "armor": {
-              "name": "盔甲",
+              "name": "青铜胸甲",
               "desc": ""
             },
             "gloves": {
-              "name": "手套",
+              "name": "无",
               "desc": ""
             },
             "legs": {
-              "name": "腿甲",
+              "name": "青铜护胫",
               "desc": ""
             },
             "weapons": [
               {
-                "name": "近战主武器",
+                "name": "青铜长矛",
                 "desc": "",
-                "category": "长剑"
+                "category": "长柄武器"
               },
               {
-                "name": "副手/盾牌",
+                "name": "大圆盾",
                 "desc": "",
                 "category": "圆盾"
               },
               {
-                "name": "远程兵械",
+                "name": "反曲刀",
                 "desc": "",
-                "category": "重弩"
+                "category": "短剑"
               },
               {
-                "name": "战备佩刃",
+                "name": "无",
                 "desc": "",
-                "category": "短匕"
+                "category": "无"
               }
             ],
             "mount": {
-              "name": "战马",
+              "name": "无",
+              "desc": ""
+            }
+          }
+        },
+        {
+          "id": "u_1794652022158",
+          "name": "维瑞亚弓箭手",
+          "role": "远程弓兵",
+          "race": "人类",
+          "size": 250,
+          "modifiers": "【尚武造诣】",
+          "traits": [
+            {
+              "name": "尚武造诣",
+              "desc": "部队长期操练武艺，白刃相接时更有章法，近战杀伤与士气略高。"
+            }
+          ],
+          "gear": [
+            {
+              "slot": "armor",
+              "slotLabel": "护甲",
+              "name": "轻便布甲",
+              "desc": "轻薄的布甲，牺牲防护换取机动。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "维瑞亚短弓",
+              "desc": ""
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "青铜匕首",
+              "desc": ""
+            }
+          ],
+          "desc": "",
+          "equipment": {
+            "helmet": {
+              "name": "无",
+              "desc": ""
+            },
+            "neckguard": {
+              "name": "无",
+              "desc": ""
+            },
+            "armor": {
+              "name": "轻便布甲",
+              "desc": ""
+            },
+            "gloves": {
+              "name": "无",
+              "desc": ""
+            },
+            "legs": {
+              "name": "无",
+              "desc": ""
+            },
+            "weapons": [
+              {
+                "name": "维瑞亚短弓",
+                "desc": "",
+                "category": "远程武器"
+              },
+              {
+                "name": "青铜匕首",
+                "desc": "",
+                "category": "匕首"
+              },
+              {
+                "name": "无",
+                "desc": "",
+                "category": "无"
+              },
+              {
+                "name": "无",
+                "desc": "",
+                "category": "无"
+              }
+            ],
+            "mount": {
+              "name": "无",
+              "desc": ""
+            }
+          }
+        },
+        {
+          "id": "u_1794652035239",
+          "name": "维瑞亚战争术士",
+          "role": "战线撕裂者",
+          "race": "人类",
+          "size": 50,
+          "modifiers": "【尚武造诣】【引发恐惧】【惊骇敌军】",
+          "traits": [
+            {
+              "name": "尚武造诣",
+              "desc": "部队长期操练武艺，白刃相接时更有章法，近战杀伤与士气略高。"
+            },
+            {
+              "name": "引发恐惧",
+              "desc": "军容凶悍，接敌瞬间便足以震慑对手，削弱敌军士气。"
+            },
+            {
+              "name": "惊骇敌军",
+              "desc": ""
+            }
+          ],
+          "gear": [
+            {
+              "slot": "helmet",
+              "slotLabel": "头部",
+              "name": "青铜全覆头盔",
+              "desc": ""
+            },
+            {
+              "slot": "armor",
+              "slotLabel": "护甲",
+              "name": "维瑞亚肌肉甲",
+              "desc": ""
+            },
+            {
+              "slot": "legs",
+              "slotLabel": "腿部",
+              "name": "青铜护胫",
+              "desc": ""
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "维瑞亚大剑",
+              "desc": ""
+            }
+          ],
+          "desc": "",
+          "equipment": {
+            "helmet": {
+              "name": "青铜全覆头盔",
+              "desc": ""
+            },
+            "neckguard": {
+              "name": "无",
+              "desc": ""
+            },
+            "armor": {
+              "name": "维瑞亚肌肉甲",
+              "desc": ""
+            },
+            "gloves": {
+              "name": "无",
+              "desc": ""
+            },
+            "legs": {
+              "name": "青铜护胫",
+              "desc": ""
+            },
+            "weapons": [
+              {
+                "name": "维瑞亚大剑",
+                "desc": "",
+                "category": "双手剑"
+              },
+              {
+                "name": "无",
+                "desc": "",
+                "category": "无"
+              },
+              {
+                "name": "无",
+                "desc": "",
+                "category": "无"
+              },
+              {
+                "name": "无",
+                "desc": "",
+                "category": "无"
+              }
+            ],
+            "mount": {
+              "name": "无",
               "desc": ""
             }
           }
