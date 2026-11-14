@@ -400,6 +400,20 @@ const toc = computed(() => [
   font-size: 13.5px;
 }
 
+.wp-faction-table th:nth-child(1),
+.wp-faction-table td:nth-child(1) {
+  width: 38%;
+}
+
+.wp-faction-table th:nth-child(2),
+.wp-faction-table td:nth-child(2) {
+  width: 40%;
+}
+
+.wp-faction-table td {
+  word-break: keep-all;
+}
+
 .wp-faction-table th,
 .wp-unit-table th {
   padding: 9px 14px;

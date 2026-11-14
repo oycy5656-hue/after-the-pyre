@@ -36,6 +36,11 @@
   display: none;
 }
 
+/* 国家页用自己的目录，隐藏 VitePress 右侧大纲，把宽度让给正文 */
+.VPDoc .aside {
+  display: none !important;
+}
+
 /* 数据型页面放宽正文容器，卡片墙能多排一列 */
 @media (min-width: 960px) {
   .VPDoc .content-container,
