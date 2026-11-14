@@ -25,6 +25,16 @@ const statKeys = Object.keys(statLabels)
 const statMax = computed(() => Math.max(20, ...statKeys.map((k) => country.value.stats[k] || 0)))
 const totalStats = computed(() => statKeys.reduce((sum, k) => sum + (country.value.stats[k] || 0), 0))
 
+const populationText = computed(() => {
+  const raw = String(country.value.population || '').trim()
+  if (!raw) return ''
+  const m = /^([\d.]+)\s*([KM]?)$/i.exec(raw)
+  if (!m) return raw
+  const n = Number(m[1]) * (m[2].toUpperCase() === 'K' ? 1e3 : m[2].toUpperCase() === 'M' ? 1e6 : 1)
+  if (n >= 1e4) return raw + '（约 ' + (n / 1e4).toFixed(n < 1e5 ? 1 : 0) + ' 万）'
+  return raw + '（约 ' + n.toLocaleString() + ' 人）'
+})
+
 const factions = computed(() => (country.value.politics && country.value.politics.factions) || [])
 const regionTraits = computed(() => (country.value.region && country.value.region.traits) || [])
 const leaderTraits = computed(() => (country.value.politics.leader && country.value.politics.leader.traits) || [])
@@ -254,6 +264,7 @@ const toc = computed(() => [
             <tr><th>种族</th><td>{{ country.race }}</td></tr>
             <tr><th>首都</th><td>{{ country.capital }}</td></tr>
             <tr><th>信仰</th><td>{{ country.faith }}</td></tr>
+            <tr v-if="populationText"><th>人口</th><td>{{ populationText }}</td></tr>
             <tr><th>政体</th><td>{{ country.politics.system }}</td></tr>
             <tr><th>区域</th><td>{{ country.region.name }}</td></tr>
             <tr><th>派系</th><td>{{ factions.length }} 个</td></tr>

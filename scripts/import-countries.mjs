@@ -134,6 +134,7 @@ const records = countries.map((c, index) => {
     race: c.race,
     capital: c.capital,
     faith: c.faith,
+    population: c.population || '',
     bio: c.nation_bio,
     accent: politics.factions?.[0]?.color || '#2f7d63',
     region: {

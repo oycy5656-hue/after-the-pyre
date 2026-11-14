@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { computed, ref } from 'vue'
 import { withBase } from 'vitepress'
 import countries from '../../data/countries.mjs'
@@ -110,6 +110,7 @@ function initials(name) {
           <div><dt>首都</dt><dd>{{ c.capital }}</dd></div>
           <div><dt>政体</dt><dd>{{ c.politics.system }}</dd></div>
           <div><dt>区域</dt><dd>{{ c.region.name }}</dd></div>
+          <div v-if="c.population"><dt>人口</dt><dd>{{ c.population }}</dd></div>
         </dl>
         <div class="ex-factions">
           <span
