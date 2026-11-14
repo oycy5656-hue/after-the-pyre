@@ -1,5 +1,5 @@
-﻿<script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+<script setup>
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter, withBase } from 'vitepress'
 import mapData from '../../data/map.mjs'
 import countries from '../../data/countries.mjs'
@@ -73,7 +73,6 @@ function onPointerDown(event) {
   dragging = true
   moved = false
   last = { x: event.clientX, y: event.clientY }
-  wrapEl.value?.setPointerCapture?.(event.pointerId)
 }
 
 function onPointerMove(event) {
@@ -86,8 +85,28 @@ function onPointerMove(event) {
 }
 
 function onPointerUp(event) {
+  const wasDragging = dragging
+  const wasMoved = moved
   dragging = false
-  wrapEl.value?.releasePointerCapture?.(event.pointerId)
+  moved = false
+  if (!wasDragging || wasMoved) return
+  // 没有拖动 => 当作点击：用坐标取元素，避免 pointer 捕获导致拿不到真正的目标
+  const el = document.elementFromPoint(event.clientX, event.clientY)
+  handleClickAt(el)
+}
+
+function handleClickAt(el) {
+  const burgIdx = burgIndexFrom(el)
+  if (burgIdx) {
+    const burg = burgById.get(burgIdx)
+    const state = burg && stateByIndex.get(burg.state)
+    if (state?.slug) return go(state.slug)
+  }
+  const idx = stateIndexFrom(el)
+  if (idx) {
+    const state = stateByIndex.get(idx)
+    if (state?.slug) return go(state.slug)
+  }
 }
 
 function stateIndexFrom(target) {
@@ -161,22 +180,6 @@ function onStageLeave() {
   activeState.value = null
 }
 
-function onStageClick(event) {
-  if (moved) return
-  const burgIdx = burgIndexFrom(event.target)
-  if (burgIdx) {
-    const burg = burgById.get(burgIdx)
-    const state = burg && stateByIndex.get(burg.state)
-    if (state?.slug) return go(state.slug)
-  }
-  const idx = stateIndexFrom(event.target)
-  if (idx) {
-    const state = stateByIndex.get(idx)
-    if (state?.slug) return go(state.slug)
-    activeState.value = state
-  }
-}
-
 function go(slug) {
   router.go(withBase(`/countries/${slug}`))
 }
@@ -186,6 +189,48 @@ function focusState(state) {
 }
 
 const burgById = new Map(mapData.burgs.map((b) => [b.i, b]))
+const burgDots = []
+
+// 国名标签：字号固定为屏幕上的 11px，并做简单避让，避免挤成一团
+const labelItems = []
+
+function layoutLabels() {
+  const stage = stageEl.value
+  if (!stage || !labelItems.length) return
+  const width = stage.clientWidth || 1
+  const pxPerUnit = (width * zoom.value) / mapData.width
+  const fontUnits = 11 / pxPerUnit
+  const strokeUnits = 2.4 / pxPerUnit
+  const placed = []
+
+  const sorted = [...labelItems].sort((a, b) => b.state.area - a.state.area)
+  for (const item of sorted) {
+    const el = item.el
+    el.setAttribute('font-size', String(fontUnits))
+    el.setAttribute('stroke-width', String(strokeUnits))
+    const sx = item.state.capital.x * pxPerUnit
+    const sy = (item.state.capital.y - 7) * pxPerUnit
+    const halfW = (item.state.name.length * 11) / 2
+    const overlap = placed.some((p) => Math.abs(p.x - sx) < p.halfW + halfW + 8 && Math.abs(p.y - sy) < 14)
+    if (overlap) {
+      el.style.display = 'none'
+    } else {
+      el.style.display = ''
+      placed.push({ x: sx, y: sy, halfW })
+    }
+  }
+
+  // 城市圆点也按屏幕尺寸绘制，放大后不会变成大圆斑
+  for (const dot of burgDots) {
+    const size = dot.capital ? 4 : 2.4
+    dot.el.setAttribute('r', String(size / pxPerUnit))
+    dot.el.setAttribute('stroke-width', String(0.9 / pxPerUnit))
+  }
+}
+
+watch(zoom, () => layoutLabels())
+
+onMounted(() => window.addEventListener('resize', layoutLabels))
 
 onMounted(async () => {
   try {
@@ -229,8 +274,8 @@ onMounted(async () => {
       dot.setAttribute('stroke', '#2a2a2a')
       dot.setAttribute('stroke-width', burg.capital ? '1.1' : '0.6')
       dot.setAttribute('data-burg', String(burg.i))
-      dot.setAttribute('vector-effect', 'non-scaling-stroke')
       layer.appendChild(dot)
+      burgDots.push({ el: dot, capital: burg.capital })
     }
     svg.appendChild(layer)
 
@@ -247,19 +292,21 @@ onMounted(async () => {
       text.setAttribute('x', String(anchor.x))
       text.setAttribute('y', String(anchor.y - 7))
       text.setAttribute('text-anchor', 'middle')
-      text.setAttribute('font-size', '15')
+      text.setAttribute('font-size', '11')
       text.setAttribute('font-family', "'PingFang SC','Microsoft YaHei',sans-serif")
       text.setAttribute('fill', '#14202a')
       text.setAttribute('stroke', 'rgba(255,255,255,0.9)')
-      text.setAttribute('stroke-width', '2.6')
+      text.setAttribute('stroke-width', '2.4')
       text.setAttribute('paint-order', 'stroke')
-      text.setAttribute('letter-spacing', '0.5')
+      text.setAttribute('letter-spacing', '0.3')
       text.setAttribute('data-state-index', String(state.i))
       text.setAttribute('class', state.slug ? 'mv-label mv-label-link' : 'mv-label')
       text.textContent = state.name
       labelLayer.appendChild(text)
+      labelItems.push({ el: text, state })
     }
     svg.appendChild(labelLayer)
+    layoutLabels()
 
     loading.value = false
   } catch (err) {
@@ -270,6 +317,7 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   tooltip.value.visible = false
+  window.removeEventListener('resize', layoutLabels)
 })
 </script>
 
@@ -301,7 +349,6 @@ onBeforeUnmount(() => {
         @pointercancel="onPointerUp"
         @mousemove="onStageMove"
         @mouseleave="onStageLeave"
-        @click="onStageClick"
       >
         <div ref="stageEl" class="mv-stage" :class="{ 'burgs-off': !showBurgs }" :style="stageStyle"></div>
         <p v-if="loading" class="mv-loading">地图加载中…</p>

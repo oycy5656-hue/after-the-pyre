@@ -1,58 +1,48 @@
-# 葬火之后 Wiki
+# 葬火之后
 
-用 Markdown 写的 Wiki，基于 [VitePress](https://vitepress.dev/zh/)。
-内容全在 `docs/` 目录，构建产物是纯静态文件。
+一个关于「葬火之后」世界设定的站点：二十国志与世界地图。
 
 线上地址：https://oycy5656-hue.github.io/after-the-pyre/
 仓库：https://github.com/oycy5656-hue/after-the-pyre
 
-## 快速开始
+## 内容
+
+- `/countries/` 国家档案：卡片墙、搜索、种族筛选、统治者六维对比
+- `/countries/<国名>` 单国页：统治者、势力格局、奇观、国策、军团
+- `/map/` 世界地图：可缩放拖动，点国名进档案，附 `.map` 工程文件下载
+
+## 本地开发
 
 ```bash
-cd wiki
-npm install      # 首次运行
-npm run dev      # 打开 http://localhost:5199/after-the-pyre/
+npm install
+npm run dev      # http://localhost:5199/after-the-pyre/
+npm run build    # 产物在 docs/.vitepress/dist
 ```
 
-## 命令
+推送到 `main` 后由 GitHub Actions 自动构建发布。
 
-| 命令 | 作用 |
-| --- | --- |
-| `npm run dev` | 开发预览，改 Markdown 自动刷新 |
-| `npm run build` | 构建到 `docs/.vitepress/dist` |
-| `npm run preview` | 预览构建结果（http://localhost:5200） |
-
-推送到 GitHub 的 `main` 分支后，`.github/workflows/deploy.yml` 会自动构建并发布到 GitHub Pages。
-
-## 国家档案
-
-`docs/countries/` 下的页面由资料集生成，不要手改（`index.md` 除外）：
+## 数据更新
 
 ```bash
-node scripts/import-countries.mjs "D:/Backup/Downloads/国家资料集_备份_2026-11-14.json"
+# 国家资料
+node scripts/import-countries.mjs "国家资料集.json"
+
+# 地图（.map 工程文件）
+node scripts/import-map.mjs "地图.map"
 ```
 
-它会重新生成 20 个国家页、`docs/.vitepress/data/countries.mjs`、侧边栏条目，并把 base64 头像导出成 `docs/public/countries/*.jpg`。详见 [导入国家资料](docs/guide/data.md)。
+两个脚本会重新生成 `docs/countries/`、`docs/public/map/world.svg` 以及 `docs/.vitepress/data/` 下的数据模块。
 
-## 我要改什么
-
-- **加内容** → 在 `docs/` 下新建 `.md`，再到 `docs/.vitepress/config.mts` 的 `sidebar` 里登记
-- **改站名/导航** → `docs/.vitepress/config.mts` 顶部的 `title`、`nav`、`sidebar`
-- **改配色** → `docs/.vitepress/theme/style.css` 里的 CSS 变量
-- **换 logo** → 替换 `docs/public/logo.svg`
-
-## 目录
+## 结构
 
 ```
-wiki/
-├─ package.json
-└─ docs/
-   ├─ index.md              首页
-   ├─ guide/                使用指南
-   ├─ notes/                笔记正文（示例在 notes/example.md）
-   ├─ reference/            速查表与 FAQ
-   ├─ public/               图片等静态资源
-   └─ .vitepress/
-      ├─ config.mts         站点配置
-      └─ theme/             主题与样式
+docs/
+├─ index.md              首页
+├─ countries/            国家档案（脚本生成，index.md 除外）
+├─ map/                  世界地图
+├─ public/map/           world.svg + .map 工程文件
+└─ .vitepress/
+   ├─ config.mts         站点配置
+   ├─ data/              国家、地图、侧边栏数据
+   └─ theme/components/  CountryExplorer / CountryPage / MapViewer
 ```

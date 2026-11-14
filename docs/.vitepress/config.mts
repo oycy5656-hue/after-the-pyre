@@ -35,10 +35,7 @@ export default defineConfig({
     nav: [
       { text: '首页', link: '/' },
       { text: '国家', link: '/countries/', activeMatch: '/countries/' },
-      { text: '地图', link: '/map/', activeMatch: '/map/' },
-      { text: '指南', link: '/guide/', activeMatch: '/guide/' },
-      { text: '笔记', link: '/notes/', activeMatch: '/notes/' },
-      { text: '参考', link: '/reference/' }
+      { text: '地图', link: '/map/', activeMatch: '/map/' }
     ],
 
     sidebar: {
@@ -46,35 +43,11 @@ export default defineConfig({
       '/countries/': countrySidebar,
       '/': [
         {
-          text: '开始',
+          text: '葬火之后',
           items: [
             { text: '首页', link: '/' },
             { text: '国家档案', link: '/countries/' },
-            { text: '世界地图', link: '/map/' },
-            { text: '关于这个 Wiki', link: '/guide/' }
-          ]
-        },
-        {
-          text: '使用指南',
-          items: [
-            { text: '目录结构', link: '/guide/structure' },
-            { text: '如何写一篇页面', link: '/guide/writing' },
-            { text: '导入国家资料', link: '/guide/data' },
-            { text: '构建与发布', link: '/guide/deploy' }
-          ]
-        },
-        {
-          text: '笔记',
-          items: [
-            { text: '全部笔记', link: '/notes/' },
-            { text: '示例笔记', link: '/notes/example' }
-          ]
-        },
-        {
-          text: '参考',
-          items: [
-            { text: 'Markdown 速查', link: '/reference/markdown' },
-            { text: '常见问题', link: '/reference/faq' }
+            { text: '世界地图', link: '/map/' }
           ]
         }
       ]
@@ -147,7 +120,7 @@ export default defineConfig({
     },
 
     footer: {
-      message: '本地搭建 · Markdown 驱动 · 由 VitePress 生成',
+      message: '葬火之后 · 世界设定集',
       copyright: '© 2026 葬火之后'
     }
   }

@@ -4,25 +4,25 @@ layout: home
 hero:
   name: 葬火之后
   text: 二十国志
-  tagline: 统治者、势力格局、奇观与军团，一页看完一个政权
+  tagline: 一片大陆，二十个政权。翻开每一页，看它们的统治者、派系与兵戈。
   image:
     src: /logo.svg
-    alt: Wiki
+    alt: 葬火之后
   actions:
     - theme: brand
       text: 打开国家档案
       link: /countries/
     - theme: alt
-      text: 关于本站
-      link: /guide/
+      text: 查看世界地图
+      link: /map/
 
 features:
   - title: 国家档案
-    details: 20 个政权，按种族筛选、按名字搜索，六维属性与派系席位一目了然。
-  - title: 领导者
-    details: 每位统治者都有性格标签、六维数值和一段小传，头像直接取自资料集。
+    details: 二十个政权，各有种族、信仰与政体。卡片墙可按种族筛选，也能直接搜国名、首都或统治者。
+  - title: 世界地图
+    details: 海岸线、河流、山地与城邑。可缩放拖动，点地图上的国名直接进入该国档案。
+  - title: 统治者
+    details: 每位君主都有性格标签、六维数值与一段小传，六维合计高下立判。
   - title: 势力与军团
-    details: 61 个派系的席位分布用颜色条可视化，19 支军团列出兵种、规模与装备。
-  - title: 随时发布
-    details: 改完 Markdown 推到 GitHub，自动构建发布到 Pages，任何人可访问。
+    details: 六十一个派系的席位用颜色条铺开，十九支军团列出兵种、规模与装备。
 ---
