@@ -70,23 +70,28 @@ function onWheel(event) {
 }
 
 let dragging = false
-let last = { x: 0, y: 0 }
 let moved = false
+let start = { x: 0, y: 0 }
+let originOffset = { x: 0, y: 0 }
+const DRAG_THRESHOLD = 6
 
 function onPointerDown(event) {
   if (event.button !== 0) return
   dragging = true
   moved = false
-  last = { x: event.clientX, y: event.clientY }
+  start = { x: event.clientX, y: event.clientY }
+  originOffset = { ...offset.value }
+  event.preventDefault()
 }
 
 function onPointerMove(event) {
   if (!dragging) return
-  const dx = event.clientX - last.x
-  const dy = event.clientY - last.y
-  if (Math.abs(dx) + Math.abs(dy) > 3) moved = true
-  offset.value = { x: offset.value.x + dx, y: offset.value.y + dy }
-  last = { x: event.clientX, y: event.clientY }
+  const dx = event.clientX - start.x
+  const dy = event.clientY - start.y
+  // 以「按下点」为基准判断是否算拖动，避免一点点抖动被当成点击
+  if (!moved && Math.abs(dx) + Math.abs(dy) > DRAG_THRESHOLD) moved = true
+  if (!moved) return
+  offset.value = { x: originOffset.x + dx, y: originOffset.y + dy }
 }
 
 function onPointerUp(event) {
