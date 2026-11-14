@@ -4,7 +4,6 @@ import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { traitDesc, gearDesc, slotLabels } from './glossary.mjs'
-import { extraPolicies } from './extra-policies.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const srcPath = process.argv[2] || 'D:/Backup/Downloads/国家资料集_备份_2026-11-14.json'
@@ -164,7 +163,7 @@ const records = countries.map((c, index) => {
         influence: f.influence,
         color: f.color
       })),
-      modifiers: [...(politics.modifiers || []), ...(extraPolicies[c.name] || [])],
+      modifiers: politics.modifiers || [],
       wonders: (politics.wonders || []).map((w, i) => ({
         id: w.id,
         name: w.name,
