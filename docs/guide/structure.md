@@ -3,17 +3,22 @@
 ```
 wiki/
 ├─ package.json              # 命令与依赖
+├─ scripts/
+│  └─ import-countries.mjs   # 把国家资料集 JSON 生成为页面
 ├─ README.md                 # 项目说明（给你自己看的）
 └─ docs/                     # ← 网站根目录，只有这里的内容会被发布
    ├─ index.md               # 首页
+   ├─ countries/             # 国家档案（由脚本生成，index.md 除外）
    ├─ guide/                 # 使用指南
-   ├─ notes/                 # 你的笔记（主体）
+   ├─ notes/                 # 你的笔记
    ├─ reference/             # 速查表、FAQ
    ├─ public/                # 静态资源：图片、logo、favicon，原样复制
    └─ .vitepress/
       ├─ config.mts          # 站点配置：标题、导航、侧边栏、搜索
+      ├─ data/               # 由脚本生成的数据模块（国家、侧边栏）
       └─ theme/
-         ├─ index.ts         # 主题入口
+         ├─ index.ts         # 主题入口（注册组件）
+         ├─ components/      # CountryExplorer / CountryPage 等 Vue 组件
          └─ style.css        # 颜色、字号等样式微调
 ```
 

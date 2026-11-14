@@ -3,26 +3,26 @@ layout: home
 
 hero:
   name: 葬火之后
-  text: 用 Markdown 写的知识库
-  tagline: 本地编辑、中文全文搜索、一条命令生成网站
+  text: 二十国志
+  tagline: 统治者、势力格局、奇观与军团，一页看完一个政权
   image:
     src: /logo.svg
     alt: Wiki
   actions:
     - theme: brand
-      text: 开始阅读
-      link: /guide/
+      text: 打开国家档案
+      link: /countries/
     - theme: alt
-      text: 如何写页面
-      link: /guide/writing
+      text: 关于本站
+      link: /guide/
 
 features:
-  - title: 内容即文件
-    details: 每一页就是 docs 目录下的一个 .md 文件，用任何编辑器都能改，天然适合 Git 版本管理。
-  - title: 自带全文搜索
-    details: 基于本地索引，不依赖任何服务，中文按字索引，断网也能搜。
-  - title: 开箱即用的排版
-    details: 代码高亮、表格、提示框、目录、深色模式、上一篇/下一篇，全部默认就绪。
+  - title: 国家档案
+    details: 20 个政权，按种族筛选、按名字搜索，六维属性与派系席位一目了然。
+  - title: 领导者
+    details: 每位统治者都有性格标签、六维数值和一段小传，头像直接取自资料集。
+  - title: 势力与军团
+    details: 61 个派系的席位分布用颜色条可视化，19 支军团列出兵种、规模与装备。
   - title: 随时发布
-    details: 构建成纯静态文件，丢到 GitHub Pages、Cloudflare Pages 或任意对象存储即可。
+    details: 改完 Markdown 推到 GitHub，自动构建发布到 Pages，任何人可访问。
 ---

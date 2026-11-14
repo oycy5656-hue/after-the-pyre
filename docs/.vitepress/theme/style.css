@@ -31,6 +31,14 @@
   line-height: 1.8;
 }
 
+/* 数据型页面放宽正文容器，卡片墙能多排一列 */
+@media (min-width: 960px) {
+  .VPDoc .content-container,
+  .VPDoc.has-aside .content-container {
+    max-width: 940px !important;
+  }
+}
+
 .vp-doc h2 {
   margin-top: 2.5rem;
   padding-top: 1.5rem;

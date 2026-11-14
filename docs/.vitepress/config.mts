@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitepress'
+import countrySidebar from './data/sidebar-countries.mjs'
 
 // 仓库名决定线上路径；换成你的仓库名时只改这一行
 const base = '/after-the-pyre/'
@@ -33,42 +34,49 @@ export default defineConfig({
 
     nav: [
       { text: '首页', link: '/' },
+      { text: '国家', link: '/countries/', activeMatch: '/countries/' },
       { text: '指南', link: '/guide/', activeMatch: '/guide/' },
       { text: '笔记', link: '/notes/', activeMatch: '/notes/' },
       { text: '参考', link: '/reference/' }
     ],
 
-    sidebar: [
-      {
-        text: '开始',
-        items: [
-          { text: '首页', link: '/' },
-          { text: '关于这个 Wiki', link: '/guide/' }
-        ]
-      },
-      {
-        text: '使用指南',
-        items: [
-          { text: '目录结构', link: '/guide/structure' },
-          { text: '如何写一篇页面', link: '/guide/writing' },
-          { text: '构建与发布', link: '/guide/deploy' }
-        ]
-      },
-      {
-        text: '笔记',
-        items: [
-          { text: '全部笔记', link: '/notes/' },
-          { text: '示例笔记', link: '/notes/example' }
-        ]
-      },
-      {
-        text: '参考',
-        items: [
-          { text: 'Markdown 速查', link: '/reference/markdown' },
-          { text: '常见问题', link: '/reference/faq' }
-        ]
-      }
-    ],
+    sidebar: {
+      // 国家页面显示完整的国家目录，其余页面用通用目录
+      '/countries/': countrySidebar,
+      '/': [
+        {
+          text: '开始',
+          items: [
+            { text: '首页', link: '/' },
+            { text: '国家档案', link: '/countries/' },
+            { text: '关于这个 Wiki', link: '/guide/' }
+          ]
+        },
+        {
+          text: '使用指南',
+          items: [
+            { text: '目录结构', link: '/guide/structure' },
+            { text: '如何写一篇页面', link: '/guide/writing' },
+            { text: '导入国家资料', link: '/guide/data' },
+            { text: '构建与发布', link: '/guide/deploy' }
+          ]
+        },
+        {
+          text: '笔记',
+          items: [
+            { text: '全部笔记', link: '/notes/' },
+            { text: '示例笔记', link: '/notes/example' }
+          ]
+        },
+        {
+          text: '参考',
+          items: [
+            { text: 'Markdown 速查', link: '/reference/markdown' },
+            { text: '常见问题', link: '/reference/faq' }
+          ]
+        }
+      ]
+    },
 
     // 本地全文搜索（不需要联网、不需要 API Key）
     search: {
