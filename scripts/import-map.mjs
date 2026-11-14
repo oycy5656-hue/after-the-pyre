@@ -1,4 +1,4 @@
-// 从 FMG .map 文件里抽出可交互的 SVG 地图 + 州/城市数据
+﻿// 从 FMG .map 文件里抽出可交互的 SVG 地图 + 州/城市数据
 // 用法: node scripts/import-map.mjs "path/to/xxx.map"
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
@@ -63,14 +63,33 @@ for (const id of dropGroups) {
   if (found) svg = svg.slice(0, found.start) + svg.slice(found.end)
 }
 
-// 存档时用户把「cells」图层关掉了，而政权图层就嵌在它里面，
-// 所以把政权图层整段移除（路径已经单独抽出来，由页面重绘）
-const regions = extractGroup(svg, 'regions')
-if (regions) {
-  svg = svg.slice(0, regions.start) + svg.slice(regions.end)
+// ---------- 重新拼一个轻量地图 ----------
+// 原存档 3.6MB，含大量地形着色/纹理/遮罩层，浏览器解析慢且放大后有发黑区域。
+// 这里只保留三样东西：陆地轮廓、河流、国界，重新拼成一个小体积 SVG。
+function innerOf(block) {
+  if (!block) return ''
+  const openEnd = block.indexOf('>')
+  const closeStart = block.lastIndexOf('</g>')
+  return openEnd === -1 || closeStart === -1 ? '' : block.slice(openEnd + 1, closeStart)
 }
 
-writeFileSync(outSvg, svg, 'utf8')
+const features = innerOf(extractGroup(svg, 'featurePaths')?.block)
+const rivers = innerOf(extractGroup(svg, 'rivers')?.block)
+const borders = innerOf(extractGroup(svg, 'stateBorders')?.block)
+
+const [mapWidth, mapHeight] = (() => {
+  const info = raw.slice(0, raw.indexOf('\n')).split('|')
+  return [Number(info[4]) || 1912, Number(info[5]) || 956]
+})()
+
+const slim = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${mapWidth} ${mapHeight}" width="${mapWidth}" height="${mapHeight}">
+<g id="land" fill="#f1ebd9" stroke="#8b8168" stroke-width="1.1" stroke-linejoin="round">${features}</g>
+<g id="rivers">${rivers}</g>
+<g id="borders" fill="none" stroke="#7d745a" stroke-width="0.9" stroke-dasharray="4 3" opacity="0.65">${borders}</g>
+</svg>`
+
+writeFileSync(outSvg, slim, 'utf8')
+console.log('slim svg MB:', (slim.length / 1024 / 1024).toFixed(2))
 
 // ---------- 数据 ----------
 const lines = raw.split(/\r?\n/)

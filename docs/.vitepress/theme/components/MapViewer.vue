@@ -223,7 +223,7 @@ function layoutLabels() {
 
   // 城市圆点也按屏幕尺寸绘制，放大后不会变成大圆斑
   for (const dot of burgDots) {
-    const size = dot.capital ? 4 : 2.4
+    const size = dot.capital ? 4.2 : 1.8
     dot.el.setAttribute('r', String(size / pxPerUnit))
     dot.el.setAttribute('stroke-width', String(0.9 / pxPerUnit))
   }
@@ -250,32 +250,8 @@ onMounted(async () => {
     svg.removeAttribute('height')
     svg.setAttribute('style', 'width:100%;height:auto;display:block')
 
-    // 关掉几层装饰性图层
-    for (const id of ['gridOverlay', 'coordinates', 'cellIndexes', 'temperature', 'provs', 'zones', 'relig', 'cults']) {
-      const layer = svg.querySelector(`#${id}`)
-      if (layer) layer.style.display = 'none'
-    }
-
-    // 隐藏原生的城市图标，改用我们自己画的圆点（方便挂事件）
-    const nativeBurgs = svg.querySelector('#burgIcons')
-    if (nativeBurgs) nativeBurgs.style.display = 'none'
-
-    // 原图把政权图层藏在隐藏的 cells 图层里，存档里只剩零散的小块路径，
-    // 因此这里不再画多边形，改为在首都位置放可点击的国名标签 + 城市圆点
+    // 轻量 SVG 里只有陆地、河流、国界三层，这里补上可交互的城市点与国名标签
     const NS = 'http://www.w3.org/2000/svg'
-
-    // 用地图自带的 #land 蒙版铺一层羊皮纸色陆地（原地形着色放大后有大片发黑区域）
-    const landFill = document.createElementNS(NS, 'rect')
-    landFill.setAttribute('x', '0')
-    landFill.setAttribute('y', '0')
-    landFill.setAttribute('width', String(mapData.width))
-    landFill.setAttribute('height', String(mapData.height))
-    landFill.setAttribute('fill', '#ece6d3')
-    landFill.setAttribute('mask', 'url(#land)')
-    landFill.setAttribute('id', 'mv-land')
-    const riversGroup = svg.querySelector('#rivers')
-    if (riversGroup) riversGroup.parentNode.insertBefore(landFill, riversGroup)
-    else svg.appendChild(landFill)
 
     const layer = document.createElementNS(NS, 'g')
     layer.setAttribute('id', 'mv-burgs')
@@ -284,18 +260,14 @@ onMounted(async () => {
       dot.setAttribute('cx', String(burg.x))
       dot.setAttribute('cy', String(burg.y))
       dot.setAttribute('r', burg.capital ? '3.4' : '1.9')
-      dot.setAttribute('fill', burg.capital ? '#ffffff' : '#f4f1e6')
-      dot.setAttribute('stroke', '#2a2a2a')
+      dot.setAttribute('fill', burg.capital ? '#ffffff' : '#6f6a5c')
+      dot.setAttribute('stroke', burg.capital ? '#2a2a2a' : '#6f6a5c')
       dot.setAttribute('stroke-width', burg.capital ? '1.1' : '0.6')
       dot.setAttribute('data-burg', String(burg.i))
       layer.appendChild(dot)
       burgDots.push({ el: dot, capital: burg.capital })
     }
     svg.appendChild(layer)
-
-    // 原生的地名标注层在缩小时会糊成一片，换成我们自己的国名标注
-    const nativeLabels = svg.querySelector('#labels')
-    if (nativeLabels) nativeLabels.style.display = 'none'
 
     const labelLayer = document.createElementNS(NS, 'g')
     labelLayer.setAttribute('id', 'mv-labels')
@@ -474,7 +446,7 @@ onBeforeUnmount(() => {
   overflow: hidden;
   border: 1px solid var(--mv-border);
   border-radius: 14px;
-  background: #cfe2ea;
+  background: #b9d7e4;
   cursor: grab;
   touch-action: none;
 }
@@ -495,36 +467,17 @@ onBeforeUnmount(() => {
   height: auto;
 }
 
-/* 去掉高原地形着色（放大后有大量发黑的暗红块），改成一整张羊皮纸底 */
-.mv-stage :deep(#landHeights) {
-  display: none;
-}
-
-.mv-stage :deep(#oceanBase) {
-  fill: #c2dde8;
-}
-
-/* 海岸线描边，保证陆地轮廓清楚 */
-.mv-stage :deep(#coastline use),
-.mv-stage :deep(#coastline path) {
-  fill: none;
-  stroke: #8a8266;
-  stroke-width: 1;
-}
-
-/* 河流：原图是深蓝色填充，提亮成明显的河 */
+/* 河流：提亮成明显的蓝色水系 */
 .mv-stage :deep(#rivers path) {
   fill: #5aa6d6;
   stroke: #4a90c2;
   stroke-width: 1.4;
 }
 
-/* 国界用淡淡的虚线，补上地图结构 */
-.mv-stage :deep(#stateBorders path) {
+.mv-stage :deep(#borders path) {
   stroke: #7d745a;
-  stroke-width: 0.8;
+  stroke-width: 0.9;
   stroke-dasharray: 4 3;
-  opacity: 0.75;
 }
 
 .mv-stage :deep(#mv-labels text.mv-label-link) {
@@ -533,24 +486,6 @@ onBeforeUnmount(() => {
 
 .mv-stage :deep(#mv-labels text.mv-label-link:hover) {
   fill: var(--vp-c-brand-1);
-}
-
-.mv-stage :deep(#mv-labels text.mv-label-link:hover) {
-  fill: var(--vp-c-brand-1);
-}
-
-.mv-stage :deep(#statesBody path) {
-  transition: opacity 0.15s ease;
-}
-
-.mv-stage :deep(#statesBody path:hover) {
-  opacity: 0.85;
-}
-
-.mv-stage :deep(#gridOverlay),
-.mv-stage :deep(#coordinates),
-.mv-stage :deep(#cellIndexes) {
-  display: none;
 }
 
 .mv-stage.burgs-off :deep(#mv-burgs) {
