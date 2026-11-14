@@ -1,6 +1,6 @@
 // 把「国家资料集」JSON 转成 Wiki 页面 + 静态资源 + 数据模块
 // 用法: node scripts/import-countries.mjs [jsonPath]
-import { mkdirSync, readFileSync, rmSync, writeFileSync, existsSync } from 'node:fs'
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -15,10 +15,6 @@ const dataDir = join(root, 'docs/.vitepress/data')
 for (const dir of [imgDir, mdDir, dataDir]) mkdirSync(dir, { recursive: true })
 rmSync(imgDir, { recursive: true, force: true })
 mkdirSync(imgDir, { recursive: true })
-// 只清理生成的文件，别动手写的 index.md
-for (const f of ['countries.mjs', 'sidebar-countries.mjs']) {
-  rmSync(join(dataDir, f), { force: true })
-}
 
 const statsKeys = [
   ['diplomacy', '外交'],
@@ -36,14 +32,13 @@ function saveImage(dataUri, fileName) {
   const m = dataUri.match(/^data:image\/([a-zA-Z0-9+.-]+);base64,(.*)$/)
   if (!m) return null
   const ext = m[1] === 'jpeg' ? 'jpg' : m[1].replace('svg+xml', 'svg')
-  const target = join(imgDir, `${fileName}.${ext}`)
-  writeFileSync(target, Buffer.from(m[2], 'base64'))
+  writeFileSync(join(imgDir, `${fileName}.${ext}`), Buffer.from(m[2], 'base64'))
   imageCount += 1
   return `/countries/${fileName}.${ext}`
 }
 
 function slugOf(name, used) {
-  let base = String(name || '未命名').replace(/[\\/:*?"<>|#%]/g, '').trim() || '未命名'
+  const base = String(name || '未命名').replace(/[\\/:*?"<>|#%]/g, '').trim() || '未命名'
   let slug = base
   let n = 2
   while (used.has(slug)) slug = `${base}-${n++}`
@@ -52,34 +47,16 @@ function slugOf(name, used) {
 }
 
 const usedSlugs = new Set()
-const out = []
 
-countries.forEach((c, index) => {
+// ---------- 第一遍：整理数据 ----------
+const records = countries.map((c, index) => {
   const slug = slugOf(c.name, usedSlugs)
   const tag = `c${String(index + 1).padStart(2, '0')}`
   const leader = c.politics?.leader || {}
   const politics = c.politics || {}
   const military = c.military || {}
 
-  const leaderAvatar = saveImage(leader.avatar, `${tag}-leader`)
-  const wonders = (politics.wonders || []).map((w, i) => ({
-    id: w.id,
-    name: w.name,
-    desc: w.desc,
-    avatar: saveImage(w.avatar, `${tag}-wonder-${i + 1}`)
-  }))
-  const heroes = (politics.heroes || []).map((h, i) => ({
-    id: h.id,
-    name: h.name,
-    title: h.title,
-    stars: h.stars,
-    bio: h.bio,
-    avatar: saveImage(h.avatar, `${tag}-hero-${i + 1}`)
-  }))
-
-  const accent = politics.factions?.[0]?.color || '#2f7d63'
-
-  const record = {
+  return {
     id: c.id,
     slug,
     index: index + 1,
@@ -88,10 +65,13 @@ countries.forEach((c, index) => {
     capital: c.capital,
     faith: c.faith,
     bio: c.nation_bio,
-    accent,
+    accent: politics.factions?.[0]?.color || '#2f7d63',
     region: {
       name: c.region_name,
-      traits: (c.region_traits || '').split(/[、,，]/).map((t) => t.trim()).filter(Boolean),
+      traits: (c.region_traits || '')
+        .split(/[、,，]/)
+        .map((t) => t.trim())
+        .filter(Boolean),
       customTag: c.region_custom_tag || '',
       desc: c.region_desc
     },
@@ -100,7 +80,7 @@ countries.forEach((c, index) => {
       leader: {
         name: leader.name,
         title: leader.title,
-        avatar: leaderAvatar,
+        avatar: saveImage(leader.avatar, `${tag}-leader`),
         traits: leader.traits || [],
         stats: leader.stats || {},
         bio: leader.bio
@@ -113,8 +93,20 @@ countries.forEach((c, index) => {
         color: f.color
       })),
       modifiers: politics.modifiers || [],
-      wonders,
-      heroes
+      wonders: (politics.wonders || []).map((w, i) => ({
+        id: w.id,
+        name: w.name,
+        desc: w.desc,
+        avatar: saveImage(w.avatar, `${tag}-wonder-${i + 1}`)
+      })),
+      heroes: (politics.heroes || []).map((h, i) => ({
+        id: h.id,
+        name: h.name,
+        title: h.title,
+        stars: h.stars,
+        bio: h.bio,
+        avatar: saveImage(h.avatar, `${tag}-hero-${i + 1}`)
+      }))
     },
     military: {
       legions: military.legions || [],
@@ -133,32 +125,72 @@ countries.forEach((c, index) => {
       statsKeys.map(([key]) => [key, Number(leader.stats?.[key] ?? 0)])
     )
   }
-  out.push(record)
+})
+
+// ---------- 数据模块 ----------
+writeFileSync(
+  join(dataDir, 'countries.mjs'),
+  `// 由 scripts/import-countries.mjs 自动生成，请勿手改
+export default ${JSON.stringify(records, null, 2)}
+`,
+  'utf8'
+)
+
+// ---------- 第二遍：生成页面 ----------
+// 注意：VitePress 本地搜索按 Markdown 标题切分页面，
+// 每页必须有一个「# 国名」标题，否则整页不会进入搜索索引。
+records.forEach((r, i) => {
+
+  const searchText = [
+    r.name,
+    r.race,
+    `首都 ${r.capital}`,
+    `信仰 ${r.faith}`,
+    r.politics.system,
+    `区域 ${r.region.name}`,
+    r.region.traits.join(' '),
+    `统治者 ${r.politics.leader.title} ${r.politics.leader.name}`,
+    r.politics.leader.traits.join(' '),
+    r.politics.factions.map((f) => f.name).join(' '),
+    r.politics.wonders.map((w) => w.name).join(' '),
+    r.military.units.map((u) => u.name).join(' '),
+    r.bio
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .replace(/</g, '‹')
 
   const frontmatter = [
     '---',
-    `title: ${record.name}`,
-    `description: ${record.race}政权 · 首都${record.capital} · ${record.politics.system}`,
-    `outline: [2, 3]`,
+    `title: ${r.name}`,
+    `description: ${r.race}政权 · 首都${r.capital} · ${r.politics.system}`,
+    'outline: [2, 3]',
     '---'
   ].join('\n')
 
   const md = `${frontmatter}
 
-<CountryPage :index="${index}" />
+# ${r.name}
+
+<CountryPage :index="${i}" />
+
+<div class="search-only">
+${searchText}
+</div>
 `
-  writeFileSync(join(mdDir, `${slug}.md`), md, 'utf8')
+  writeFileSync(join(mdDir, `${r.slug}.md`), md, 'utf8')
 })
 
-const dataModule = `// 由 scripts/import-countries.mjs 自动生成，请勿手改
-export default ${JSON.stringify(out, null, 2)}
-`
-writeFileSync(join(dataDir, 'countries.mjs'), dataModule, 'utf8')
-
-const sidebarItems = out
-  .map((c) => `    { text: ${JSON.stringify(`${String(c.index).padStart(2, '0')} · ${c.name}`)}, link: '/countries/${c.slug}' }`)
+// ---------- 侧边栏 ----------
+const sidebarItems = records
+  .map(
+    (c) =>
+      `    { text: ${JSON.stringify(`${String(c.index).padStart(2, '0')} · ${c.name}`)}, link: '/countries/${c.slug}' }`
+  )
   .join(',\n')
-const sidebarModule = `// 由 scripts/import-countries.mjs 自动生成，请勿手改
+writeFileSync(
+  join(dataDir, 'sidebar-countries.mjs'),
+  `// 由 scripts/import-countries.mjs 自动生成，请勿手改
 export default [
   {
     text: '国家档案',
@@ -169,9 +201,36 @@ ${sidebarItems}
     ]
   }
 ]
-`
-writeFileSync(join(dataDir, 'sidebar-countries.mjs'), sidebarModule, 'utf8')
+`,
+  'utf8'
+)
 
-console.log(`countries: ${out.length}`)
+// ---------- 入口页 ----------
+const indexSearch = records
+  .map((c) => `${c.name} ${c.race} ${c.capital} ${c.politics.leader.name} ${c.politics.system}`)
+  .join('。')
+
+writeFileSync(
+  join(mdDir, 'index.md'),
+  `---
+title: 国家档案
+description: 二十个国家的政体、统治者、势力与军团
+outline: false
+---
+
+# 国家档案
+
+一片大陆上并立着二十个政权。点开任意一张卡片，查看它的统治者、势力格局、奇观与军团。
+
+<CountryExplorer />
+
+<div class="search-only">
+${indexSearch}
+</div>
+`,
+  'utf8'
+)
+
+console.log(`countries: ${records.length}`)
 console.log(`images: ${imageCount}`)
-console.log(`pages: ${out.map((c) => c.slug).join(', ')}`)
+console.log(`pages: ${records.map((c) => c.slug).join(', ')}`)

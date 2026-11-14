@@ -50,7 +50,6 @@ function unitGear(unit) {
       <div class="cp-hero-glow"></div>
       <div class="cp-hero-body">
         <p class="cp-eyebrow">国家档案 · No.{{ String(country.index).padStart(2, '0') }}</p>
-        <h1 class="cp-name">{{ country.name }}</h1>
         <p class="cp-bio">{{ country.bio }}</p>
         <ul class="cp-chips">
           <li class="cp-chip">{{ country.race }}</li>

@@ -31,6 +31,11 @@
   line-height: 1.8;
 }
 
+/* 给本地搜索索引用的隐藏文本（页面上不可见） */
+.search-only {
+  display: none;
+}
+
 /* 数据型页面放宽正文容器，卡片墙能多排一列 */
 @media (min-width: 960px) {
   .VPDoc .content-container,
