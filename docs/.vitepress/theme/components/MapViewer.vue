@@ -204,6 +204,7 @@ function layoutLabels() {
   const placed = []
 
   const sorted = [...labelItems].sort((a, b) => b.state.area - a.state.area)
+  const maxLabels = zoom.value < 1.4 ? 16 : labelItems.length
   for (const item of sorted) {
     const el = item.el
     el.setAttribute('font-size', String(fontUnits))
@@ -211,7 +212,7 @@ function layoutLabels() {
     const sx = item.state.capital.x * pxPerUnit
     const sy = (item.state.capital.y - 7) * pxPerUnit
     const halfW = (item.state.name.length * 11) / 2
-    const overlap = placed.some((p) => Math.abs(p.x - sx) < p.halfW + halfW + 12 && Math.abs(p.y - sy) < 18)
+    const overlap = placed.length >= maxLabels || placed.some((p) => Math.abs(p.x - sx) < p.halfW + halfW + 12 && Math.abs(p.y - sy) < 18)
     if (overlap) {
       el.style.display = 'none'
     } else {
