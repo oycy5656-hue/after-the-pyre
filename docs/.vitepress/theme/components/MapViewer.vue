@@ -264,6 +264,19 @@ onMounted(async () => {
     // 因此这里不再画多边形，改为在首都位置放可点击的国名标签 + 城市圆点
     const NS = 'http://www.w3.org/2000/svg'
 
+    // 用地图自带的 #land 蒙版铺一层羊皮纸色陆地（原地形着色放大后有大片发黑区域）
+    const landFill = document.createElementNS(NS, 'rect')
+    landFill.setAttribute('x', '0')
+    landFill.setAttribute('y', '0')
+    landFill.setAttribute('width', String(mapData.width))
+    landFill.setAttribute('height', String(mapData.height))
+    landFill.setAttribute('fill', '#ece6d3')
+    landFill.setAttribute('mask', 'url(#land)')
+    landFill.setAttribute('id', 'mv-land')
+    const riversGroup = svg.querySelector('#rivers')
+    if (riversGroup) riversGroup.parentNode.insertBefore(landFill, riversGroup)
+    else svg.appendChild(landFill)
+
     const layer = document.createElementNS(NS, 'g')
     layer.setAttribute('id', 'mv-burgs')
     for (const burg of mapData.burgs) {
@@ -461,7 +474,7 @@ onBeforeUnmount(() => {
   overflow: hidden;
   border: 1px solid var(--mv-border);
   border-radius: 14px;
-  background: #9ec7d8;
+  background: #cfe2ea;
   cursor: grab;
   touch-action: none;
 }
@@ -482,9 +495,36 @@ onBeforeUnmount(() => {
   height: auto;
 }
 
-/* 地形保持原色，标签可点 */
+/* 去掉高原地形着色（放大后有大量发黑的暗红块），改成一整张羊皮纸底 */
+.mv-stage :deep(#landHeights) {
+  display: none;
+}
+
+.mv-stage :deep(#oceanBase) {
+  fill: #c2dde8;
+}
+
+/* 海岸线描边，保证陆地轮廓清楚 */
+.mv-stage :deep(#coastline use),
+.mv-stage :deep(#coastline path) {
+  fill: none;
+  stroke: #8a8266;
+  stroke-width: 1;
+}
+
+/* 河流：原图是深蓝色填充，提亮成明显的河 */
+.mv-stage :deep(#rivers path) {
+  fill: #5aa6d6;
+  stroke: #4a90c2;
+  stroke-width: 1.4;
+}
+
 .mv-stage :deep(#mv-labels text.mv-label-link) {
   cursor: pointer;
+}
+
+.mv-stage :deep(#mv-labels text.mv-label-link:hover) {
+  fill: var(--vp-c-brand-1);
 }
 
 .mv-stage :deep(#mv-labels text.mv-label-link:hover) {
