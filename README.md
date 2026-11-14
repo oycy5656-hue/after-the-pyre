@@ -24,6 +24,16 @@ npm run dev      # 打开 http://localhost:5199/after-the-pyre/
 
 推送到 GitHub 的 `main` 分支后，`.github/workflows/deploy.yml` 会自动构建并发布到 GitHub Pages。
 
+## 国家档案
+
+`docs/countries/` 下的页面由资料集生成，不要手改（`index.md` 除外）：
+
+```bash
+node scripts/import-countries.mjs "D:/Backup/Downloads/国家资料集_备份_2026-11-14.json"
+```
+
+它会重新生成 20 个国家页、`docs/.vitepress/data/countries.mjs`、侧边栏条目，并把 base64 头像导出成 `docs/public/countries/*.jpg`。详见 [导入国家资料](docs/guide/data.md)。
+
 ## 我要改什么
 
 - **加内容** → 在 `docs/` 下新建 `.md`，再到 `docs/.vitepress/config.mts` 的 `sidebar` 里登记
