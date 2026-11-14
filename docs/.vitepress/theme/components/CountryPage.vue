@@ -50,6 +50,21 @@ const legions = computed(() => (country.value.military && country.value.military
 const totalTroops = computed(() => legions.value.reduce((n, l) => n + (l.total || 0), 0))
 const totalCards = computed(() => legions.value.reduce((n, l) => n + (l.cards || 0), 0))
 
+const glossary = computed(() => {
+  const traits = new Map()
+  const gear = new Map()
+  for (const legion of legions.value) {
+    for (const card of legion.composition || []) {
+      for (const t of card.traits || []) if (!traits.has(t.name)) traits.set(t.name, t)
+      for (const g of card.gear || []) {
+        const key = g.slot + '|' + g.name
+        if (!gear.has(key)) gear.set(key, g)
+      }
+    }
+  }
+  return { traits: [...traits.values()], gear: [...gear.values()] }
+})
+
 const toc = computed(() => [
   ['overview', '概览'],
   ['region', '风土'],
@@ -164,12 +179,37 @@ const toc = computed(() => [
               <div v-for="card in legion.composition || []" :key="card.name" class="wp-card">
                 <p class="wp-card-name">{{ card.name }}<em>× {{ card.count }}</em></p>
                 <p class="wp-card-meta">{{ card.role }} · {{ card.race }}</p>
-                <p v-if="card.modifiers" class="wp-card-mods">{{ card.modifiers }}</p>
+                <ul v-if="card.traits && card.traits.length" class="wp-traits">
+                  <li v-for="t in card.traits" :key="t.name" :title="t.desc">{{ t.name }}</li>
+                </ul>
+                <p v-if="card.gear && card.gear.length" class="wp-card-gear">
+                  <span v-for="g in card.gear" :key="g.slot + g.name" :title="g.desc">{{ g.slotLabel }} {{ g.name }}</span>
+                </p>
                 <p class="wp-card-total">{{ card.size }} 人/牌 · 小计 {{ card.total.toLocaleString() }}</p>
               </div>
             </div>
           </article>
           <p class="wp-mil-total">全境合计 {{ legions.length }} 个军团 · {{ totalCards }} 张兵牌 · {{ totalTroops.toLocaleString() }} 人</p>
+
+          <details class="wp-glossary">
+            <summary>名词解释：特质与装备</summary>
+            <div class="wp-glossary-body">
+              <h4>特质</h4>
+              <dl>
+                <template v-for="t in glossary.traits" :key="t.name">
+                  <dt>{{ t.name }}</dt>
+                  <dd>{{ t.desc || '暂无说明' }}</dd>
+                </template>
+              </dl>
+              <h4>装备</h4>
+              <dl>
+                <template v-for="g in glossary.gear" :key="g.slot + g.name">
+                  <dt>{{ g.name }}<small>{{ g.slotLabel }}</small></dt>
+                  <dd>{{ g.desc || '暂无说明' }}</dd>
+                </template>
+              </dl>
+            </div>
+          </details>
         </template>
         <p v-else class="wp-empty">尚无成建制的军团记录。</p>
       </section>
@@ -551,6 +591,88 @@ const toc = computed(() => [
   margin: 3px 0 0;
   font-size: 12px;
   color: var(--vp-c-text-3);
+}
+
+.wp-traits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wp-traits li {
+  padding: 1px 7px;
+  font-size: 11.5px;
+  color: color-mix(in srgb, var(--accent) 85%, var(--vp-c-text-1));
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
+  border-radius: 4px;
+  cursor: help;
+}
+
+.wp-card-gear {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 10px;
+  margin: 7px 0 0;
+  font-size: 11.5px;
+  color: var(--vp-c-text-3);
+}
+
+.wp-card-gear span {
+  cursor: help;
+}
+
+.wp-glossary {
+  margin-top: 14px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 8px;
+  background: var(--vp-c-bg-soft);
+}
+
+.wp-glossary summary {
+  padding: 10px 16px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--vp-c-text-2);
+}
+
+.wp-glossary-body {
+  padding: 4px 18px 16px;
+}
+
+.wp-glossary-body h4 {
+  margin: 12px 0 6px;
+  font-size: 12.5px;
+  color: var(--vp-c-text-3);
+}
+
+.wp-glossary-body dl {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 6px 14px;
+  margin: 0;
+  font-size: 12.5px;
+}
+
+.wp-glossary-body dt {
+  font-weight: 600;
+  color: var(--vp-c-text-1);
+}
+
+.wp-glossary-body dt small {
+  margin-left: 6px;
+  font-weight: 400;
+  color: var(--vp-c-text-3);
+}
+
+.wp-glossary-body dd {
+  margin: 0;
+  color: var(--vp-c-text-2);
+  line-height: 1.6;
 }
 
 .wp-card-mods {

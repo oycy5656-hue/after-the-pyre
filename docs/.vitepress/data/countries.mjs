@@ -554,6 +554,42 @@ export default [
               "size": 500,
               "total": 1500,
               "modifiers": "【尚武造诣】【两栖适应】",
+              "traits": [
+                {
+                  "name": "尚武造诣",
+                  "desc": "部队长期操练武艺，白刃相接时更有章法，近战杀伤与士气略高。"
+                },
+                {
+                  "name": "两栖适应",
+                  "desc": "惯于涉水与滩涂行军，渡河、登陆时不受地形拖累。"
+                }
+              ],
+              "gear": [
+                {
+                  "slot": "helmet",
+                  "slotLabel": "头部",
+                  "name": "皮胄",
+                  "desc": "鞣制皮革缝成的软盔，轻便透气，能挡流矢与钝击。"
+                },
+                {
+                  "slot": "armor",
+                  "slotLabel": "护甲",
+                  "name": "皮甲",
+                  "desc": "多层皮革压制的胸甲，轻便而廉价。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "青铜短剑",
+                  "desc": "青铜铸造的短剑，刃口容易卷，胜在便宜易得。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "圆盾",
+                  "desc": "圆形木盾，包铁边，可结阵也可单打。"
+                }
+              ],
               "desc": ""
             },
             {
@@ -564,6 +600,54 @@ export default [
               "size": 150,
               "total": 450,
               "modifiers": "【引发恐惧】【狂怒】",
+              "traits": [
+                {
+                  "name": "引发恐惧",
+                  "desc": "军容凶悍，接敌瞬间便足以震慑对手，削弱敌军士气。"
+                },
+                {
+                  "name": "狂怒",
+                  "desc": "开战即陷入狂热，冲锋更猛，但阵型容易散乱。"
+                }
+              ],
+              "gear": [
+                {
+                  "slot": "helmet",
+                  "slotLabel": "头部",
+                  "name": "铜胄",
+                  "desc": ""
+                },
+                {
+                  "slot": "armor",
+                  "slotLabel": "护甲",
+                  "name": "青铜胸甲",
+                  "desc": ""
+                },
+                {
+                  "slot": "legs",
+                  "slotLabel": "腿部",
+                  "name": "简易屐",
+                  "desc": "轻便的木底鞋，适合长途行军。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "青铜短剑",
+                  "desc": "青铜铸造的短剑，刃口容易卷，胜在便宜易得。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "蒙皮小圆盾",
+                  "desc": "蒙皮的小圆盾，轻便，适合游斗。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "短矛",
+                  "desc": "可投可刺的短矛。"
+                }
+              ],
               "desc": ""
             }
           ],
@@ -579,6 +663,42 @@ export default [
           "race": "人类",
           "size": 500,
           "modifiers": "【尚武造诣】【两栖适应】",
+          "traits": [
+            {
+              "name": "尚武造诣",
+              "desc": "部队长期操练武艺，白刃相接时更有章法，近战杀伤与士气略高。"
+            },
+            {
+              "name": "两栖适应",
+              "desc": "惯于涉水与滩涂行军，渡河、登陆时不受地形拖累。"
+            }
+          ],
+          "gear": [
+            {
+              "slot": "helmet",
+              "slotLabel": "头部",
+              "name": "皮胄",
+              "desc": "鞣制皮革缝成的软盔，轻便透气，能挡流矢与钝击。"
+            },
+            {
+              "slot": "armor",
+              "slotLabel": "护甲",
+              "name": "皮甲",
+              "desc": "多层皮革压制的胸甲，轻便而廉价。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "青铜短剑",
+              "desc": "青铜铸造的短剑，刃口容易卷，胜在便宜易得。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "圆盾",
+              "desc": "圆形木盾，包铁边，可结阵也可单打。"
+            }
+          ],
           "desc": "",
           "equipment": {
             "helmet": {
@@ -636,6 +756,54 @@ export default [
           "race": "人类",
           "size": 150,
           "modifiers": "【引发恐惧】【狂怒】",
+          "traits": [
+            {
+              "name": "引发恐惧",
+              "desc": "军容凶悍，接敌瞬间便足以震慑对手，削弱敌军士气。"
+            },
+            {
+              "name": "狂怒",
+              "desc": "开战即陷入狂热，冲锋更猛，但阵型容易散乱。"
+            }
+          ],
+          "gear": [
+            {
+              "slot": "helmet",
+              "slotLabel": "头部",
+              "name": "铜胄",
+              "desc": ""
+            },
+            {
+              "slot": "armor",
+              "slotLabel": "护甲",
+              "name": "青铜胸甲",
+              "desc": ""
+            },
+            {
+              "slot": "legs",
+              "slotLabel": "腿部",
+              "name": "简易屐",
+              "desc": "轻便的木底鞋，适合长途行军。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "青铜短剑",
+              "desc": "青铜铸造的短剑，刃口容易卷，胜在便宜易得。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "蒙皮小圆盾",
+              "desc": "蒙皮的小圆盾，轻便，适合游斗。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "短矛",
+              "desc": "可投可刺的短矛。"
+            }
+          ],
           "desc": "",
           "equipment": {
             "helmet": {
@@ -815,6 +983,20 @@ export default [
               "size": 120,
               "total": 360,
               "modifiers": "【构装体】",
+              "traits": [
+                {
+                  "name": "构装体",
+                  "desc": "非血肉之躯，不畏疼痛与疫病，士气不会崩溃。"
+                }
+              ],
+              "gear": [
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "元素之拳",
+                  "desc": "以元素之力凝成的拳套，触碰即有灼伤之效。"
+                }
+              ],
               "desc": ""
             },
             {
@@ -825,6 +1007,30 @@ export default [
               "size": 15,
               "total": 30,
               "modifiers": "【飞行】【激励友军】",
+              "traits": [
+                {
+                  "name": "飞行",
+                  "desc": "可越过城墙与河川机动，难以携带重装。"
+                },
+                {
+                  "name": "激励友军",
+                  "desc": "旗帜所至，左右友军士气回升。"
+                }
+              ],
+              "gear": [
+                {
+                  "slot": "armor",
+                  "slotLabel": "护甲",
+                  "name": "术士法袍",
+                  "desc": "绣有符纹的长袍，据说能稳住施法时的灵力流转。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "学徒笔记",
+                  "desc": "记录法术心得的笔记，施法时作为参照。"
+                }
+              ],
               "desc": ""
             },
             {
@@ -835,6 +1041,26 @@ export default [
               "size": 30,
               "total": 60,
               "modifiers": "【飞行】",
+              "traits": [
+                {
+                  "name": "飞行",
+                  "desc": "可越过城墙与河川机动，难以携带重装。"
+                }
+              ],
+              "gear": [
+                {
+                  "slot": "armor",
+                  "slotLabel": "护甲",
+                  "name": "布甲",
+                  "desc": "多层布帛纳成的软甲，轻便但不耐重击。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "木签",
+                  "desc": "刻有符记的木签，萨满施法时的凭依。"
+                }
+              ],
               "desc": ""
             }
           ],
@@ -850,6 +1076,30 @@ export default [
           "race": "小精灵",
           "size": 15,
           "modifiers": "【飞行】【激励友军】",
+          "traits": [
+            {
+              "name": "飞行",
+              "desc": "可越过城墙与河川机动，难以携带重装。"
+            },
+            {
+              "name": "激励友军",
+              "desc": "旗帜所至，左右友军士气回升。"
+            }
+          ],
+          "gear": [
+            {
+              "slot": "armor",
+              "slotLabel": "护甲",
+              "name": "术士法袍",
+              "desc": "绣有符纹的长袍，据说能稳住施法时的灵力流转。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "学徒笔记",
+              "desc": "记录法术心得的笔记，施法时作为参照。"
+            }
+          ],
           "desc": "",
           "equipment": {
             "helmet": {
@@ -907,6 +1157,20 @@ export default [
           "race": "元素生命",
           "size": 120,
           "modifiers": "【构装体】",
+          "traits": [
+            {
+              "name": "构装体",
+              "desc": "非血肉之躯，不畏疼痛与疫病，士气不会崩溃。"
+            }
+          ],
+          "gear": [
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "元素之拳",
+              "desc": "以元素之力凝成的拳套，触碰即有灼伤之效。"
+            }
+          ],
           "desc": "",
           "equipment": {
             "helmet": {
@@ -964,6 +1228,26 @@ export default [
           "race": "小精灵",
           "size": 30,
           "modifiers": "【飞行】",
+          "traits": [
+            {
+              "name": "飞行",
+              "desc": "可越过城墙与河川机动，难以携带重装。"
+            }
+          ],
+          "gear": [
+            {
+              "slot": "armor",
+              "slotLabel": "护甲",
+              "name": "布甲",
+              "desc": "多层布帛纳成的软甲，轻便但不耐重击。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "木签",
+              "desc": "刻有符记的木签，萨满施法时的凭依。"
+            }
+          ],
           "desc": "",
           "equipment": {
             "helmet": {
@@ -1209,6 +1493,21 @@ export default [
               "size": 150,
               "total": 1050,
               "modifiers": "",
+              "traits": [],
+              "gear": [
+                {
+                  "slot": "armor",
+                  "slotLabel": "护甲",
+                  "name": "肩甲",
+                  "desc": "护住肩膊的甲片。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "短矛",
+                  "desc": "可投可刺的短矛。"
+                }
+              ],
               "desc": ""
             },
             {
@@ -1219,6 +1518,42 @@ export default [
               "size": 100,
               "total": 500,
               "modifiers": "【狂怒】【引发恐惧】",
+              "traits": [
+                {
+                  "name": "狂怒",
+                  "desc": "开战即陷入狂热，冲锋更猛，但阵型容易散乱。"
+                },
+                {
+                  "name": "引发恐惧",
+                  "desc": "军容凶悍，接敌瞬间便足以震慑对手，削弱敌军士气。"
+                }
+              ],
+              "gear": [
+                {
+                  "slot": "helmet",
+                  "slotLabel": "头部",
+                  "name": "双角重盔",
+                  "desc": "带双角的厚重铁盔，威风凛凛，重量也不轻。"
+                },
+                {
+                  "slot": "armor",
+                  "slotLabel": "护甲",
+                  "name": "兽皮胸甲",
+                  "desc": "厚兽皮缝制的胸甲，粗犷耐用。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "青铜战斧",
+                  "desc": ""
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "圆盾",
+                  "desc": "圆形木盾，包铁边，可结阵也可单打。"
+                }
+              ],
               "desc": ""
             },
             {
@@ -1229,6 +1564,33 @@ export default [
               "size": 24,
               "total": 72,
               "modifiers": "",
+              "traits": [],
+              "gear": [
+                {
+                  "slot": "helmet",
+                  "slotLabel": "头部",
+                  "name": "动物骨盔",
+                  "desc": "以巨兽骨片拼成的头盔，既是护具也是勇武的象征。"
+                },
+                {
+                  "slot": "armor",
+                  "slotLabel": "护甲",
+                  "name": "萨满服",
+                  "desc": "缀满骨饰与羽翎的祭服，兼具仪式与护身之用。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "头骨碗",
+                  "desc": "以敌人头骨制成的法器，用于战前占卜。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "祭祀骨刃",
+                  "desc": "祭祀用的骨刃，据说刃上附着亡者的怨念。"
+                }
+              ],
               "desc": ""
             }
           ],
@@ -1244,6 +1606,42 @@ export default [
           "race": "人类",
           "size": 100,
           "modifiers": "【狂怒】【引发恐惧】",
+          "traits": [
+            {
+              "name": "狂怒",
+              "desc": "开战即陷入狂热，冲锋更猛，但阵型容易散乱。"
+            },
+            {
+              "name": "引发恐惧",
+              "desc": "军容凶悍，接敌瞬间便足以震慑对手，削弱敌军士气。"
+            }
+          ],
+          "gear": [
+            {
+              "slot": "helmet",
+              "slotLabel": "头部",
+              "name": "双角重盔",
+              "desc": "带双角的厚重铁盔，威风凛凛，重量也不轻。"
+            },
+            {
+              "slot": "armor",
+              "slotLabel": "护甲",
+              "name": "兽皮胸甲",
+              "desc": "厚兽皮缝制的胸甲，粗犷耐用。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "青铜战斧",
+              "desc": ""
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "圆盾",
+              "desc": "圆形木盾，包铁边，可结阵也可单打。"
+            }
+          ],
           "desc": "",
           "equipment": {
             "helmet": {
@@ -1301,6 +1699,21 @@ export default [
           "race": "人类",
           "size": 150,
           "modifiers": "",
+          "traits": [],
+          "gear": [
+            {
+              "slot": "armor",
+              "slotLabel": "护甲",
+              "name": "肩甲",
+              "desc": "护住肩膊的甲片。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "短矛",
+              "desc": "可投可刺的短矛。"
+            }
+          ],
           "desc": "",
           "equipment": {
             "helmet": {
@@ -1358,6 +1771,33 @@ export default [
           "race": "人类",
           "size": 24,
           "modifiers": "",
+          "traits": [],
+          "gear": [
+            {
+              "slot": "helmet",
+              "slotLabel": "头部",
+              "name": "动物骨盔",
+              "desc": "以巨兽骨片拼成的头盔，既是护具也是勇武的象征。"
+            },
+            {
+              "slot": "armor",
+              "slotLabel": "护甲",
+              "name": "萨满服",
+              "desc": "缀满骨饰与羽翎的祭服，兼具仪式与护身之用。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "头骨碗",
+              "desc": "以敌人头骨制成的法器，用于战前占卜。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "祭祀骨刃",
+              "desc": "祭祀用的骨刃，据说刃上附着亡者的怨念。"
+            }
+          ],
           "desc": "",
           "equipment": {
             "helmet": {
@@ -1508,6 +1948,44 @@ export default [
               "size": 60,
               "total": 360,
               "modifiers": "【尚武造诣】",
+              "traits": [
+                {
+                  "name": "尚武造诣",
+                  "desc": "部队长期操练武艺，白刃相接时更有章法，近战杀伤与士气略高。"
+                }
+              ],
+              "gear": [
+                {
+                  "slot": "helmet",
+                  "slotLabel": "头部",
+                  "name": "尖顶头盔",
+                  "desc": "顶部收尖的铁盔，利于偏转劈砍。"
+                },
+                {
+                  "slot": "armor",
+                  "slotLabel": "护甲",
+                  "name": "铁制胸甲",
+                  "desc": "铁板锻打的胸甲，防护可靠，负重也大。"
+                },
+                {
+                  "slot": "legs",
+                  "slotLabel": "腿部",
+                  "name": "护腿",
+                  "desc": "护住小腿的甲片或皮革。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "铁制长矛",
+                  "desc": ""
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "塔盾",
+                  "desc": "高及人胸的巨盾，结阵时可组成盾墙。"
+                }
+              ],
               "desc": ""
             },
             {
@@ -1518,6 +1996,36 @@ export default [
               "size": 12,
               "total": 60,
               "modifiers": "【尚武造诣】【施法精通】",
+              "traits": [
+                {
+                  "name": "尚武造诣",
+                  "desc": "部队长期操练武艺，白刃相接时更有章法，近战杀伤与士气略高。"
+                },
+                {
+                  "name": "施法精通",
+                  "desc": "随军术士能稳定施法，为战阵提供持续支援。"
+                }
+              ],
+              "gear": [
+                {
+                  "slot": "armor",
+                  "slotLabel": "护甲",
+                  "name": "轻便布甲",
+                  "desc": "轻薄的布甲，牺牲防护换取机动。"
+                },
+                {
+                  "slot": "gloves",
+                  "slotLabel": "手部",
+                  "name": "gloves",
+                  "desc": ""
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "魔导绪论",
+                  "desc": ""
+                }
+              ],
               "desc": ""
             }
           ],
@@ -1533,6 +2041,44 @@ export default [
           "race": "精灵",
           "size": 60,
           "modifiers": "【尚武造诣】",
+          "traits": [
+            {
+              "name": "尚武造诣",
+              "desc": "部队长期操练武艺，白刃相接时更有章法，近战杀伤与士气略高。"
+            }
+          ],
+          "gear": [
+            {
+              "slot": "helmet",
+              "slotLabel": "头部",
+              "name": "尖顶头盔",
+              "desc": "顶部收尖的铁盔，利于偏转劈砍。"
+            },
+            {
+              "slot": "armor",
+              "slotLabel": "护甲",
+              "name": "铁制胸甲",
+              "desc": "铁板锻打的胸甲，防护可靠，负重也大。"
+            },
+            {
+              "slot": "legs",
+              "slotLabel": "腿部",
+              "name": "护腿",
+              "desc": "护住小腿的甲片或皮革。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "铁制长矛",
+              "desc": ""
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "塔盾",
+              "desc": "高及人胸的巨盾，结阵时可组成盾墙。"
+            }
+          ],
           "desc": "",
           "equipment": {
             "helmet": {
@@ -1590,6 +2136,38 @@ export default [
           "race": "精灵",
           "size": 45,
           "modifiers": "【尚武造诣】",
+          "traits": [
+            {
+              "name": "尚武造诣",
+              "desc": "部队长期操练武艺，白刃相接时更有章法，近战杀伤与士气略高。"
+            }
+          ],
+          "gear": [
+            {
+              "slot": "helmet",
+              "slotLabel": "头部",
+              "name": "铁制半盔",
+              "desc": "铁片锻打的半盔，护住头顶与额角，是常见的制式头部装备。"
+            },
+            {
+              "slot": "armor",
+              "slotLabel": "护甲",
+              "name": "布甲",
+              "desc": "多层布帛纳成的软甲，轻便但不耐重击。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "短剑",
+              "desc": "单手短剑，近身缠斗时灵活。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "精灵长弓",
+              "desc": "以硬木与筋角复合制成的长弓，射程与穿甲俱佳。"
+            }
+          ],
           "desc": "",
           "equipment": {
             "helmet": {
@@ -1647,6 +2225,36 @@ export default [
           "race": "精灵",
           "size": 12,
           "modifiers": "【尚武造诣】【施法精通】",
+          "traits": [
+            {
+              "name": "尚武造诣",
+              "desc": "部队长期操练武艺，白刃相接时更有章法，近战杀伤与士气略高。"
+            },
+            {
+              "name": "施法精通",
+              "desc": "随军术士能稳定施法，为战阵提供持续支援。"
+            }
+          ],
+          "gear": [
+            {
+              "slot": "armor",
+              "slotLabel": "护甲",
+              "name": "轻便布甲",
+              "desc": "轻薄的布甲，牺牲防护换取机动。"
+            },
+            {
+              "slot": "gloves",
+              "slotLabel": "手部",
+              "name": "gloves",
+              "desc": ""
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "魔导绪论",
+              "desc": ""
+            }
+          ],
           "desc": "",
           "equipment": {
             "helmet": {
@@ -2275,6 +2883,69 @@ export default [
               "size": 800,
               "total": 800,
               "modifiers": "严寒抗性 · 盾墙防线",
+              "traits": [],
+              "gear": [
+                {
+                  "slot": "helmet",
+                  "slotLabel": "头部",
+                  "name": "头盔",
+                  "desc": "通用制式头盔。"
+                },
+                {
+                  "slot": "neckguard",
+                  "slotLabel": "护颈",
+                  "name": "护颈",
+                  "desc": "垂在颈后的护片，防止劈砍伤及颈项。"
+                },
+                {
+                  "slot": "armor",
+                  "slotLabel": "护甲",
+                  "name": "盔甲",
+                  "desc": "通用制式护甲。"
+                },
+                {
+                  "slot": "gloves",
+                  "slotLabel": "手部",
+                  "name": "手套",
+                  "desc": "通用护手。"
+                },
+                {
+                  "slot": "legs",
+                  "slotLabel": "腿部",
+                  "name": "腿甲",
+                  "desc": "覆盖大腿与膝部的甲片。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "近战主武器",
+                  "desc": "通用的近战主手武器。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "副手/盾牌",
+                  "desc": "副手持用的盾牌。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "远程兵械",
+                  "desc": "通用的远程投射兵器。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "战备佩刃",
+                  "desc": "随身佩戴的备用短刃。"
+                },
+                {
+                  "slot": "mount",
+                  "slotLabel": "坐骑",
+                  "name": "战马",
+                  "desc": "训练有素的战马，可供骑乘冲锋。"
+                }
+              ],
               "desc": "身着覆身钢甲、手执两米塔盾的重装步兵战阵，专司抵御猛兽与骑兵冲击。"
             },
             {
@@ -2285,6 +2956,69 @@ export default [
               "size": 400,
               "total": 400,
               "modifiers": "风雪伪装 · 致命贯穿",
+              "traits": [],
+              "gear": [
+                {
+                  "slot": "helmet",
+                  "slotLabel": "头部",
+                  "name": "头盔",
+                  "desc": "通用制式头盔。"
+                },
+                {
+                  "slot": "neckguard",
+                  "slotLabel": "护颈",
+                  "name": "护颈",
+                  "desc": "垂在颈后的护片，防止劈砍伤及颈项。"
+                },
+                {
+                  "slot": "armor",
+                  "slotLabel": "护甲",
+                  "name": "盔甲",
+                  "desc": "通用制式护甲。"
+                },
+                {
+                  "slot": "gloves",
+                  "slotLabel": "手部",
+                  "name": "手套",
+                  "desc": "通用护手。"
+                },
+                {
+                  "slot": "legs",
+                  "slotLabel": "腿部",
+                  "name": "腿甲",
+                  "desc": "覆盖大腿与膝部的甲片。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "近战主武器",
+                  "desc": "通用的近战主手武器。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "副手/盾牌",
+                  "desc": "副手持用的盾牌。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "远程兵械",
+                  "desc": "通用的远程投射兵器。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "战备佩刃",
+                  "desc": "随身佩戴的备用短刃。"
+                },
+                {
+                  "slot": "mount",
+                  "slotLabel": "坐骑",
+                  "name": "战马",
+                  "desc": "训练有素的战马，可供骑乘冲锋。"
+                }
+              ],
               "desc": "猎手出身的精准射手，擅长借助雪原风暴掩护进行冷箭狙杀。"
             }
           ],
@@ -2300,6 +3034,69 @@ export default [
           "race": "人类",
           "size": 800,
           "modifiers": "严寒抗性 · 盾墙防线",
+          "traits": [],
+          "gear": [
+            {
+              "slot": "helmet",
+              "slotLabel": "头部",
+              "name": "头盔",
+              "desc": "通用制式头盔。"
+            },
+            {
+              "slot": "neckguard",
+              "slotLabel": "护颈",
+              "name": "护颈",
+              "desc": "垂在颈后的护片，防止劈砍伤及颈项。"
+            },
+            {
+              "slot": "armor",
+              "slotLabel": "护甲",
+              "name": "盔甲",
+              "desc": "通用制式护甲。"
+            },
+            {
+              "slot": "gloves",
+              "slotLabel": "手部",
+              "name": "手套",
+              "desc": "通用护手。"
+            },
+            {
+              "slot": "legs",
+              "slotLabel": "腿部",
+              "name": "腿甲",
+              "desc": "覆盖大腿与膝部的甲片。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "近战主武器",
+              "desc": "通用的近战主手武器。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "副手/盾牌",
+              "desc": "副手持用的盾牌。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "远程兵械",
+              "desc": "通用的远程投射兵器。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "战备佩刃",
+              "desc": "随身佩戴的备用短刃。"
+            },
+            {
+              "slot": "mount",
+              "slotLabel": "坐骑",
+              "name": "战马",
+              "desc": "训练有素的战马，可供骑乘冲锋。"
+            }
+          ],
           "desc": "身着覆身钢甲、手执两米塔盾的重装步兵战阵，专司抵御猛兽与骑兵冲击。",
           "equipment": {
             "helmet": {
@@ -2357,6 +3154,69 @@ export default [
           "race": "人类",
           "size": 400,
           "modifiers": "风雪伪装 · 致命贯穿",
+          "traits": [],
+          "gear": [
+            {
+              "slot": "helmet",
+              "slotLabel": "头部",
+              "name": "头盔",
+              "desc": "通用制式头盔。"
+            },
+            {
+              "slot": "neckguard",
+              "slotLabel": "护颈",
+              "name": "护颈",
+              "desc": "垂在颈后的护片，防止劈砍伤及颈项。"
+            },
+            {
+              "slot": "armor",
+              "slotLabel": "护甲",
+              "name": "盔甲",
+              "desc": "通用制式护甲。"
+            },
+            {
+              "slot": "gloves",
+              "slotLabel": "手部",
+              "name": "手套",
+              "desc": "通用护手。"
+            },
+            {
+              "slot": "legs",
+              "slotLabel": "腿部",
+              "name": "腿甲",
+              "desc": "覆盖大腿与膝部的甲片。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "近战主武器",
+              "desc": "通用的近战主手武器。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "副手/盾牌",
+              "desc": "副手持用的盾牌。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "远程兵械",
+              "desc": "通用的远程投射兵器。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "战备佩刃",
+              "desc": "随身佩戴的备用短刃。"
+            },
+            {
+              "slot": "mount",
+              "slotLabel": "坐骑",
+              "name": "战马",
+              "desc": "训练有素的战马，可供骑乘冲锋。"
+            }
+          ],
           "desc": "猎手出身的精准射手，擅长借助雪原风暴掩护进行冷箭狙杀。",
           "equipment": {
             "helmet": {
@@ -2545,6 +3405,69 @@ export default [
               "size": 800,
               "total": 800,
               "modifiers": "严寒抗性 · 盾墙防线",
+              "traits": [],
+              "gear": [
+                {
+                  "slot": "helmet",
+                  "slotLabel": "头部",
+                  "name": "头盔",
+                  "desc": "通用制式头盔。"
+                },
+                {
+                  "slot": "neckguard",
+                  "slotLabel": "护颈",
+                  "name": "护颈",
+                  "desc": "垂在颈后的护片，防止劈砍伤及颈项。"
+                },
+                {
+                  "slot": "armor",
+                  "slotLabel": "护甲",
+                  "name": "盔甲",
+                  "desc": "通用制式护甲。"
+                },
+                {
+                  "slot": "gloves",
+                  "slotLabel": "手部",
+                  "name": "手套",
+                  "desc": "通用护手。"
+                },
+                {
+                  "slot": "legs",
+                  "slotLabel": "腿部",
+                  "name": "腿甲",
+                  "desc": "覆盖大腿与膝部的甲片。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "近战主武器",
+                  "desc": "通用的近战主手武器。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "副手/盾牌",
+                  "desc": "副手持用的盾牌。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "远程兵械",
+                  "desc": "通用的远程投射兵器。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "战备佩刃",
+                  "desc": "随身佩戴的备用短刃。"
+                },
+                {
+                  "slot": "mount",
+                  "slotLabel": "坐骑",
+                  "name": "战马",
+                  "desc": "训练有素的战马，可供骑乘冲锋。"
+                }
+              ],
               "desc": "身着覆身钢甲、手执两米塔盾的重装步兵战阵，专司抵御猛兽与骑兵冲击。"
             },
             {
@@ -2555,6 +3478,69 @@ export default [
               "size": 400,
               "total": 400,
               "modifiers": "风雪伪装 · 致命贯穿",
+              "traits": [],
+              "gear": [
+                {
+                  "slot": "helmet",
+                  "slotLabel": "头部",
+                  "name": "头盔",
+                  "desc": "通用制式头盔。"
+                },
+                {
+                  "slot": "neckguard",
+                  "slotLabel": "护颈",
+                  "name": "护颈",
+                  "desc": "垂在颈后的护片，防止劈砍伤及颈项。"
+                },
+                {
+                  "slot": "armor",
+                  "slotLabel": "护甲",
+                  "name": "盔甲",
+                  "desc": "通用制式护甲。"
+                },
+                {
+                  "slot": "gloves",
+                  "slotLabel": "手部",
+                  "name": "手套",
+                  "desc": "通用护手。"
+                },
+                {
+                  "slot": "legs",
+                  "slotLabel": "腿部",
+                  "name": "腿甲",
+                  "desc": "覆盖大腿与膝部的甲片。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "近战主武器",
+                  "desc": "通用的近战主手武器。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "副手/盾牌",
+                  "desc": "副手持用的盾牌。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "远程兵械",
+                  "desc": "通用的远程投射兵器。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "战备佩刃",
+                  "desc": "随身佩戴的备用短刃。"
+                },
+                {
+                  "slot": "mount",
+                  "slotLabel": "坐骑",
+                  "name": "战马",
+                  "desc": "训练有素的战马，可供骑乘冲锋。"
+                }
+              ],
               "desc": "猎手出身的精准射手，擅长借助雪原风暴掩护进行冷箭狙杀。"
             }
           ],
@@ -2570,6 +3556,69 @@ export default [
           "race": "人类",
           "size": 800,
           "modifiers": "严寒抗性 · 盾墙防线",
+          "traits": [],
+          "gear": [
+            {
+              "slot": "helmet",
+              "slotLabel": "头部",
+              "name": "头盔",
+              "desc": "通用制式头盔。"
+            },
+            {
+              "slot": "neckguard",
+              "slotLabel": "护颈",
+              "name": "护颈",
+              "desc": "垂在颈后的护片，防止劈砍伤及颈项。"
+            },
+            {
+              "slot": "armor",
+              "slotLabel": "护甲",
+              "name": "盔甲",
+              "desc": "通用制式护甲。"
+            },
+            {
+              "slot": "gloves",
+              "slotLabel": "手部",
+              "name": "手套",
+              "desc": "通用护手。"
+            },
+            {
+              "slot": "legs",
+              "slotLabel": "腿部",
+              "name": "腿甲",
+              "desc": "覆盖大腿与膝部的甲片。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "近战主武器",
+              "desc": "通用的近战主手武器。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "副手/盾牌",
+              "desc": "副手持用的盾牌。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "远程兵械",
+              "desc": "通用的远程投射兵器。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "战备佩刃",
+              "desc": "随身佩戴的备用短刃。"
+            },
+            {
+              "slot": "mount",
+              "slotLabel": "坐骑",
+              "name": "战马",
+              "desc": "训练有素的战马，可供骑乘冲锋。"
+            }
+          ],
           "desc": "身着覆身钢甲、手执两米塔盾的重装步兵战阵，专司抵御猛兽与骑兵冲击。",
           "equipment": {
             "helmet": {
@@ -2627,6 +3676,69 @@ export default [
           "race": "人类",
           "size": 400,
           "modifiers": "风雪伪装 · 致命贯穿",
+          "traits": [],
+          "gear": [
+            {
+              "slot": "helmet",
+              "slotLabel": "头部",
+              "name": "头盔",
+              "desc": "通用制式头盔。"
+            },
+            {
+              "slot": "neckguard",
+              "slotLabel": "护颈",
+              "name": "护颈",
+              "desc": "垂在颈后的护片，防止劈砍伤及颈项。"
+            },
+            {
+              "slot": "armor",
+              "slotLabel": "护甲",
+              "name": "盔甲",
+              "desc": "通用制式护甲。"
+            },
+            {
+              "slot": "gloves",
+              "slotLabel": "手部",
+              "name": "手套",
+              "desc": "通用护手。"
+            },
+            {
+              "slot": "legs",
+              "slotLabel": "腿部",
+              "name": "腿甲",
+              "desc": "覆盖大腿与膝部的甲片。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "近战主武器",
+              "desc": "通用的近战主手武器。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "副手/盾牌",
+              "desc": "副手持用的盾牌。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "远程兵械",
+              "desc": "通用的远程投射兵器。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "战备佩刃",
+              "desc": "随身佩戴的备用短刃。"
+            },
+            {
+              "slot": "mount",
+              "slotLabel": "坐骑",
+              "name": "战马",
+              "desc": "训练有素的战马，可供骑乘冲锋。"
+            }
+          ],
           "desc": "猎手出身的精准射手，擅长借助雪原风暴掩护进行冷箭狙杀。",
           "equipment": {
             "helmet": {
@@ -2757,6 +3869,69 @@ export default [
               "size": 800,
               "total": 800,
               "modifiers": "严寒抗性 · 盾墙防线",
+              "traits": [],
+              "gear": [
+                {
+                  "slot": "helmet",
+                  "slotLabel": "头部",
+                  "name": "头盔",
+                  "desc": "通用制式头盔。"
+                },
+                {
+                  "slot": "neckguard",
+                  "slotLabel": "护颈",
+                  "name": "护颈",
+                  "desc": "垂在颈后的护片，防止劈砍伤及颈项。"
+                },
+                {
+                  "slot": "armor",
+                  "slotLabel": "护甲",
+                  "name": "盔甲",
+                  "desc": "通用制式护甲。"
+                },
+                {
+                  "slot": "gloves",
+                  "slotLabel": "手部",
+                  "name": "手套",
+                  "desc": "通用护手。"
+                },
+                {
+                  "slot": "legs",
+                  "slotLabel": "腿部",
+                  "name": "腿甲",
+                  "desc": "覆盖大腿与膝部的甲片。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "近战主武器",
+                  "desc": "通用的近战主手武器。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "副手/盾牌",
+                  "desc": "副手持用的盾牌。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "远程兵械",
+                  "desc": "通用的远程投射兵器。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "战备佩刃",
+                  "desc": "随身佩戴的备用短刃。"
+                },
+                {
+                  "slot": "mount",
+                  "slotLabel": "坐骑",
+                  "name": "战马",
+                  "desc": "训练有素的战马，可供骑乘冲锋。"
+                }
+              ],
               "desc": "身着覆身钢甲、手执两米塔盾的重装步兵战阵，专司抵御猛兽与骑兵冲击。"
             },
             {
@@ -2767,6 +3942,69 @@ export default [
               "size": 400,
               "total": 400,
               "modifiers": "风雪伪装 · 致命贯穿",
+              "traits": [],
+              "gear": [
+                {
+                  "slot": "helmet",
+                  "slotLabel": "头部",
+                  "name": "头盔",
+                  "desc": "通用制式头盔。"
+                },
+                {
+                  "slot": "neckguard",
+                  "slotLabel": "护颈",
+                  "name": "护颈",
+                  "desc": "垂在颈后的护片，防止劈砍伤及颈项。"
+                },
+                {
+                  "slot": "armor",
+                  "slotLabel": "护甲",
+                  "name": "盔甲",
+                  "desc": "通用制式护甲。"
+                },
+                {
+                  "slot": "gloves",
+                  "slotLabel": "手部",
+                  "name": "手套",
+                  "desc": "通用护手。"
+                },
+                {
+                  "slot": "legs",
+                  "slotLabel": "腿部",
+                  "name": "腿甲",
+                  "desc": "覆盖大腿与膝部的甲片。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "近战主武器",
+                  "desc": "通用的近战主手武器。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "副手/盾牌",
+                  "desc": "副手持用的盾牌。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "远程兵械",
+                  "desc": "通用的远程投射兵器。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "战备佩刃",
+                  "desc": "随身佩戴的备用短刃。"
+                },
+                {
+                  "slot": "mount",
+                  "slotLabel": "坐骑",
+                  "name": "战马",
+                  "desc": "训练有素的战马，可供骑乘冲锋。"
+                }
+              ],
               "desc": "猎手出身的精准射手，擅长借助雪原风暴掩护进行冷箭狙杀。"
             }
           ],
@@ -2782,6 +4020,69 @@ export default [
           "race": "人类",
           "size": 800,
           "modifiers": "严寒抗性 · 盾墙防线",
+          "traits": [],
+          "gear": [
+            {
+              "slot": "helmet",
+              "slotLabel": "头部",
+              "name": "头盔",
+              "desc": "通用制式头盔。"
+            },
+            {
+              "slot": "neckguard",
+              "slotLabel": "护颈",
+              "name": "护颈",
+              "desc": "垂在颈后的护片，防止劈砍伤及颈项。"
+            },
+            {
+              "slot": "armor",
+              "slotLabel": "护甲",
+              "name": "盔甲",
+              "desc": "通用制式护甲。"
+            },
+            {
+              "slot": "gloves",
+              "slotLabel": "手部",
+              "name": "手套",
+              "desc": "通用护手。"
+            },
+            {
+              "slot": "legs",
+              "slotLabel": "腿部",
+              "name": "腿甲",
+              "desc": "覆盖大腿与膝部的甲片。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "近战主武器",
+              "desc": "通用的近战主手武器。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "副手/盾牌",
+              "desc": "副手持用的盾牌。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "远程兵械",
+              "desc": "通用的远程投射兵器。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "战备佩刃",
+              "desc": "随身佩戴的备用短刃。"
+            },
+            {
+              "slot": "mount",
+              "slotLabel": "坐骑",
+              "name": "战马",
+              "desc": "训练有素的战马，可供骑乘冲锋。"
+            }
+          ],
           "desc": "身着覆身钢甲、手执两米塔盾的重装步兵战阵，专司抵御猛兽与骑兵冲击。",
           "equipment": {
             "helmet": {
@@ -2839,6 +4140,69 @@ export default [
           "race": "人类",
           "size": 400,
           "modifiers": "风雪伪装 · 致命贯穿",
+          "traits": [],
+          "gear": [
+            {
+              "slot": "helmet",
+              "slotLabel": "头部",
+              "name": "头盔",
+              "desc": "通用制式头盔。"
+            },
+            {
+              "slot": "neckguard",
+              "slotLabel": "护颈",
+              "name": "护颈",
+              "desc": "垂在颈后的护片，防止劈砍伤及颈项。"
+            },
+            {
+              "slot": "armor",
+              "slotLabel": "护甲",
+              "name": "盔甲",
+              "desc": "通用制式护甲。"
+            },
+            {
+              "slot": "gloves",
+              "slotLabel": "手部",
+              "name": "手套",
+              "desc": "通用护手。"
+            },
+            {
+              "slot": "legs",
+              "slotLabel": "腿部",
+              "name": "腿甲",
+              "desc": "覆盖大腿与膝部的甲片。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "近战主武器",
+              "desc": "通用的近战主手武器。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "副手/盾牌",
+              "desc": "副手持用的盾牌。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "远程兵械",
+              "desc": "通用的远程投射兵器。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "战备佩刃",
+              "desc": "随身佩戴的备用短刃。"
+            },
+            {
+              "slot": "mount",
+              "slotLabel": "坐骑",
+              "name": "战马",
+              "desc": "训练有素的战马，可供骑乘冲锋。"
+            }
+          ],
           "desc": "猎手出身的精准射手，擅长借助雪原风暴掩护进行冷箭狙杀。",
           "equipment": {
             "helmet": {
@@ -2961,6 +4325,69 @@ export default [
               "size": 800,
               "total": 800,
               "modifiers": "严寒抗性 · 盾墙防线",
+              "traits": [],
+              "gear": [
+                {
+                  "slot": "helmet",
+                  "slotLabel": "头部",
+                  "name": "头盔",
+                  "desc": "通用制式头盔。"
+                },
+                {
+                  "slot": "neckguard",
+                  "slotLabel": "护颈",
+                  "name": "护颈",
+                  "desc": "垂在颈后的护片，防止劈砍伤及颈项。"
+                },
+                {
+                  "slot": "armor",
+                  "slotLabel": "护甲",
+                  "name": "盔甲",
+                  "desc": "通用制式护甲。"
+                },
+                {
+                  "slot": "gloves",
+                  "slotLabel": "手部",
+                  "name": "手套",
+                  "desc": "通用护手。"
+                },
+                {
+                  "slot": "legs",
+                  "slotLabel": "腿部",
+                  "name": "腿甲",
+                  "desc": "覆盖大腿与膝部的甲片。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "近战主武器",
+                  "desc": "通用的近战主手武器。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "副手/盾牌",
+                  "desc": "副手持用的盾牌。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "远程兵械",
+                  "desc": "通用的远程投射兵器。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "战备佩刃",
+                  "desc": "随身佩戴的备用短刃。"
+                },
+                {
+                  "slot": "mount",
+                  "slotLabel": "坐骑",
+                  "name": "战马",
+                  "desc": "训练有素的战马，可供骑乘冲锋。"
+                }
+              ],
               "desc": "身着覆身钢甲、手执两米塔盾的重装步兵战阵，专司抵御猛兽与骑兵冲击。"
             },
             {
@@ -2971,6 +4398,69 @@ export default [
               "size": 400,
               "total": 400,
               "modifiers": "风雪伪装 · 致命贯穿",
+              "traits": [],
+              "gear": [
+                {
+                  "slot": "helmet",
+                  "slotLabel": "头部",
+                  "name": "头盔",
+                  "desc": "通用制式头盔。"
+                },
+                {
+                  "slot": "neckguard",
+                  "slotLabel": "护颈",
+                  "name": "护颈",
+                  "desc": "垂在颈后的护片，防止劈砍伤及颈项。"
+                },
+                {
+                  "slot": "armor",
+                  "slotLabel": "护甲",
+                  "name": "盔甲",
+                  "desc": "通用制式护甲。"
+                },
+                {
+                  "slot": "gloves",
+                  "slotLabel": "手部",
+                  "name": "手套",
+                  "desc": "通用护手。"
+                },
+                {
+                  "slot": "legs",
+                  "slotLabel": "腿部",
+                  "name": "腿甲",
+                  "desc": "覆盖大腿与膝部的甲片。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "近战主武器",
+                  "desc": "通用的近战主手武器。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "副手/盾牌",
+                  "desc": "副手持用的盾牌。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "远程兵械",
+                  "desc": "通用的远程投射兵器。"
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "战备佩刃",
+                  "desc": "随身佩戴的备用短刃。"
+                },
+                {
+                  "slot": "mount",
+                  "slotLabel": "坐骑",
+                  "name": "战马",
+                  "desc": "训练有素的战马，可供骑乘冲锋。"
+                }
+              ],
               "desc": "猎手出身的精准射手，擅长借助雪原风暴掩护进行冷箭狙杀。"
             }
           ],
@@ -2986,6 +4476,69 @@ export default [
           "race": "人类",
           "size": 800,
           "modifiers": "严寒抗性 · 盾墙防线",
+          "traits": [],
+          "gear": [
+            {
+              "slot": "helmet",
+              "slotLabel": "头部",
+              "name": "头盔",
+              "desc": "通用制式头盔。"
+            },
+            {
+              "slot": "neckguard",
+              "slotLabel": "护颈",
+              "name": "护颈",
+              "desc": "垂在颈后的护片，防止劈砍伤及颈项。"
+            },
+            {
+              "slot": "armor",
+              "slotLabel": "护甲",
+              "name": "盔甲",
+              "desc": "通用制式护甲。"
+            },
+            {
+              "slot": "gloves",
+              "slotLabel": "手部",
+              "name": "手套",
+              "desc": "通用护手。"
+            },
+            {
+              "slot": "legs",
+              "slotLabel": "腿部",
+              "name": "腿甲",
+              "desc": "覆盖大腿与膝部的甲片。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "近战主武器",
+              "desc": "通用的近战主手武器。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "副手/盾牌",
+              "desc": "副手持用的盾牌。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "远程兵械",
+              "desc": "通用的远程投射兵器。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "战备佩刃",
+              "desc": "随身佩戴的备用短刃。"
+            },
+            {
+              "slot": "mount",
+              "slotLabel": "坐骑",
+              "name": "战马",
+              "desc": "训练有素的战马，可供骑乘冲锋。"
+            }
+          ],
           "desc": "身着覆身钢甲、手执两米塔盾的重装步兵战阵，专司抵御猛兽与骑兵冲击。",
           "equipment": {
             "helmet": {
@@ -3043,6 +4596,69 @@ export default [
           "race": "人类",
           "size": 400,
           "modifiers": "风雪伪装 · 致命贯穿",
+          "traits": [],
+          "gear": [
+            {
+              "slot": "helmet",
+              "slotLabel": "头部",
+              "name": "头盔",
+              "desc": "通用制式头盔。"
+            },
+            {
+              "slot": "neckguard",
+              "slotLabel": "护颈",
+              "name": "护颈",
+              "desc": "垂在颈后的护片，防止劈砍伤及颈项。"
+            },
+            {
+              "slot": "armor",
+              "slotLabel": "护甲",
+              "name": "盔甲",
+              "desc": "通用制式护甲。"
+            },
+            {
+              "slot": "gloves",
+              "slotLabel": "手部",
+              "name": "手套",
+              "desc": "通用护手。"
+            },
+            {
+              "slot": "legs",
+              "slotLabel": "腿部",
+              "name": "腿甲",
+              "desc": "覆盖大腿与膝部的甲片。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "近战主武器",
+              "desc": "通用的近战主手武器。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "副手/盾牌",
+              "desc": "副手持用的盾牌。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "远程兵械",
+              "desc": "通用的远程投射兵器。"
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "战备佩刃",
+              "desc": "随身佩戴的备用短刃。"
+            },
+            {
+              "slot": "mount",
+              "slotLabel": "坐骑",
+              "name": "战马",
+              "desc": "训练有素的战马，可供骑乘冲锋。"
+            }
+          ],
           "desc": "猎手出身的精准射手，擅长借助雪原风暴掩护进行冷箭狙杀。",
           "equipment": {
             "helmet": {

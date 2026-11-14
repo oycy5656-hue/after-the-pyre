@@ -3,6 +3,7 @@
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { traitDesc, gearDesc, slotLabels } from './glossary.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const srcPath = process.argv[2] || 'D:/Backup/Downloads/国家资料集_备份_2026-11-14.json'
@@ -57,6 +58,30 @@ const records = countries.map((c, index) => {
   const military = c.military || {}
 
   // 兵牌（units）是模板；军团（legions）用 unitNames 重复引用兵牌，组成具体编制
+  const parseTraits = (u) =>
+    [...String(u.modifiers || '').matchAll(/【([^】]+)】/g)].map((m) => ({
+      name: m[1],
+      desc: traitDesc[m[1]] || ''
+    }))
+
+  const parseGear = (u) => {
+    const eq = u.equipment || {}
+    const list = []
+    for (const [slot, value] of Object.entries(eq)) {
+      const items = Array.isArray(value) ? value : [value]
+      for (const item of items) {
+        if (!item?.name || item.name === '无') continue
+        list.push({
+          slot,
+          slotLabel: slotLabels[slot] || slot,
+          name: item.name,
+          desc: item.desc || gearDesc[item.name] || ''
+        })
+      }
+    }
+    return list
+  }
+
   const unitDefs = (military.units || []).map((u) => ({
     id: u.id,
     name: u.name,
@@ -64,6 +89,8 @@ const records = countries.map((c, index) => {
     race: u.race,
     size: Number(u.size) || 0,
     modifiers: u.modifiers,
+    traits: parseTraits(u),
+    gear: parseGear(u),
     desc: u.desc,
     equipment: u.equipment
   }))
@@ -83,6 +110,8 @@ const records = countries.map((c, index) => {
         size,
         total: size * count,
         modifiers: def.modifiers || '',
+        traits: def.traits || [],
+        gear: def.gear || [],
         desc: def.desc || ''
       }
     })
