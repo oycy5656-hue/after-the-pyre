@@ -519,6 +519,14 @@ onBeforeUnmount(() => {
   stroke-width: 1.4;
 }
 
+/* 国界用淡淡的虚线，补上地图结构 */
+.mv-stage :deep(#stateBorders path) {
+  stroke: #7d745a;
+  stroke-width: 0.8;
+  stroke-dasharray: 4 3;
+  opacity: 0.75;
+}
+
 .mv-stage :deep(#mv-labels text.mv-label-link) {
   cursor: pointer;
 }
