@@ -545,14 +545,30 @@ export default [
           "name": "左大帅部",
           "training": "百战老兵",
           "loyalty": 4,
-          "unitNames": [
-            "华人水手",
-            "华人水手",
-            "华人水手",
-            "华人重步兵",
-            "华人重步兵",
-            "华人重步兵"
-          ]
+          "composition": [
+            {
+              "name": "华人水手",
+              "count": 3,
+              "role": "游击穿插",
+              "race": "人类",
+              "size": 500,
+              "total": 1500,
+              "modifiers": "【尚武造诣】【两栖适应】",
+              "desc": ""
+            },
+            {
+              "name": "华人重步兵",
+              "count": 3,
+              "role": "坚阵中锋",
+              "race": "人类",
+              "size": 150,
+              "total": 450,
+              "modifiers": "【引发恐惧】【狂怒】",
+              "desc": ""
+            }
+          ],
+          "total": 1950,
+          "cards": 6
         }
       ],
       "units": [
@@ -790,15 +806,40 @@ export default [
           "name": "第一军团",
           "training": "一般",
           "loyalty": 5,
-          "unitNames": [
-            "元素傀儡",
-            "元素傀儡",
-            "元素傀儡",
-            "德拉米战法团",
-            "德拉米战法团",
-            "德拉米斥候",
-            "德拉米斥候"
-          ]
+          "composition": [
+            {
+              "name": "元素傀儡",
+              "count": 3,
+              "role": "坚阵中锋",
+              "race": "元素生命",
+              "size": 120,
+              "total": 360,
+              "modifiers": "【构装体】",
+              "desc": ""
+            },
+            {
+              "name": "德拉米战法团",
+              "count": 2,
+              "role": "战争法师",
+              "race": "小精灵",
+              "size": 15,
+              "total": 30,
+              "modifiers": "【飞行】【激励友军】",
+              "desc": ""
+            },
+            {
+              "name": "德拉米斥候",
+              "count": 2,
+              "role": "坚阵中锋",
+              "race": "小精灵",
+              "size": 30,
+              "total": 60,
+              "modifiers": "【飞行】",
+              "desc": ""
+            }
+          ],
+          "total": 450,
+          "cards": 7
         }
       ],
       "units": [
@@ -1159,23 +1200,40 @@ export default [
           "name": "巫王战团",
           "training": "百战老兵",
           "loyalty": 5,
-          "unitNames": [
-            "安格烈猎手",
-            "安格烈猎手",
-            "安格烈猎手",
-            "安格烈猎手",
-            "安格烈猎手",
-            "安格烈猎手",
-            "安格烈猎手",
-            "安格烈冠军勇士",
-            "安格烈冠军勇士",
-            "安格烈冠军勇士",
-            "安格烈冠军勇士",
-            "安格烈冠军勇士",
-            "安格烈术士团",
-            "安格烈术士团",
-            "安格烈术士团"
-          ]
+          "composition": [
+            {
+              "name": "安格烈猎手",
+              "count": 7,
+              "role": "游击穿插",
+              "race": "人类",
+              "size": 150,
+              "total": 1050,
+              "modifiers": "",
+              "desc": ""
+            },
+            {
+              "name": "安格烈冠军勇士",
+              "count": 5,
+              "role": "坚阵中锋",
+              "race": "人类",
+              "size": 100,
+              "total": 500,
+              "modifiers": "【狂怒】【引发恐惧】",
+              "desc": ""
+            },
+            {
+              "name": "安格烈术士团",
+              "count": 3,
+              "role": "战争法师",
+              "race": "人类",
+              "size": 24,
+              "total": 72,
+              "modifiers": "",
+              "desc": ""
+            }
+          ],
+          "total": 1622,
+          "cards": 15
         }
       ],
       "units": [
@@ -1441,19 +1499,30 @@ export default [
           "name": "第一军团",
           "training": "一般",
           "loyalty": 3,
-          "unitNames": [
-            "吉利卡斯长矛兵",
-            "吉利卡斯长矛兵",
-            "吉利卡斯长矛兵",
-            "吉利卡斯长矛兵",
-            "吉利卡斯长矛兵",
-            "吉利卡斯长矛兵",
-            "吉利卡斯炎术士团",
-            "吉利卡斯炎术士团",
-            "吉利卡斯炎术士团",
-            "吉利卡斯炎术士团",
-            "吉利卡斯炎术士团"
-          ]
+          "composition": [
+            {
+              "name": "吉利卡斯长矛兵",
+              "count": 6,
+              "role": "战线中坚",
+              "race": "精灵",
+              "size": 60,
+              "total": 360,
+              "modifiers": "【尚武造诣】",
+              "desc": ""
+            },
+            {
+              "name": "吉利卡斯炎术士团",
+              "count": 5,
+              "role": "战争法师",
+              "race": "精灵",
+              "size": 12,
+              "total": 60,
+              "modifiers": "【尚武造诣】【施法精通】",
+              "desc": ""
+            }
+          ],
+          "total": 420,
+          "cards": 11
         }
       ],
       "units": [
@@ -2197,10 +2266,30 @@ export default [
           "name": "第I坚冰铁卫军团",
           "training": "老练精兵",
           "loyalty": 4,
-          "unitNames": [
-            "霜原卫戍重步兵",
-            "北境雪鸮游侠"
-          ]
+          "composition": [
+            {
+              "name": "霜原卫戍重步兵",
+              "count": 1,
+              "role": "正面坚阵",
+              "race": "人类",
+              "size": 800,
+              "total": 800,
+              "modifiers": "严寒抗性 · 盾墙防线",
+              "desc": "身着覆身钢甲、手执两米塔盾的重装步兵战阵，专司抵御猛兽与骑兵冲击。"
+            },
+            {
+              "name": "北境雪鸮游侠",
+              "count": 1,
+              "role": "斥候/游击",
+              "race": "人类",
+              "size": 400,
+              "total": 400,
+              "modifiers": "风雪伪装 · 致命贯穿",
+              "desc": "猎手出身的精准射手，擅长借助雪原风暴掩护进行冷箭狙杀。"
+            }
+          ],
+          "total": 1200,
+          "cards": 2
         }
       ],
       "units": [
@@ -2447,10 +2536,30 @@ export default [
           "name": "第I坚冰铁卫军团",
           "training": "老练精兵",
           "loyalty": 4,
-          "unitNames": [
-            "霜原卫戍重步兵",
-            "北境雪鸮游侠"
-          ]
+          "composition": [
+            {
+              "name": "霜原卫戍重步兵",
+              "count": 1,
+              "role": "正面坚阵",
+              "race": "人类",
+              "size": 800,
+              "total": 800,
+              "modifiers": "严寒抗性 · 盾墙防线",
+              "desc": "身着覆身钢甲、手执两米塔盾的重装步兵战阵，专司抵御猛兽与骑兵冲击。"
+            },
+            {
+              "name": "北境雪鸮游侠",
+              "count": 1,
+              "role": "斥候/游击",
+              "race": "人类",
+              "size": 400,
+              "total": 400,
+              "modifiers": "风雪伪装 · 致命贯穿",
+              "desc": "猎手出身的精准射手，擅长借助雪原风暴掩护进行冷箭狙杀。"
+            }
+          ],
+          "total": 1200,
+          "cards": 2
         }
       ],
       "units": [
@@ -2639,10 +2748,30 @@ export default [
           "name": "第I坚冰铁卫军团",
           "training": "老练精兵",
           "loyalty": 4,
-          "unitNames": [
-            "霜原卫戍重步兵",
-            "北境雪鸮游侠"
-          ]
+          "composition": [
+            {
+              "name": "霜原卫戍重步兵",
+              "count": 1,
+              "role": "正面坚阵",
+              "race": "人类",
+              "size": 800,
+              "total": 800,
+              "modifiers": "严寒抗性 · 盾墙防线",
+              "desc": "身着覆身钢甲、手执两米塔盾的重装步兵战阵，专司抵御猛兽与骑兵冲击。"
+            },
+            {
+              "name": "北境雪鸮游侠",
+              "count": 1,
+              "role": "斥候/游击",
+              "race": "人类",
+              "size": 400,
+              "total": 400,
+              "modifiers": "风雪伪装 · 致命贯穿",
+              "desc": "猎手出身的精准射手，擅长借助雪原风暴掩护进行冷箭狙杀。"
+            }
+          ],
+          "total": 1200,
+          "cards": 2
         }
       ],
       "units": [
@@ -2823,10 +2952,30 @@ export default [
           "name": "第I坚冰铁卫军团",
           "training": "老练精兵",
           "loyalty": 4,
-          "unitNames": [
-            "霜原卫戍重步兵",
-            "北境雪鸮游侠"
-          ]
+          "composition": [
+            {
+              "name": "霜原卫戍重步兵",
+              "count": 1,
+              "role": "正面坚阵",
+              "race": "人类",
+              "size": 800,
+              "total": 800,
+              "modifiers": "严寒抗性 · 盾墙防线",
+              "desc": "身着覆身钢甲、手执两米塔盾的重装步兵战阵，专司抵御猛兽与骑兵冲击。"
+            },
+            {
+              "name": "北境雪鸮游侠",
+              "count": 1,
+              "role": "斥候/游击",
+              "race": "人类",
+              "size": 400,
+              "total": 400,
+              "modifiers": "风雪伪装 · 致命贯穿",
+              "desc": "猎手出身的精准射手，擅长借助雪原风暴掩护进行冷箭狙杀。"
+            }
+          ],
+          "total": 1200,
+          "cards": 2
         }
       ],
       "units": [

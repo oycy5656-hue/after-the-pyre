@@ -1,4 +1,4 @@
-// 把「国家资料集」JSON 转成 Wiki 页面 + 静态资源 + 数据模块
+﻿// 把「国家资料集」JSON 转成 Wiki 页面 + 静态资源 + 数据模块
 // 用法: node scripts/import-countries.mjs [jsonPath]
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
@@ -56,6 +56,47 @@ const records = countries.map((c, index) => {
   const politics = c.politics || {}
   const military = c.military || {}
 
+  // 兵牌（units）是模板；军团（legions）用 unitNames 重复引用兵牌，组成具体编制
+  const unitDefs = (military.units || []).map((u) => ({
+    id: u.id,
+    name: u.name,
+    role: u.role,
+    race: u.race,
+    size: Number(u.size) || 0,
+    modifiers: u.modifiers,
+    desc: u.desc,
+    equipment: u.equipment
+  }))
+  const unitByName = new Map(unitDefs.map((u) => [u.name, u]))
+
+  const legions = (military.legions || []).map((l) => {
+    const counts = new Map()
+    for (const name of l.unitNames || []) counts.set(name, (counts.get(name) || 0) + 1)
+    const composition = [...counts.entries()].map(([name, count]) => {
+      const def = unitByName.get(name) || {}
+      const size = Number(def.size) || 0
+      return {
+        name,
+        count,
+        role: def.role || '',
+        race: def.race || '',
+        size,
+        total: size * count,
+        modifiers: def.modifiers || '',
+        desc: def.desc || ''
+      }
+    })
+    return {
+      id: l.id,
+      name: l.name,
+      training: l.training || '',
+      loyalty: l.loyalty ?? null,
+      composition,
+      total: composition.reduce((n, x) => n + x.total, 0),
+      cards: composition.reduce((n, x) => n + x.count, 0)
+    }
+  })
+
   return {
     id: c.id,
     slug,
@@ -109,23 +150,13 @@ const records = countries.map((c, index) => {
       }))
     },
     military: {
-      legions: military.legions || [],
-      units: (military.units || []).map((u) => ({
-        id: u.id,
-        name: u.name,
-        role: u.role,
-        race: u.race,
-        size: u.size,
-        modifiers: u.modifiers,
-        desc: u.desc,
-        equipment: u.equipment
-      }))
+      legions,
+      units: unitDefs
     },
-    stats: Object.fromEntries(
-      statsKeys.map(([key]) => [key, Number(leader.stats?.[key] ?? 0)])
-    )
+    stats: Object.fromEntries(statsKeys.map(([key]) => [key, Number(leader.stats?.[key] ?? 0)]))
   }
 })
+
 
 // ---------- 数据模块 ----------
 writeFileSync(
@@ -164,7 +195,7 @@ records.forEach((r, i) => {
     '---',
     `title: ${r.name}`,
     `description: ${r.race}政权 · 首都${r.capital} · ${r.politics.system}`,
-    'outline: [2, 3]',
+    'outline: false',
     '---'
   ].join('\n')
 

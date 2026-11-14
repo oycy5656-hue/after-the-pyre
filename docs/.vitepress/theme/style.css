@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 主题微调：改这里就能换配色、圆角、字号。
  * 颜色用 VitePress 自带的 CSS 变量覆盖即可，深浅色模式分别生效。
  */
@@ -40,7 +40,7 @@
 @media (min-width: 960px) {
   .VPDoc .content-container,
   .VPDoc.has-aside .content-container {
-    max-width: 940px !important;
+    max-width: 1120px !important;
   }
 }
 

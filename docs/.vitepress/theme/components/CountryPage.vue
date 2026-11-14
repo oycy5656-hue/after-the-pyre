@@ -25,7 +25,11 @@ const statKeys = Object.keys(statLabels)
 const statMax = computed(() => Math.max(20, ...statKeys.map((k) => country.value.stats[k] || 0)))
 const totalStats = computed(() => statKeys.reduce((sum, k) => sum + (country.value.stats[k] || 0), 0))
 
-const factions = computed(() => country.value.politics.factions || [])
+const factions = computed(() => (country.value.politics && country.value.politics.factions) || [])
+const regionTraits = computed(() => (country.value.region && country.value.region.traits) || [])
+const leaderTraits = computed(() => (country.value.politics.leader && country.value.politics.leader.traits) || [])
+const wonders = computed(() => (country.value.politics && country.value.politics.wonders) || [])
+const modifiers = computed(() => (country.value.politics && country.value.politics.modifiers) || [])
 const factionTotal = computed(() => factions.value.reduce((n, f) => n + (f.influence || 0), 0))
 
 // 圆环图：把影响力换算成 stroke-dasharray
@@ -42,28 +46,9 @@ const donut = computed(() => {
   })
 })
 
-const units = computed(() => country.value.military.units || [])
-const totalTroops = computed(() => units.value.reduce((n, u) => n + (Number(u.size) || 0), 0))
-const unitRoles = computed(() => {
-  const map = new Map()
-  for (const u of units.value) map.set(u.role || '未分类', (map.get(u.role || '未分类') || 0) + 1)
-  return [...map.entries()]
-})
-
-function unitGear(unit) {
-  const eq = unit.equipment
-  if (!eq || typeof eq !== 'object') return []
-  const names = []
-  for (const value of Object.values(eq)) {
-    if (!value) continue
-    if (Array.isArray(value)) {
-      for (const item of value) if (item?.name && item.name !== '无') names.push(item.name)
-    } else if (value.name && value.name !== '无') {
-      names.push(value.name)
-    }
-  }
-  return [...new Set(names)]
-}
+const legions = computed(() => (country.value.military && country.value.military.legions) || [])
+const totalTroops = computed(() => legions.value.reduce((n, l) => n + (l.total || 0), 0))
+const totalCards = computed(() => legions.value.reduce((n, l) => n + (l.cards || 0), 0))
 
 const toc = computed(() => [
   ['overview', '概览'],
@@ -71,8 +56,8 @@ const toc = computed(() => [
   ['ruler', '统治者'],
   ['factions', '势力格局'],
   ['military', '军事'],
-  ...(country.value.politics.wonders.length ? [['wonders', '奇观']] : []),
-  ...(country.value.politics.modifiers.length ? [['policies', '国策']] : [])
+  ...(wonders.value.length ? [['wonders', '奇观']] : []),
+  ...(modifiers.value.length ? [['policies', '国策']] : [])
 ])
 </script>
 
@@ -84,8 +69,8 @@ const toc = computed(() => [
       <section id="region" class="wp-section">
         <h2>风土</h2>
         <p>{{ country.region.desc }}</p>
-        <ul v-if="country.region.traits.length" class="wp-tags">
-          <li v-for="t in country.region.traits" :key="t">{{ t }}</li>
+        <ul v-if="regionTraits.length" class="wp-tags">
+          <li v-for="t in regionTraits" :key="t">{{ t }}</li>
           <li v-if="country.region.customTag">{{ country.region.customTag }}</li>
         </ul>
       </section>
@@ -96,8 +81,8 @@ const toc = computed(() => [
           <div class="wp-ruler-info">
             <p class="wp-ruler-name">{{ country.politics.leader.name }}</p>
             <p class="wp-ruler-title">{{ country.politics.leader.title }}</p>
-            <ul v-if="country.politics.leader.traits.length" class="wp-tags">
-              <li v-for="t in country.politics.leader.traits" :key="t">{{ t }}</li>
+            <ul v-if="leaderTraits.length" class="wp-tags">
+              <li v-for="t in leaderTraits" :key="t">{{ t }}</li>
             </ul>
             <blockquote v-if="country.politics.leader.bio">{{ country.politics.leader.bio }}</blockquote>
           </div>
@@ -159,47 +144,40 @@ const toc = computed(() => [
       <section id="military" class="wp-section">
         <h2>军事</h2>
         <div class="wp-mil-stats">
-          <div><strong>{{ units.length }}</strong><span>军团</span></div>
+          <div><strong>{{ legions.length }}</strong><span>军团</span></div>
           <div><strong>{{ totalTroops.toLocaleString() }}</strong><span>总兵力</span></div>
-          <div><strong>{{ unitRoles.length }}</strong><span>兵种</span></div>
+          <div><strong>{{ totalCards }}</strong><span>兵牌</span></div>
         </div>
 
-        <template v-if="units.length">
-          <table class="wp-unit-table">
-            <thead>
-              <tr>
-                <th>军团</th>
-                <th>定位</th>
-                <th>种族</th>
-                <th>兵力</th>
-                <th>装备</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="u in units" :key="u.id">
-                <td class="wp-unit-name">{{ u.name }}<small v-if="u.modifiers">{{ u.modifiers }}</small></td>
-                <td>{{ u.role }}</td>
-                <td>{{ u.race }}</td>
-                <td class="wp-num">{{ u.size }}</td>
-                <td class="wp-muted">{{ unitGear(u).join('、') || '—' }}</td>
-              </tr>
-            </tbody>
-            <tfoot>
-              <tr>
-                <th colspan="3">合计</th>
-                <th class="wp-num">{{ totalTroops.toLocaleString() }}</th>
-                <th></th>
-              </tr>
-            </tfoot>
-          </table>
+        <template v-if="legions.length">
+          <article v-for="legion in legions" :key="legion.id" class="wp-legion">
+            <header class="wp-legion-head">
+              <h3>{{ legion.name }}</h3>
+              <p class="wp-legion-meta">
+                <span v-if="legion.training">{{ legion.training }}</span>
+                <span v-if="legion.loyalty !== null">忠诚 {{ legion.loyalty }}</span>
+                <span>{{ legion.cards }} 张兵牌</span>
+                <strong>{{ legion.total.toLocaleString() }} 人</strong>
+              </p>
+            </header>
+            <div class="wp-cards">
+              <div v-for="card in legion.composition || []" :key="card.name" class="wp-card">
+                <p class="wp-card-name">{{ card.name }}<em>× {{ card.count }}</em></p>
+                <p class="wp-card-meta">{{ card.role }} · {{ card.race }}</p>
+                <p v-if="card.modifiers" class="wp-card-mods">{{ card.modifiers }}</p>
+                <p class="wp-card-total">{{ card.size }} 人/牌 · 小计 {{ card.total.toLocaleString() }}</p>
+              </div>
+            </div>
+          </article>
+          <p class="wp-mil-total">全境合计 {{ legions.length }} 个军团 · {{ totalCards }} 张兵牌 · {{ totalTroops.toLocaleString() }} 人</p>
         </template>
         <p v-else class="wp-empty">尚无成建制的军团记录。</p>
       </section>
 
-      <section v-if="country.politics.wonders.length" id="wonders" class="wp-section">
+      <section v-if="wonders.length" id="wonders" class="wp-section">
         <h2>奇观</h2>
         <div class="wp-gallery">
-          <figure v-for="w in country.politics.wonders" :key="w.id">
+          <figure v-for="w in wonders" :key="w.id">
             <img v-if="w.avatar" :src="withBase(w.avatar)" :alt="w.name" loading="lazy" />
             <figcaption>
               <strong>{{ w.name }}</strong>
@@ -209,10 +187,10 @@ const toc = computed(() => [
         </div>
       </section>
 
-      <section v-if="country.politics.modifiers.length" id="policies" class="wp-section">
+      <section v-if="modifiers.length" id="policies" class="wp-section">
         <h2>国策与修正</h2>
         <dl class="wp-modifiers">
-          <template v-for="m in country.politics.modifiers" :key="m.id">
+          <template v-for="m in modifiers" :key="m.id">
             <dt>{{ m.name }}</dt>
             <dd>{{ m.effect }}</dd>
           </template>
@@ -238,7 +216,7 @@ const toc = computed(() => [
             <tr><th>政体</th><td>{{ country.politics.system }}</td></tr>
             <tr><th>区域</th><td>{{ country.region.name }}</td></tr>
             <tr><th>派系</th><td>{{ factions.length }} 个</td></tr>
-            <tr><th>军团</th><td>{{ units.length }} 支 / {{ totalTroops.toLocaleString() }} 人</td></tr>
+            <tr><th>军团</th><td>{{ legions.length }} 支 / {{ totalTroops.toLocaleString() }} 人</td></tr>
           </tbody>
         </table>
       </div>
@@ -394,8 +372,8 @@ const toc = computed(() => [
 
 .wp-factions {
   display: grid;
-  grid-template-columns: 150px minmax(0, 1fr);
-  gap: 22px;
+  grid-template-columns: 170px minmax(0, 1fr);
+  gap: 34px;
   align-items: center;
 }
 
@@ -424,7 +402,7 @@ const toc = computed(() => [
 
 .wp-faction-table th,
 .wp-unit-table th {
-  padding: 8px 10px;
+  padding: 9px 14px;
   text-align: left;
   font-weight: 500;
   font-size: 12.5px;
@@ -435,7 +413,7 @@ const toc = computed(() => [
 
 .wp-faction-table td,
 .wp-unit-table td {
-  padding: 9px 10px;
+  padding: 11px 14px;
   border-bottom: 1px solid var(--vp-c-divider);
   color: var(--vp-c-text-2);
 }
@@ -487,10 +465,99 @@ const toc = computed(() => [
   color: var(--vp-c-text-3);
 }
 
-.wp-unit-table th:nth-child(3),
-.wp-unit-table td:nth-child(3) {
-  min-width: 52px;
-  white-space: nowrap;
+/* 军团与兵牌 */
+.wp-legion {
+  margin-bottom: 16px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.wp-legion-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+  padding: 12px 16px;
+  background: var(--vp-c-bg-soft);
+  border-bottom: 1px solid var(--vp-c-divider);
+}
+
+.wp-legion-head h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--vp-c-text-1);
+}
+
+.wp-legion-meta {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 12.5px;
+  color: var(--vp-c-text-3);
+}
+
+.wp-legion-meta strong {
+  color: var(--vp-c-text-1);
+  font-variant-numeric: tabular-nums;
+}
+
+.wp-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 10px;
+  padding: 14px 16px;
+}
+
+.wp-card {
+  padding: 10px 12px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 8px;
+  background: var(--vp-c-bg);
+}
+
+.wp-card-name {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--vp-c-text-1);
+}
+
+.wp-card-name em {
+  font-style: normal;
+  color: var(--accent);
+}
+
+.wp-card-meta {
+  margin: 3px 0 0;
+  font-size: 12px;
+  color: var(--vp-c-text-3);
+}
+
+.wp-card-mods {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: color-mix(in srgb, var(--accent) 80%, var(--vp-c-text-1));
+}
+
+.wp-card-total {
+  margin: 8px 0 0;
+  padding-top: 6px;
+  border-top: 1px dashed var(--vp-c-divider);
+  font-size: 12px;
+  color: var(--vp-c-text-2);
+}
+
+.wp-mil-total {
+  margin: 2px 0 0;
+  text-align: right;
+  font-size: 12.5px;
+  color: var(--vp-c-text-3);
 }
 
 .wp-unit-name {
