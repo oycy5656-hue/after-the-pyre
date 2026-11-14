@@ -35,6 +35,7 @@ export default defineConfig({
     nav: [
       { text: '首页', link: '/' },
       { text: '国家', link: '/countries/', activeMatch: '/countries/' },
+      { text: '地图', link: '/map/', activeMatch: '/map/' },
       { text: '指南', link: '/guide/', activeMatch: '/guide/' },
       { text: '笔记', link: '/notes/', activeMatch: '/notes/' },
       { text: '参考', link: '/reference/' }
@@ -49,6 +50,7 @@ export default defineConfig({
           items: [
             { text: '首页', link: '/' },
             { text: '国家档案', link: '/countries/' },
+            { text: '世界地图', link: '/map/' },
             { text: '关于这个 Wiki', link: '/guide/' }
           ]
         },
