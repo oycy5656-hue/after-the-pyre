@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter, withBase } from 'vitepress'
 import mapData from '../../data/map.mjs'
@@ -211,7 +211,7 @@ function layoutLabels() {
     const sx = item.state.capital.x * pxPerUnit
     const sy = (item.state.capital.y - 7) * pxPerUnit
     const halfW = (item.state.name.length * 11) / 2
-    const overlap = placed.some((p) => Math.abs(p.x - sx) < p.halfW + halfW + 8 && Math.abs(p.y - sy) < 14)
+    const overlap = placed.some((p) => Math.abs(p.x - sx) < p.halfW + halfW + 12 && Math.abs(p.y - sy) < 18)
     if (overlap) {
       el.style.display = 'none'
     } else {
