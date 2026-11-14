@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter, withBase } from 'vitepress'
 import mapData from '../../data/map.mjs'
@@ -8,6 +8,7 @@ const router = useRouter()
 
 const wrapEl = ref(null)
 const stageEl = ref(null)
+const overlayEl = ref(null)
 const loading = ref(true)
 const errorMsg = ref('')
 const showBurgs = ref(true)
@@ -15,14 +16,27 @@ const showPanel = ref(true)
 const zoom = ref(1)
 const offset = ref({ x: 0, y: 0 })
 const activeState = ref(null)
+const view = ref('terrain')
 const tooltip = ref({ visible: false, x: 0, y: 0, title: '', lines: [], slug: null })
 
-const stateByIndex = new Map(mapData.states.map((s) => [s.i, s]))
-const countryBySlug = new Map(countries.map((c) => [c.slug, c]))
+const VIEWS = [
+  { key: 'terrain', label: '地形', file: 'terrain.png' },
+  { key: 'states', label: '势力', file: 'states.png' },
+  { key: 'cultures', label: '文化', file: 'cultures.png' }
+]
 
-const states = computed(() =>
-  [...mapData.states].sort((a, b) => b.area - a.area)
-)
+const viewImage = computed(() => {
+  const v = VIEWS.find((x) => x.key === view.value) || VIEWS[0]
+  return withBase(`/map/${v.file}`)
+})
+
+const stateByIndex = new Map(mapData.states.map((s) => [s.i, s]))
+const burgById = new Map(mapData.burgs.map((b) => [b.i, b]))
+const countryBySlug = new Map(countries.map((c) => [c.slug, c]))
+const burgDots = []
+const labelItems = []
+
+const states = computed(() => [...mapData.states].sort((a, b) => b.area - a.area))
 
 const stats = computed(() => ({
   states: mapData.states.length,
@@ -33,12 +47,6 @@ const stats = computed(() => ({
 const stageStyle = computed(() => ({
   transform: `translate(${offset.value.x}px, ${offset.value.y}px) scale(${zoom.value})`
 }))
-
-function setTransform(scale, x = offset.value.x, y = offset.value.y) {
-  const next = Math.min(8, Math.max(0.6, scale))
-  zoom.value = next
-  offset.value = { x, y }
-}
 
 function resetView() {
   zoom.value = 1
@@ -52,10 +60,7 @@ function zoomBy(factor, originEvent) {
   const cy = originEvent ? originEvent.clientY - rect.top : rect.height / 2
   const next = Math.min(8, Math.max(0.6, zoom.value * factor))
   const ratio = next / zoom.value
-  offset.value = {
-    x: cx - (cx - offset.value.x) * ratio,
-    y: cy - (cy - offset.value.y) * ratio
-  }
+  offset.value = { x: cx - (cx - offset.value.x) * ratio, y: cy - (cy - offset.value.y) * ratio }
   zoom.value = next
 }
 
@@ -90,7 +95,6 @@ function onPointerUp(event) {
   dragging = false
   moved = false
   if (!wasDragging || wasMoved) return
-  // 没有拖动 => 当作点击：用坐标取元素，避免 pointer 捕获导致拿不到真正的目标
   const el = document.elementFromPoint(event.clientX, event.clientY)
   handleClickAt(el)
 }
@@ -120,6 +124,10 @@ function burgIndexFrom(target) {
   return el ? Number(el.getAttribute('data-burg')) : null
 }
 
+function go(slug) {
+  router.go(withBase(`/countries/${slug}`))
+}
+
 function showStateTooltip(event, state) {
   const country = state.slug ? countryBySlug.get(state.slug) : null
   const lines = []
@@ -131,14 +139,7 @@ function showStateTooltip(event, state) {
   } else {
     lines.push(`城市 ${state.burgCount} 座`)
   }
-  tooltip.value = {
-    visible: true,
-    x: event.clientX,
-    y: event.clientY,
-    title: state.name,
-    lines,
-    slug: state.slug
-  }
+  tooltip.value = { visible: true, x: event.clientX, y: event.clientY, title: state.name, lines, slug: state.slug }
 }
 
 function showBurgTooltip(event, burg) {
@@ -146,14 +147,7 @@ function showBurgTooltip(event, burg) {
   const lines = [`人口 ${Math.round(burg.population * 1000).toLocaleString()}`]
   if (state) lines.push(state.name)
   if (burg.capital) lines.unshift('首府')
-  tooltip.value = {
-    visible: true,
-    x: event.clientX,
-    y: event.clientY,
-    title: burg.name,
-    lines,
-    slug: state?.slug || null
-  }
+  tooltip.value = { visible: true, x: event.clientX, y: event.clientY, title: burg.name, lines, slug: state?.slug || null }
 }
 
 function onStageMove(event) {
@@ -163,7 +157,7 @@ function onStageMove(event) {
   }
   const burgIdx = burgIndexFrom(event.target)
   if (burgIdx) {
-    const burg = mapData.burgs.find((b) => b.i === burgIdx)
+    const burg = burgById.get(burgIdx)
     if (burg) return showBurgTooltip(event, burg)
   }
   const idx = stateIndexFrom(event.target)
@@ -180,19 +174,9 @@ function onStageLeave() {
   activeState.value = null
 }
 
-function go(slug) {
-  router.go(withBase(`/countries/${slug}`))
-}
-
 function focusState(state) {
   activeState.value = state
 }
-
-const burgById = new Map(mapData.burgs.map((b) => [b.i, b]))
-const burgDots = []
-
-// 国名标签：字号固定为屏幕上的 11px，并做简单避让，避免挤成一团
-const labelItems = []
 
 function layoutLabels() {
   const stage = stageEl.value
@@ -202,9 +186,9 @@ function layoutLabels() {
   const fontUnits = 11 / pxPerUnit
   const strokeUnits = 2.4 / pxPerUnit
   const placed = []
-
   const sorted = [...labelItems].sort((a, b) => b.state.area - a.state.area)
   const maxLabels = zoom.value < 1.4 ? 16 : labelItems.length
+
   for (const item of sorted) {
     const el = item.el
     el.setAttribute('font-size', String(fontUnits))
@@ -212,7 +196,9 @@ function layoutLabels() {
     const sx = item.state.capital.x * pxPerUnit
     const sy = (item.state.capital.y - 7) * pxPerUnit
     const halfW = (item.state.name.length * 11) / 2
-    const overlap = placed.length >= maxLabels || placed.some((p) => Math.abs(p.x - sx) < p.halfW + halfW + 12 && Math.abs(p.y - sy) < 18)
+    const overlap =
+      placed.length >= maxLabels ||
+      placed.some((p) => Math.abs(p.x - sx) < p.halfW + halfW + 12 && Math.abs(p.y - sy) < 18)
     if (overlap) {
       el.style.display = 'none'
     } else {
@@ -221,7 +207,6 @@ function layoutLabels() {
     }
   }
 
-  // 城市圆点也按屏幕尺寸绘制，放大后不会变成大圆斑
   for (const dot of burgDots) {
     const size = dot.capital ? 4.2 : 1.8
     dot.el.setAttribute('r', String(size / pxPerUnit))
@@ -231,74 +216,55 @@ function layoutLabels() {
 
 watch(zoom, () => layoutLabels())
 
-onMounted(() => window.addEventListener('resize', layoutLabels))
+onMounted(() => {
+  const SVG_NS = 'http://www.w3.org/2000/svg'
+  const svg = overlayEl.value
+  if (!svg) return
 
-onMounted(async () => {
-  try {
-    const res = await fetch(`${withBase('/map/world.svg')}?v=${mapData.seed || '1'}`, { cache: 'no-cache' })
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    const svgText = await res.text()
-    if (!stageEl.value) return
-    stageEl.value.innerHTML = svgText
-    const svg = stageEl.value.querySelector('svg')
-    if (!svg) throw new Error('SVG 解析失败')
-
-    // 原文件的 svg 没有 viewBox，尺寸靠 width/height 属性；这里换成自适应
-    svg.setAttribute('viewBox', `0 0 ${mapData.width} ${mapData.height}`)
-    svg.setAttribute('preserveAspectRatio', 'xMidYMid meet')
-    svg.removeAttribute('width')
-    svg.removeAttribute('height')
-    svg.setAttribute('style', 'width:100%;height:auto;display:block')
-
-    // 轻量 SVG 里只有陆地、河流、国界三层，这里补上可交互的城市点与国名标签
-    const NS = 'http://www.w3.org/2000/svg'
-
-    const layer = document.createElementNS(NS, 'g')
-    layer.setAttribute('id', 'mv-burgs')
-    for (const burg of mapData.burgs) {
-      const dot = document.createElementNS(NS, 'circle')
-      dot.setAttribute('cx', String(burg.x))
-      dot.setAttribute('cy', String(burg.y))
-      dot.setAttribute('r', burg.capital ? '3.4' : '1.9')
-      dot.setAttribute('fill', burg.capital ? '#ffffff' : '#6f6a5c')
-      dot.setAttribute('stroke', burg.capital ? '#2a2a2a' : '#6f6a5c')
-      dot.setAttribute('stroke-width', burg.capital ? '1.1' : '0.6')
-      dot.setAttribute('data-burg', String(burg.i))
-      layer.appendChild(dot)
-      burgDots.push({ el: dot, capital: burg.capital })
-    }
-    svg.appendChild(layer)
-
-    const labelLayer = document.createElementNS(NS, 'g')
-    labelLayer.setAttribute('id', 'mv-labels')
-    for (const state of mapData.states) {
-      const anchor = state.capital || null
-      if (!anchor) continue
-      const text = document.createElementNS(NS, 'text')
-      text.setAttribute('x', String(anchor.x))
-      text.setAttribute('y', String(anchor.y - 7))
-      text.setAttribute('text-anchor', 'middle')
-      text.setAttribute('font-size', '11')
-      text.setAttribute('font-family', "'PingFang SC','Microsoft YaHei',sans-serif")
-      text.setAttribute('fill', '#14202a')
-      text.setAttribute('stroke', 'rgba(255,255,255,0.9)')
-      text.setAttribute('stroke-width', '2.4')
-      text.setAttribute('paint-order', 'stroke')
-      text.setAttribute('letter-spacing', '0.3')
-      text.setAttribute('data-state-index', String(state.i))
-      text.setAttribute('class', state.slug ? 'mv-label mv-label-link' : 'mv-label')
-      text.textContent = state.name
-      labelLayer.appendChild(text)
-      labelItems.push({ el: text, state })
-    }
-    svg.appendChild(labelLayer)
-    layoutLabels()
-
-    loading.value = false
-  } catch (err) {
-    errorMsg.value = `地图加载失败：${err.message}`
-    loading.value = false
+  const dotLayer = document.createElementNS(SVG_NS, 'g')
+  dotLayer.setAttribute('id', 'mv-burgs')
+  for (const burg of mapData.burgs) {
+    const dot = document.createElementNS(SVG_NS, 'circle')
+    dot.setAttribute('cx', String(burg.x))
+    dot.setAttribute('cy', String(burg.y))
+    dot.setAttribute('r', '2')
+    dot.setAttribute('fill', burg.capital ? '#ffffff' : '#5a5446')
+    dot.setAttribute('stroke', burg.capital ? '#2a2a2a' : '#5a5446')
+    dot.setAttribute('stroke-width', '0.8')
+    dot.setAttribute('data-burg', String(burg.i))
+    dot.setAttribute('pointer-events', 'all')
+    dotLayer.appendChild(dot)
+    burgDots.push({ el: dot, capital: burg.capital })
   }
+  svg.appendChild(dotLayer)
+
+  const labelLayer = document.createElementNS(SVG_NS, 'g')
+  labelLayer.setAttribute('id', 'mv-labels')
+  for (const state of mapData.states) {
+    if (!state.capital) continue
+    const text = document.createElementNS(SVG_NS, 'text')
+    text.setAttribute('x', String(state.capital.x))
+    text.setAttribute('y', String(state.capital.y - 7))
+    text.setAttribute('text-anchor', 'middle')
+    text.setAttribute('font-size', '11')
+    text.setAttribute('font-family', "'PingFang SC','Microsoft YaHei',sans-serif")
+    text.setAttribute('fill', '#14202a')
+    text.setAttribute('stroke', 'rgba(255,255,255,0.92)')
+    text.setAttribute('stroke-width', '2.4')
+    text.setAttribute('paint-order', 'stroke')
+    text.setAttribute('letter-spacing', '0.3')
+    text.setAttribute('data-state-index', String(state.i))
+    text.setAttribute('class', state.slug ? 'mv-label mv-label-link' : 'mv-label')
+    text.setAttribute('pointer-events', 'all')
+    text.textContent = state.name
+    labelLayer.appendChild(text)
+    labelItems.push({ el: text, state })
+  }
+  svg.appendChild(labelLayer)
+  layoutLabels()
+
+  loading.value = false
+  window.addEventListener('resize', layoutLabels)
 })
 
 onBeforeUnmount(() => {
@@ -314,6 +280,17 @@ onBeforeUnmount(() => {
         <span><strong>{{ stats.states }}</strong> 政权</span>
         <span><strong>{{ stats.linked }}</strong> 有档案</span>
         <span><strong>{{ stats.burgs }}</strong> 城市</span>
+      </div>
+      <div class="mv-views">
+        <button
+          v-for="v in VIEWS"
+          :key="v.key"
+          type="button"
+          :class="{ on: view === v.key }"
+          @click="view = v.key"
+        >
+          {{ v.label }}
+        </button>
       </div>
       <div class="mv-actions">
         <button type="button" title="放大" @click="zoomBy(1.3)">＋</button>
@@ -336,7 +313,10 @@ onBeforeUnmount(() => {
         @mousemove="onStageMove"
         @mouseleave="onStageLeave"
       >
-        <div ref="stageEl" class="mv-stage" :class="{ 'burgs-off': !showBurgs }" :style="stageStyle"></div>
+        <div ref="stageEl" class="mv-stage" :class="{ 'burgs-off': !showBurgs }" :style="stageStyle">
+          <img class="mv-img" :src="viewImage" alt="世界地图" draggable="false" />
+          <svg ref="overlayEl" class="mv-overlay" viewBox="0 0 1912 956" preserveAspectRatio="none"></svg>
+        </div>
         <p v-if="loading" class="mv-loading">地图加载中…</p>
         <p v-if="errorMsg" class="mv-error">{{ errorMsg }}</p>
         <p class="mv-hint">滚轮缩放 · 拖动平移 · 点击政权查看档案</p>
@@ -386,7 +366,6 @@ onBeforeUnmount(() => {
   flex-wrap: wrap;
   gap: 10px;
   align-items: center;
-  justify-content: space-between;
   margin-bottom: 10px;
 }
 
@@ -402,14 +381,15 @@ onBeforeUnmount(() => {
   font-variant-numeric: tabular-nums;
 }
 
-.mv-actions {
+.mv-views {
   display: flex;
   gap: 6px;
+  margin-left: 10px;
 }
 
+.mv-views button,
 .mv-actions button {
-  min-width: 34px;
-  padding: 5px 10px;
+  padding: 5px 12px;
   font-size: 12.5px;
   color: var(--vp-c-text-2);
   background: var(--vp-c-bg-soft);
@@ -419,15 +399,23 @@ onBeforeUnmount(() => {
   transition: all 0.15s ease;
 }
 
+.mv-views button:hover,
 .mv-actions button:hover {
   color: var(--vp-c-text-1);
   border-color: var(--vp-c-brand-1);
 }
 
+.mv-views button.on,
 .mv-actions button.on {
   color: #fff;
   background: var(--vp-c-brand-1);
   border-color: var(--vp-c-brand-1);
+}
+
+.mv-actions {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
 }
 
 .mv-body {
@@ -446,7 +434,7 @@ onBeforeUnmount(() => {
   overflow: hidden;
   border: 1px solid var(--mv-border);
   border-radius: 14px;
-  background: #b9d7e4;
+  background: #e9f0f4;
   cursor: grab;
   touch-action: none;
 }
@@ -456,28 +444,27 @@ onBeforeUnmount(() => {
 }
 
 .mv-stage {
+  position: relative;
   transform-origin: 0 0;
   transition: transform 0.08s linear;
   will-change: transform;
 }
 
-.mv-stage :deep(svg) {
+.mv-img {
   display: block;
   width: 100%;
   height: auto;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
-/* 河流：提亮成明显的蓝色水系 */
-.mv-stage :deep(#rivers path) {
-  fill: #5aa6d6;
-  stroke: #4a90c2;
-  stroke-width: 1.4;
-}
-
-.mv-stage :deep(#borders path) {
-  stroke: #7d745a;
-  stroke-width: 0.9;
-  stroke-dasharray: 4 3;
+.mv-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
 }
 
 .mv-stage :deep(#mv-labels text.mv-label-link) {
@@ -492,8 +479,7 @@ onBeforeUnmount(() => {
   display: none;
 }
 
-.mv-loading,
-.mv-error {
+.mv-loading {
   position: absolute;
   inset: 0;
   display: grid;
