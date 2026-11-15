@@ -66,6 +66,10 @@ async function authRequest(path, body) {
 
 export async function signUp(email, password, display) {
   const data = await authRequest('signup', { email, password, data: { display: display || email } })
+  // Supabase 对已存在邮箱返回 identities 空数组
+  if (data?.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+    throw new Error('该邮箱已注册，请直接登录')
+  }
   if (data.access_token) {
     saveSession(data)
     saveSession({ ...data, at: Date.now() })

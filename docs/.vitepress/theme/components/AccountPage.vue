@@ -42,9 +42,14 @@ const submit = async () => {
     refresh()
     users.value = await listUsers()
   } catch (e) {
-    error.value = String(e.message).includes('Email not confirmed')
+    const raw = String(e.message)
+    error.value = raw.includes('Email not confirmed')
       ? '邮箱未验证：请查收验证邮件，或让管理员确认账号'
-      : e.message
+      : raw.includes('Invalid login credentials')
+        ? mode.value === 'register'
+          ? '该邮箱已注册，或密码不正确；请切到「登录」再试'
+          : '邮箱或密码不正确'
+        : raw
   } finally {
     busy.value = false
   }
