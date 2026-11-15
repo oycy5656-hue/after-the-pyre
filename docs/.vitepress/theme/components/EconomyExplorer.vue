@@ -511,6 +511,9 @@ const resetCfg = () => {
           </dt>
           <dd>贸易差额（D）</dd>
         </div>
+        <div><dt>{{ simTotals ? Math.round((simTotals.foodSupply / Math.max(1, simTotals.foodNeed)) * 100) + '%' : '—' }}</dt><dd>口粮自给率</dd></div>
+        <div><dt>{{ simTotals ? simTotals.timber + ' / ' + simTotals.stone : '—' }}</dt><dd>木材 / 石料结余</dd></div>
+        <div><dt>{{ simTotals ? simTotals.buildable : '—' }}</dt><dd>可扩建等级</dd></div>
       </div>
 
       <table class="eco-b-table">

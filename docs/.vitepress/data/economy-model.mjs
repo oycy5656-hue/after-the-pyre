@@ -40,7 +40,7 @@ export const DEFAULT_TRAITS = [
 ]
 
 export const DEFAULT_BASE = {
-  perCapita: 2000,
+  perCapita: 700,
   laborShare: 0.42,
   extraction: 0.18,
   ritual: 0.06,
