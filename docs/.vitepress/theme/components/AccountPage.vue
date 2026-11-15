@@ -69,12 +69,15 @@ const doChangePwd = async () => {
 
 <template>
   <div class="acc">
-    <div class="acc-notice">
-      <strong>本地账号模式</strong>
-      <p>
+    <div class="acc-notice" :class="{ cloud: mode2 === 'cloud' }">
+      <strong>{{ mode2 === 'cloud' ? '云端账号（Supabase）' : '本地账号模式' }}</strong>
+      <p v-if="mode2 === 'cloud'">
+        账号由 Supabase Auth 管理，改动存在云端数据库，<em>所有访客可见、换设备也同步</em>。
+        管理员可进入内容管理编辑国家档案，普通用户只能浏览。
+      </p>
+      <p v-else>
         本站是纯静态站点，没有服务器。账号与密码（PBKDF2 加盐哈希）保存在<em>当前浏览器</em>的
         localStorage 里，换设备或清缓存即失效；内容修改同理，只在本机可见。
-        若要多人共享，需要接一个后端（Supabase / Cloudflare Worker），我可以随时接上。
       </p>
     </div>
 
@@ -150,6 +153,11 @@ const doChangePwd = async () => {
   border: 1px solid color-mix(in srgb, #c8a24a 40%, var(--vp-c-divider));
   border-radius: 10px;
   background: color-mix(in srgb, #c8a24a 8%, var(--vp-c-bg-soft));
+}
+
+.acc-notice.cloud {
+  border-color: color-mix(in srgb, var(--vp-c-brand-1) 40%, var(--vp-c-divider));
+  background: color-mix(in srgb, var(--vp-c-brand-1) 8%, var(--vp-c-bg-soft));
 }
 
 .acc-notice strong {

@@ -11,5 +11,8 @@
   },
   "devDependencies": {
     "vitepress": "^1.6.4"
+  },
+  "dependencies": {
+    "pg": "^8.23.1"
   }
 }

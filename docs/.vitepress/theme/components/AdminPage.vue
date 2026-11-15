@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { withBase } from 'vitepress'
 import countries from '../../data/countries.mjs'
-import {
+import { authMode,
   clearOverride,
   currentUser,
   exportOverrides,
@@ -74,9 +74,9 @@ const save = async () => {
   error.value = ''
   try {
     await saveOverride(selected.value, form.value)
-    saved.value = `已保存到本地：${new Date().toLocaleTimeString()}`
+    saved.value = `已保存到${authMode() === 'cloud' ? '云端' : '本地'}：${new Date().toLocaleTimeString()}`
     refresh()
-    saved.value = `已保存到本地：${new Date().toLocaleTimeString()}`
+    saved.value = `已保存到${authMode() === 'cloud' ? '云端' : '本地'}：${new Date().toLocaleTimeString()}`
   } catch (e) {
     error.value = e.message
   }
@@ -85,7 +85,7 @@ const save = async () => {
 const reset = async () => {
   await clearOverride(selected.value)
   refresh()
-  saved.value = '已还原为原始资料'
+  saved.value = authMode() === 'cloud' ? '已从云端删除该国的改动' : '已还原为原始资料'
 }
 
 const doExport = () => {
