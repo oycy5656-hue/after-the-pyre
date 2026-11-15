@@ -6,7 +6,8 @@ import { buildRows, DEFAULT_BASE, DEFAULT_COUNTRY_TRAITS, DEFAULT_GOODS, DEFAULT
 import { currentUser, getOverride, initAuth, loadEdits, saveOverride } from '../auth'
 import { geoOf } from '../../data/geography.mjs'
 import { RESOURCES, RESOURCE_GROUPS, deriveSectors, deriveSpecialties } from '../../data/resources.mjs'
-import { BUILDING_GROUPS, BUILDINGS, buildingTotals, deriveBuildings } from '../../data/buildings.mjs'
+import { BUILDING_GROUPS, BUILDINGS } from '../../data/buildings.mjs'
+import { simulate } from '../../data/sim.mjs'
 
 const unit = { name: 'D（当量）', desc: '一名成年人维持一天基本生活所需的商品与劳务。全大陆通用，不依赖货币。' }
 
@@ -104,16 +105,27 @@ const setResValue = (id, raw) => {
   else cfg.value.resourceValues[id] = Number(raw)
 }
 
-const buildingsOf = (name) => {
-  const spec = specsOf(name)
-  const pop = rows.value.find((r) => r.name === name)?.population || 1000
-  const base = deriveBuildings(spec, pop)
-  const ov = cfg.value.buildingLevels?.[name] || {}
-  return base.map((b) => {
-    const level = ov[b.id] === undefined ? b.level : Number(ov[b.id])
-    return { ...b, level, laborTotal: level * b.labor, outputTotal: Math.round(level * b.output) }
+const RES_NAME = new Map(RESOURCES.map((r) => [r.id, r.name]))
+const resName = (id) => (id ? RES_NAME.get(id) || id : '—')
+const raceOf = (name) => countries.find((c) => c.name === name)?.race || '人类'
+const areaOf = (name) => rows.value.find((r) => r.name === name)?.area || 100
+
+const simOf = (name) =>
+  simulate({
+    specs: specsOf(name),
+    population: rows.value.find((r) => r.name === name)?.population || 1000,
+    race: raceOf(name),
+    geo: geoOf(name),
+    area: areaOf(name),
+    levels: cfg.value.buildingLevels?.[name] || {},
+    priceOverrides: cfg.value.resourceValues || {}
   })
-}
+
+const currentSim = computed(() => (current.value ? simOf(current.value.name) : null))
+const currentBuildings = computed(() => currentSim.value?.buildings || [])
+const simTotals = computed(() => currentSim.value?.totals || null)
+const tradeRows = computed(() => (currentSim.value?.rows || []).slice(0, 10))
+const chains = computed(() => currentSim.value?.chains || [])
 
 const setBuildingLevel = (name, id, raw) => {
   const bucket = cfg.value.buildingLevels[name] || {}
@@ -126,13 +138,6 @@ const setBuildingLevel = (name, id, raw) => {
 const clearBuildings = (name) => {
   delete cfg.value.buildingLevels[name]
 }
-
-const currentBuildings = computed(() => (current.value ? buildingsOf(current.value.name) : []))
-const currentBuildingTotals = computed(() => buildingTotals(currentBuildings.value))
-const buildingGap = computed(() => {
-  if (!current.value || !currentBuildingTotals.value.output) return null
-  return Math.round((currentBuildingTotals.value.output / current.value.gross - 1) * 100)
-})
 
 const groupedResources = computed(() => {
   const m = new Map()
@@ -492,30 +497,36 @@ const resetCfg = () => {
     <section class="eco-block">
       <h2>生产建筑</h2>
       <p class="eco-lead">
-        每级建筑吃一份劳力、出一份产值：农场供口粮，矿井出金属，作坊把原料变成布匹与兵器，商栈决定货走多远。
-        等级由该国的物产与人口推导，编辑模式下可逐项改。
+        每级占一格地、吃一份劳力。带投入的建筑若原料不足会降效——效率 = 实得原料 ÷ 所需原料。
+        种族专属建筑只有对应种族才能建造。
       </p>
 
       <div class="eco-b-summary">
-        <div><dt>{{ currentBuildingTotals.levels }}</dt><dd>总等级</dd></div>
-        <div><dt>{{ fmt(currentBuildingTotals.labor) }}</dt><dd>建筑用工</dd></div>
-        <div><dt>{{ fmt(currentBuildingTotals.output) }}</dt><dd>建筑产值</dd></div>
+        <div><dt>{{ simTotals ? simTotals.slotsUsed + ' / ' + simTotals.slotsCap : '—' }}</dt><dd>已用地块 / 容量</dd></div>
+        <div><dt>{{ simTotals ? fmt(simTotals.gdp) : '—' }}</dt><dd>建筑产值</dd></div>
+        <div><dt>{{ simTotals ? Math.round(simTotals.efficiency * 100) + '%' : '—' }}</dt><dd>加工环节平均效率</dd></div>
         <div>
-          <dt :class="{ good: Math.abs(buildingGap) <= 8, mid: Math.abs(buildingGap) > 8 }">
-            {{ buildingGap === null ? '—' : (buildingGap > 0 ? '+' : '') + buildingGap + '%' }}
+          <dt :class="simTotals && simTotals.balance >= 0 ? 'good' : 'low'">
+            {{ simTotals ? (simTotals.balance >= 0 ? '顺差 ' : '逆差 ') + fmt(Math.abs(simTotals.balance)) : '—' }}
           </dt>
-          <dd>与账面总产出差</dd>
+          <dd>贸易差额（D）</dd>
         </div>
       </div>
 
       <table class="eco-b-table">
         <thead>
-          <tr><th>建筑</th><th>类</th><th>等级</th><th>用工</th><th>产值</th><th>说明</th></tr>
+          <tr><th>建筑</th><th>产出</th><th>等级</th><th>用工</th><th>效率</th><th>产值</th></tr>
         </thead>
         <tbody>
-          <tr v-for="b in currentBuildings" :key="b.id">
-            <td class="eco-b-name"><i :style="{ background: BUILDING_GROUPS[b.group] }"></i>{{ b.name }}</td>
-            <td class="eco-b-group">{{ b.group }}</td>
+          <tr v-for="b in currentBuildings" :key="b.id" :class="{ off: b.level === 0 }">
+            <td class="eco-b-name">
+              <i :style="{ background: BUILDING_GROUPS[b.group] }"></i>{{ b.name }}
+              <em v-if="b.race" class="eco-b-race">{{ b.race }}</em>
+            </td>
+            <td class="eco-b-group">
+              {{ b.outRes ? resName(b.outRes) : '服务' }}
+              <span v-if="b.inRes" class="eco-b-in">← {{ resName(b.inRes) }}</span>
+            </td>
             <td class="num">
               <input
                 v-if="editing"
@@ -527,9 +538,14 @@ const resetCfg = () => {
               />
               <b v-else>{{ b.level }}</b>
             </td>
-            <td class="num">{{ fmt(b.laborTotal) }}</td>
-            <td class="num">{{ fmt(b.outputTotal) }}</td>
-            <td class="eco-b-note">{{ b.note }}</td>
+            <td class="num">{{ fmt(b.level * b.labor) }}</td>
+            <td class="num">
+              <span v-if="b.input" :class="b.eff >= 0.95 ? 'good' : b.eff >= 0.6 ? 'mid' : 'low'">
+                {{ Math.round((b.eff || 0) * 100) }}%
+              </span>
+              <span v-else class="dim">—</span>
+            </td>
+            <td class="num">{{ b.value ? fmt(b.value) : '—' }}</td>
           </tr>
         </tbody>
       </table>
@@ -537,9 +553,51 @@ const resetCfg = () => {
 
       <div class="eco-b-catalog">
         <div v-for="b in BUILDINGS" :key="b.id" class="eco-b-card">
-          <p class="eco-b-card-name"><i :style="{ background: BUILDING_GROUPS[b.group] }"></i>{{ b.name }}</p>
-          <p class="eco-b-card-meta">{{ b.labor }} 人/级 · {{ b.output }} D/级</p>
+          <p class="eco-b-card-name">
+            <i :style="{ background: BUILDING_GROUPS[b.group] }"></i>{{ b.name }}
+            <em v-if="b.race" class="eco-b-race">{{ b.race }}</em>
+          </p>
+          <p class="eco-b-card-meta">{{ b.labor }} 人/级 · {{ b.slots }} 格</p>
           <p class="eco-b-card-note">{{ b.note }}</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="eco-block">
+      <h2>供需与贸易</h2>
+      <p class="eco-lead">
+        本国产出多于所需即可出口，不足则进口。紧缺会把价格推高（最多 2.4 倍），过剩则压到 0.55 倍。
+        按贸易额排序，列出影响最大的十项。
+      </p>
+      <table class="eco-trade-table">
+        <thead>
+          <tr><th>物产</th><th>产出</th><th>消耗</th><th>净额</th><th>价格</th><th>贸易额</th></tr>
+        </thead>
+        <tbody>
+          <tr v-for="r in tradeRows" :key="r.id">
+            <td class="eco-b-name">{{ r.name }}<em class="eco-unit">{{ r.unit }}</em></td>
+            <td class="num">{{ r.supply }}</td>
+            <td class="num">{{ r.demand }}</td>
+            <td class="num" :class="r.net >= 0 ? 'good' : 'low'">{{ r.net > 0 ? '+' : '' }}{{ r.net }}</td>
+            <td class="num">{{ r.price }} D</td>
+            <td class="num">{{ fmt(r.value) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="eco-block">
+      <h2>产业链</h2>
+      <p class="eco-lead">
+        原料 → 加工品的实际流向。效率低于 100% 说明上游供料不足，这条链在挨饿。
+      </p>
+      <div v-if="!chains.length" class="eco-empty">这个国家还没有投入产出的加工环节。</div>
+      <div v-else class="eco-chain-list">
+        <div v-for="(c, i) in chains" :key="i" class="eco-chain">
+          <span class="eco-chain-node">{{ c.from }}</span>
+          <span class="eco-chain-arrow">→</span>
+          <span class="eco-chain-node out">{{ c.to }}</span>
+          <span class="eco-chain-meta">{{ c.building }} · 流向 {{ c.flow }} · 效率 {{ Math.round(c.eff * 100) }}%</span>
         </div>
       </div>
     </section>
@@ -1653,6 +1711,111 @@ const resetCfg = () => {
   font-size: 11px;
   line-height: 1.5;
   color: var(--vp-c-text-3);
+}
+
+
+.eco-b-table tr.off td {
+  opacity: 0.45;
+}
+
+.eco-b-race {
+  margin-left: 6px;
+  padding: 0 5px;
+  font-style: normal;
+  font-size: 9.5px;
+  color: #8a6a1f;
+  background: rgba(192, 138, 46, 0.16);
+  border-radius: 3px;
+}
+
+.eco-b-in {
+  margin-left: 5px;
+  font-size: 10.5px;
+  color: var(--vp-c-text-3);
+}
+
+.eco-trade-table {
+  display: table;
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+
+.eco-trade-table th {
+  padding: 7px 8px;
+  text-align: left;
+  font-weight: 500;
+  font-size: 11.5px;
+  color: var(--vp-c-text-3);
+  border-bottom: 1px solid var(--vp-c-divider);
+}
+
+.eco-trade-table td {
+  padding: 7px 8px;
+  border-bottom: 1px solid var(--vp-c-divider);
+  color: var(--vp-c-text-2);
+}
+
+.eco-trade-table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.eco-unit {
+  margin-left: 4px;
+  font-style: normal;
+  font-size: 10px;
+  color: var(--vp-c-text-3);
+}
+
+.eco-chain-list {
+  display: grid;
+  gap: 6px;
+}
+
+.eco-chain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 7px;
+  background: var(--vp-c-bg-soft);
+  font-size: 12.5px;
+}
+
+.eco-chain-node {
+  padding: 1px 8px;
+  border-radius: 4px;
+  background: var(--vp-c-bg);
+  border: 1px solid var(--vp-c-divider);
+  color: var(--vp-c-text-1);
+}
+
+.eco-chain-node.out {
+  border-color: color-mix(in srgb, var(--vp-c-brand-1) 45%, var(--vp-c-divider));
+  color: var(--vp-c-brand-1);
+}
+
+.eco-chain-arrow {
+  color: var(--vp-c-text-3);
+}
+
+.eco-chain-meta {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--vp-c-text-3);
+}
+
+.eco-empty {
+  padding: 14px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--vp-c-text-3);
+  border: 1px dashed var(--vp-c-divider);
+  border-radius: 8px;
 }
 
 </style>
