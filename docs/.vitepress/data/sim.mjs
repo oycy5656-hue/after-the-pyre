@@ -68,14 +68,23 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
   }
 
   let pass = runPass()
+  const downgrades = []
   if (autoAdjust) {
     for (let round = 0; round < 4; round++) {
       let changed = false
       for (const b of buildings) {
         if (!b.input || b.level <= 0) continue
         if ((b.eff ?? 1) < AUTO_DOWNGRADE_BELOW) {
+          const from = b.level
           b.level -= 1
           b.downgraded += 1
+          const hit = downgrades.find((d) => d.id === b.id)
+          if (hit) {
+            hit.times += 1
+            hit.to = b.level
+          } else {
+            downgrades.push({ id: b.id, name: b.name, from, to: b.level, times: 1, eff: Math.round((b.eff ?? 0) * 100) })
+          }
           changed = true
         }
       }
@@ -171,6 +180,7 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
       stone: Math.round(stoneNet),
       buildable,
       downgraded: buildings.filter((b) => b.downgraded > 0).length,
+      downgrades,
       foodNeed,
       foodSupply: Math.round(grainTotal)
     }

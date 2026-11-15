@@ -3,6 +3,11 @@ import { computed, onMounted, ref } from 'vue'
 import { withBase } from 'vitepress'
 import countries from '../../data/countries.mjs'
 import { applyOverride, currentUser, getOverride, initAuth, loadEdits, saveOverride } from '../auth'
+import { geoOf } from '../../data/geography.mjs'
+import { deriveSpecialties } from '../../data/resources.mjs'
+import { simulate } from '../../data/sim.mjs'
+import { parsePopulation } from '../../data/economy-model.mjs'
+import mapData from '../../data/map.mjs'
 import { toggleEditMode } from '../editmode'
 
 const props = defineProps({
@@ -76,6 +81,22 @@ const saveAll = async () => {
   }
 }
 
+
+const econ = computed(() => {
+  const c = country.value
+  const geo = geoOf(c.name)
+  const specs = deriveSpecialties(geo, 6)
+  const st = mapData.states.find((x) => x.name === c.capital || c.name.startsWith(x.name) || x.name.startsWith(c.name))
+  const sim = simulate({
+    specs,
+    population: parsePopulation(c.population),
+    race: c.race,
+    geo,
+    area: st ? st.area : 120
+  })
+  return { sim, specs }
+})
+
 const statLabels = {
   diplomacy: '外交',
   stewardship: '管理',
@@ -141,6 +162,7 @@ const glossary = computed(() => {
 const toc = computed(() => [
   ['overview', '概览'],
   ['region', '风土'],
+  ['economy', '经济'],
   ['ruler', '统治者'],
   ...(factions.value.length ? [['factions', '势力格局']] : []),
   ['military', '军事'],
@@ -250,6 +272,43 @@ const toc = computed(() => [
           <li v-for="t in regionTraits" :key="t">{{ t }}</li>
           <li v-if="country.region.customTag">{{ country.region.customTag }}</li>
         </ul>
+      </section>
+
+      <section id="economy" class="wp-section">
+        <h2>经济</h2>
+        <div class="wp-mil-stats">
+          <div><strong>{{ (econ.sim.totals.gdp / 1e6).toFixed(1) }}M</strong><span>建筑产值（D）</span></div>
+          <div>
+            <strong>{{ Math.round(econ.sim.totals.gdp / Math.max(1, parsePopulation(country.population))) }}</strong>
+            <span>人均产出（D）</span>
+          </div>
+          <div>
+            <strong>{{ Math.round((econ.sim.totals.foodSupply / Math.max(1, econ.sim.totals.foodNeed)) * 100) }}%</strong>
+            <span>口粮自给</span>
+          </div>
+          <div>
+            <strong :class="econ.sim.totals.balance >= 0 ? 'wp-good' : 'wp-bad'">
+              {{ econ.sim.totals.balance >= 0 ? '顺差' : '逆差' }} {{ (Math.abs(econ.sim.totals.balance) / 1e6).toFixed(1) }}M
+            </strong>
+            <span>贸易差额</span>
+          </div>
+        </div>
+
+        <h3 class="wp-sub">物产</h3>
+        <ul class="wp-tags">
+          <li v-for="sp in econ.specs" :key="sp.id">{{ sp.name }} · {{ sp.value }} D/{{ sp.unit }}</li>
+        </ul>
+
+        <h3 class="wp-sub">主要产业</h3>
+        <ul class="wp-econ-list">
+          <li v-for="b in econ.sim.buildings.filter((x) => x.level > 0).sort((a, b) => b.value - a.value).slice(0, 5)" :key="b.id">
+            <span>{{ b.name }}</span>
+            <em>{{ b.level }} 级 · {{ (b.value / 1e6).toFixed(1) }}M D</em>
+          </li>
+        </ul>
+        <p class="wp-econ-note">
+          按地理与人口推导；详细账目见 <a :href="withBase('/economy/')">经济台账</a>。
+        </p>
       </section>
 
       <section id="ruler" class="wp-section">
@@ -1274,6 +1333,53 @@ const toc = computed(() => [
 .wp-editcard input,
 .wp-editcard textarea {
   margin-bottom: 6px;
+}
+
+
+.wp-sub {
+  margin: 18px 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--vp-c-text-2);
+}
+
+.wp-econ-list {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wp-econ-list li {
+  display: flex;
+  justify-content: space-between;
+  padding: 7px 11px;
+  font-size: 13px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 7px;
+  background: var(--vp-c-bg-soft);
+}
+
+.wp-econ-list em {
+  font-style: normal;
+  font-size: 12px;
+  color: var(--vp-c-text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.wp-econ-note {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: var(--vp-c-text-3);
+}
+
+.wp-good {
+  color: #1f6f4f;
+}
+
+.wp-bad {
+  color: #9c4b4b;
 }
 
 </style>

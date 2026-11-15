@@ -20,7 +20,9 @@ const cfg = ref({
   populations: {},
   countryOverrides: {},
   resourceValues: {},
-  buildingLevels: {}
+  buildingLevels: {},
+  stock: {},
+  buildLog: {}
 })
 
 const isAdminUser = ref(false)
@@ -57,7 +59,9 @@ onMounted(async () => {
       populations: clone(ov.populations || {}),
       countryOverrides: clone(ov.countryOverrides || {}),
       resourceValues: clone(ov.resourceValues || {}),
-      buildingLevels: clone(ov.buildingLevels || {})
+      buildingLevels: clone(ov.buildingLevels || {}),
+      stock: clone(ov.stock || {}),
+      buildLog: clone(ov.buildLog || {})
     }
   }
 })
@@ -109,6 +113,65 @@ const RES_NAME = new Map(RESOURCES.map((r) => [r.id, r.name]))
 const resName = (id) => (id ? RES_NAME.get(id) || id : '—')
 const raceOf = (name) => countries.find((c) => c.name === name)?.race || '人类'
 const areaOf = (name) => rows.value.find((r) => r.name === name)?.area || 100
+
+
+const BUILD_COST = { timber: 40, stone: 30 }
+const MARKET = { timber: 45, stone: 32 } // 缺料时按市价采购
+
+const stockOf = (name) => {
+  const saved = cfg.value.stock?.[name]
+  const t = simOf(name).totals
+  const reserve = Math.max(0, Math.round(t.gdp - t.imports))
+  if (saved) return { reserve, ...saved }
+  return {
+    timber: Math.max(0, Math.round(t.timber * 1.5)),
+    stone: Math.max(0, Math.round(t.stone * 1.5)),
+    reserve
+  }
+}
+
+const logOf = (name) => cfg.value.buildLog?.[name] || []
+
+const purchaseCost = (name) => {
+  const st = stockOf(name)
+  const needTimber = Math.max(0, BUILD_COST.timber - st.timber)
+  const needStone = Math.max(0, BUILD_COST.stone - st.stone)
+  return { needTimber, needStone, price: needTimber * MARKET.timber + needStone * MARKET.stone }
+}
+
+const canBuild = (name, b) => {
+  const st = stockOf(name)
+  const slotsLeft = (simTotals.value?.slotsCap || 0) - (simTotals.value?.slotsUsed || 0)
+  const slotNeed = Math.ceil((b.level + 1) / 8) - Math.ceil(b.level / 8)
+  if (slotsLeft < slotNeed) return false
+  const { price } = purchaseCost(name)
+  return st.reserve >= price
+}
+
+const buildLevel = (name, b) => {
+  if (!canBuild(name, b)) return
+  const st = stockOf(name)
+  const { needTimber, needStone, price } = purchaseCost(name)
+
+  cfg.value.stock[name] = {
+    timber: Math.max(0, st.timber - BUILD_COST.timber),
+    stone: Math.max(0, st.stone - BUILD_COST.stone),
+    reserve: st.reserve - price
+  }
+
+  const bucket = cfg.value.buildingLevels[name] || {}
+  bucket[b.id] = (bucket[b.id] === undefined ? b.level : Number(bucket[b.id])) + 1
+  cfg.value.buildingLevels[name] = bucket
+
+  const log = cfg.value.buildLog[name] || []
+  const buyNote = price > 0 ? '（外购木材 ' + needTimber + '、石料 ' + needStone + '，耗 ' + price + ' D）' : ''
+  log.unshift({
+    at: new Date().toLocaleString('zh-CN', { hour12: false }).slice(5),
+    kind: 'build',
+    text: '扩建 ' + b.name + ' 至 ' + (b.level + 1) + ' 级' + buyNote
+  })
+  cfg.value.buildLog[name] = log.slice(0, 40)
+}
 
 const simOf = (name) =>
   simulate({
@@ -220,7 +283,9 @@ const resetCfg = () => {
     populations: {},
     countryOverrides: {},
     resourceValues: {},
-    buildingLevels: {}
+    buildingLevels: {},
+    stock: {},
+    buildLog: {}
   }
   flash.value = '已恢复默认值（尚未保存）'
 }
@@ -518,7 +583,7 @@ const resetCfg = () => {
 
       <table class="eco-b-table">
         <thead>
-          <tr><th>建筑</th><th>产出</th><th>等级</th><th>用工</th><th>效率</th><th>产值</th></tr>
+          <tr><th>建筑</th><th>产出</th><th>等级</th><th>用工</th><th>效率</th><th>产值</th><th>建造</th></tr>
         </thead>
         <tbody>
           <tr v-for="b in currentBuildings" :key="b.id" :class="{ off: b.level === 0 }">
@@ -549,10 +614,46 @@ const resetCfg = () => {
               <span v-else class="dim">—</span>
             </td>
             <td class="num">{{ b.value ? fmt(b.value) : '—' }}</td>
+            <td class="num">
+              <button
+                type="button"
+                class="eco-build-btn"
+                :disabled="!canBuild(current.name, b)"
+                :title="canBuild(current.name, b) ? '耗木材 ' + BUILD_COST.timber + '、石料 ' + BUILD_COST.stone : '建材或地块不足'"
+                @click="buildLevel(current.name, b)"
+              >
+                +1
+              </button>
+            </td>
           </tr>
         </tbody>
       </table>
       <button v-if="editing" type="button" class="eco-btn small" @click="clearBuildings(current.name)">建筑等级恢复推导值</button>
+
+      <div class="eco-build-panel">
+        <div class="eco-build-stock">
+          <span>木材库存 <b>{{ stockOf(current.name).timber }}</b></span>
+          <span>石料库存 <b>{{ stockOf(current.name).stone }}</b></span>
+          <span>可支配储备 <b>{{ stockOf(current.name).reserve }}</b> D</span>
+          <span>每级耗 <b>{{ BUILD_COST.timber }}</b> 木材 · <b>{{ BUILD_COST.stone }}</b> 石料（缺料按市价补，约 <b>{{ purchaseCost(current.name).price }}</b> D）</span>
+        </div>
+
+        <div v-if="currentSim && currentSim.totals.downgrades.length" class="eco-log">
+          <p class="eco-log-title">本轮自动降级（效率低于 55%）</p>
+          <ul>
+            <li v-for="d in currentSim.totals.downgrades" :key="d.id">
+              {{ d.name }} 降 {{ d.times }} 级 → 现 {{ d.to }} 级（效率 {{ d.eff }}%）
+            </li>
+          </ul>
+        </div>
+
+        <div v-if="logOf(current.name).length" class="eco-log">
+          <p class="eco-log-title">建造记录</p>
+          <ul>
+            <li v-for="(l, i) in logOf(current.name)" :key="i">{{ l.at }} · {{ l.text }}</li>
+          </ul>
+        </div>
+      </div>
 
       <div class="eco-b-catalog">
         <div v-for="b in BUILDINGS" :key="b.id" class="eco-b-card">
@@ -1819,6 +1920,72 @@ const resetCfg = () => {
   color: var(--vp-c-text-3);
   border: 1px dashed var(--vp-c-divider);
   border-radius: 8px;
+}
+
+
+.eco-build-btn {
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--vp-c-brand-1);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.eco-build-btn:disabled {
+  color: var(--vp-c-text-3);
+  background: var(--vp-c-default-soft);
+  cursor: not-allowed;
+}
+
+.eco-build-panel {
+  display: grid;
+  gap: 10px;
+  margin: 14px 0;
+}
+
+.eco-build-stock {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 10px 14px;
+  font-size: 12px;
+  color: var(--vp-c-text-3);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 8px;
+  background: var(--vp-c-bg-soft);
+}
+
+.eco-build-stock b {
+  color: var(--vp-c-text-1);
+  font-variant-numeric: tabular-nums;
+}
+
+.eco-log {
+  padding: 10px 14px;
+  font-size: 11.5px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 8px;
+  background: var(--vp-c-bg-soft);
+}
+
+.eco-log-title {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--vp-c-text-3);
+}
+
+.eco-log ul {
+  margin: 0;
+  padding-left: 16px;
+  color: var(--vp-c-text-2);
+}
+
+.eco-log li {
+  margin: 3px 0;
 }
 
 </style>
