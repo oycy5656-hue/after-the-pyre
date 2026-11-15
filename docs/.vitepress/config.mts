@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitepress'
+﻿import { defineConfig } from 'vitepress'
 import countrySidebar from './data/sidebar-countries.mjs'
 
 // 仓库名决定线上路径；换成你的仓库名时只改这一行
@@ -35,7 +35,8 @@ export default defineConfig({
     nav: [
       { text: '首页', link: '/' },
       { text: '国家', link: '/countries/', activeMatch: '/countries/' },
-      { text: '地图', link: '/map/', activeMatch: '/map/' }
+      { text: '地图', link: '/map/', activeMatch: '/map/' },
+      { text: '经济', link: '/economy/', activeMatch: '/economy/' }
     ],
 
     sidebar: {

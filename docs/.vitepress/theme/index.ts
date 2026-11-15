@@ -1,9 +1,10 @@
-import DefaultTheme from 'vitepress/theme'
+﻿import DefaultTheme from 'vitepress/theme'
 import type { Theme } from 'vitepress'
 import type { App } from 'vue'
 import CountryPage from './components/CountryPage.vue'
 import CountryExplorer from './components/CountryExplorer.vue'
 import MapViewer from './components/MapViewer.vue'
+import EconomyExplorer from './components/EconomyExplorer.vue'
 import './style.css'
 
 export default {
@@ -12,5 +13,6 @@ export default {
     app.component('CountryPage', CountryPage)
     app.component('CountryExplorer', CountryExplorer)
     app.component('MapViewer', MapViewer)
+  app.component('EconomyExplorer', EconomyExplorer)
   }
 } satisfies Theme
