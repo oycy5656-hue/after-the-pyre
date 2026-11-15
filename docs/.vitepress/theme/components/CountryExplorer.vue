@@ -71,7 +71,7 @@ function initials(name) {
       </div>
       <div class="ex-stat">
         <strong>{{ totalUnits }}</strong>
-        <span>军团</span>
+        <span>兵牌</span>
       </div>
     </div>
 

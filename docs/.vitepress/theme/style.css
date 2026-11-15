@@ -83,3 +83,24 @@
   }
 }
 
+
+/* 首页：整页铺满，去掉正文容器留白 */
+.VPDoc:has(.home-shell) .content-container,
+.VPDoc:has(.home-shell) .content {
+  max-width: 100% !important;
+  padding: 0 !important;
+}
+
+.VPDoc:has(.home-shell) {
+  padding: 0 !important;
+}
+
+.VPDoc:has(.home-shell) .vp-doc {
+  padding: 0 !important;
+}
+
+@media (min-width: 960px) {
+  .VPDoc:has(.home-shell) {
+    padding: 0 32px !important;
+  }
+}
