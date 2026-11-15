@@ -24,7 +24,9 @@ export default [
     { text: "17 · 鸾尾花帝国", link: '/countries/鸾尾花帝国' },
     { text: "18 · 学城", link: '/countries/学城' },
     { text: "19 · 维瑞亚帝国", link: '/countries/维瑞亚帝国' },
-    { text: "20 · 赫兰提斯帝国", link: '/countries/赫兰提斯帝国' }
+    { text: "20 · 伊瑟兰议邦", link: '/countries/伊瑟兰议邦' },
+    { text: "21 · 克洛斯", link: '/countries/克洛斯' },
+    { text: "22 · 薪炎龙庭", link: '/countries/薪炎龙庭' }
     ]
   }
 ]

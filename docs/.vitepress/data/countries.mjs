@@ -3901,15 +3901,15 @@ export default [
   },
   {
     "id": "c_1794582662401_mtec5",
-    "slug": "赫兰提斯帝国",
+    "slug": "伊瑟兰议邦",
     "index": 20,
-    "name": "赫兰提斯帝国",
-    "race": "人类",
-    "capital": "赫兰提斯里亚",
+    "name": "伊瑟兰议邦",
+    "race": "精灵",
+    "capital": "伊瑟兰",
     "faith": "自然崇拜",
-    "population": "",
-    "bio": "",
-    "accent": "#2f7d63",
+    "population": "14.8K",
+    "bio": "昔日的先祖们曾在这湖滨立下盟约，名作“伊瑟兰”的城邦就此屹立，而精灵们的势力也逐渐扩张至整个大湖——或许，盟约将团结所有的伊瑟兰精灵，并建立起一个不分你我的合众邦。但在眼下，日益壮大的诸邦正在为了自己的私欲撕裂盟约的精神，菲尔汀与缇洛伦因土地继承的纠纷而大打出手，孤立的希洛亚亦不再参与在伊瑟兰举办的丰收庆...而伊瑟兰本身，塞维里安议长也在疲于应对国内的游行",
+    "accent": "#5489a2",
     "region": {
       "name": "昉土",
       "traits": [
@@ -3920,10 +3920,10 @@ export default [
       "desc": "曾有神王梦想以音律建立庞大帝国，如今黄金乐章化为孤冷潮音。"
     },
     "politics": {
-      "system": "封建君主制",
+      "system": "寡头共和制",
       "leader": {
-        "name": "不幸的塞维里安·赫兰提斯",
-        "title": "皇帝",
+        "name": "塞维里安",
+        "title": "白枝议长",
         "avatar": null,
         "traits": [
           "贪婪",
@@ -3938,409 +3938,231 @@ export default [
           "learning": 15,
           "prowess": 13
         },
-        "bio": ""
+        "bio": "通过政治勾兑与恐吓，塞维里安终于成为了新一任的白枝议长，但这位眼高手低的精灵行事是如此的草率，以至于其的在野时期的政治阴谋被发现，成为了政敌攻击的把柄"
       },
-      "factions": [],
-      "modifiers": [],
+      "factions": [
+        {
+          "id": "f_1794741245451",
+          "name": "德墨特里奥斯家族",
+          "leader": "尼基亚斯·德墨特里奥斯",
+          "influence": 37,
+          "color": "#5489a2"
+        },
+        {
+          "id": "f_1794741245565",
+          "name": "克里索斯家族",
+          "leader": "卡珊德拉·克里索斯",
+          "influence": 29,
+          "color": "#b29357"
+        },
+        {
+          "id": "f_1794741245694",
+          "name": "塔拉西奥斯家族",
+          "leader": "阿莱克西斯·塔拉西奥斯",
+          "influence": 34,
+          "color": "#518c76"
+        }
+      ],
+      "modifiers": [
+        {
+          "id": "m_1794658188057",
+          "name": "伊瑟兰世界：分裂边缘",
+          "desc": "昔日的精灵先辈于伊瑟兰立下盟约，希望能维持湖地的永久和平。但随着周遭精灵城邦的日益壮大，因水源与土地的纠纷正在撕裂牢不可破的伊瑟兰世界——就连城邦的内部，塞维里安可怖的名声已然动摇了其的统治地位，一场声势浩大的群众运动正在酝酿之中......",
+          "effect": "“建国的神话已然处于破灭的边缘...”"
+        }
+      ],
       "wonders": [],
       "heroes": []
     },
     "military": {
-      "legions": [
-        {
-          "id": "leg_1794582662401",
-          "name": "第I坚冰铁卫军团",
-          "training": "老练精兵",
-          "loyalty": 4,
-          "composition": [
-            {
-              "name": "霜原卫戍重步兵",
-              "count": 1,
-              "role": "正面坚阵",
-              "race": "人类",
-              "size": 800,
-              "total": 800,
-              "modifiers": "严寒抗性 · 盾墙防线",
-              "traits": [],
-              "gear": [
-                {
-                  "slot": "helmet",
-                  "slotLabel": "头部",
-                  "name": "头盔",
-                  "desc": "通用制式头盔。"
-                },
-                {
-                  "slot": "neckguard",
-                  "slotLabel": "护颈",
-                  "name": "护颈",
-                  "desc": "垂在颈后的护片，防止劈砍伤及颈项。"
-                },
-                {
-                  "slot": "armor",
-                  "slotLabel": "护甲",
-                  "name": "盔甲",
-                  "desc": "通用制式护甲。"
-                },
-                {
-                  "slot": "gloves",
-                  "slotLabel": "手部",
-                  "name": "手套",
-                  "desc": "通用护手。"
-                },
-                {
-                  "slot": "legs",
-                  "slotLabel": "腿部",
-                  "name": "腿甲",
-                  "desc": "覆盖大腿与膝部的甲片。"
-                },
-                {
-                  "slot": "weapons",
-                  "slotLabel": "武器",
-                  "name": "近战主武器",
-                  "desc": "通用的近战主手武器。"
-                },
-                {
-                  "slot": "weapons",
-                  "slotLabel": "武器",
-                  "name": "副手/盾牌",
-                  "desc": "副手持用的盾牌。"
-                },
-                {
-                  "slot": "weapons",
-                  "slotLabel": "武器",
-                  "name": "远程兵械",
-                  "desc": "通用的远程投射兵器。"
-                },
-                {
-                  "slot": "weapons",
-                  "slotLabel": "武器",
-                  "name": "战备佩刃",
-                  "desc": "随身佩戴的备用短刃。"
-                },
-                {
-                  "slot": "mount",
-                  "slotLabel": "坐骑",
-                  "name": "战马",
-                  "desc": "训练有素的战马，可供骑乘冲锋。"
-                }
-              ],
-              "desc": "身着覆身钢甲、手执两米塔盾的重装步兵战阵，专司抵御猛兽与骑兵冲击。"
-            },
-            {
-              "name": "北境雪鸮游侠",
-              "count": 1,
-              "role": "斥候/游击",
-              "race": "人类",
-              "size": 400,
-              "total": 400,
-              "modifiers": "风雪伪装 · 致命贯穿",
-              "traits": [],
-              "gear": [
-                {
-                  "slot": "helmet",
-                  "slotLabel": "头部",
-                  "name": "头盔",
-                  "desc": "通用制式头盔。"
-                },
-                {
-                  "slot": "neckguard",
-                  "slotLabel": "护颈",
-                  "name": "护颈",
-                  "desc": "垂在颈后的护片，防止劈砍伤及颈项。"
-                },
-                {
-                  "slot": "armor",
-                  "slotLabel": "护甲",
-                  "name": "盔甲",
-                  "desc": "通用制式护甲。"
-                },
-                {
-                  "slot": "gloves",
-                  "slotLabel": "手部",
-                  "name": "手套",
-                  "desc": "通用护手。"
-                },
-                {
-                  "slot": "legs",
-                  "slotLabel": "腿部",
-                  "name": "腿甲",
-                  "desc": "覆盖大腿与膝部的甲片。"
-                },
-                {
-                  "slot": "weapons",
-                  "slotLabel": "武器",
-                  "name": "近战主武器",
-                  "desc": "通用的近战主手武器。"
-                },
-                {
-                  "slot": "weapons",
-                  "slotLabel": "武器",
-                  "name": "副手/盾牌",
-                  "desc": "副手持用的盾牌。"
-                },
-                {
-                  "slot": "weapons",
-                  "slotLabel": "武器",
-                  "name": "远程兵械",
-                  "desc": "通用的远程投射兵器。"
-                },
-                {
-                  "slot": "weapons",
-                  "slotLabel": "武器",
-                  "name": "战备佩刃",
-                  "desc": "随身佩戴的备用短刃。"
-                },
-                {
-                  "slot": "mount",
-                  "slotLabel": "坐骑",
-                  "name": "战马",
-                  "desc": "训练有素的战马，可供骑乘冲锋。"
-                }
-              ],
-              "desc": "猎手出身的精准射手，擅长借助雪原风暴掩护进行冷箭狙杀。"
-            }
-          ],
-          "total": 1200,
-          "cards": 2
-        }
+      "legions": [],
+      "units": []
+    },
+    "stats": {
+      "diplomacy": 11,
+      "stewardship": 1,
+      "martial": 2,
+      "intrigue": 2,
+      "learning": 15,
+      "prowess": 13
+    }
+  },
+  {
+    "id": "c_1794743161989_kaq1l",
+    "slug": "克洛斯",
+    "index": 21,
+    "name": "克洛斯",
+    "race": "亚基",
+    "capital": "克洛斯",
+    "faith": "原始崇拜",
+    "population": "22K",
+    "bio": "于火中诞生的元素精灵，试图带领亚基人征服赫奇顿的四翼大王，却被那喷薄的火山所吞没军势，如今被激怒的火龙大王正试图将克洛斯驱逐至更远的地方...或者，将其众群赶尽杀绝",
+    "accent": "#5489a2",
+    "region": {
+      "name": "垠土",
+      "traits": [
+        "熔铁红铜",
+        "镀金沙海"
       ],
-      "units": [
+      "customTag": "",
+      "desc": "熔铁与红铜的荒凉边塞，烈日神君战车曾踏足的镀金遗迹。"
+    },
+    "politics": {
+      "system": "神王统治",
+      "leader": {
+        "name": "克洛斯",
+        "title": "王",
+        "avatar": null,
+        "traits": [
+          "野心勃勃",
+          "狂热",
+          "暴怒"
+        ],
+        "stats": {
+          "diplomacy": 11,
+          "stewardship": 1,
+          "martial": 17,
+          "intrigue": 8,
+          "learning": 1,
+          "prowess": 9
+        },
+        "bio": "炙热的火元素化身成为亚基的模样，试图建立起辽阔的帝国，但对于虫人的孤僻无可奈何"
+      },
+      "factions": [
         {
-          "id": "u_1",
-          "name": "霜原卫戍重步兵",
-          "role": "正面坚阵",
-          "race": "人类",
-          "size": 800,
-          "modifiers": "严寒抗性 · 盾墙防线",
-          "traits": [],
-          "gear": [
-            {
-              "slot": "helmet",
-              "slotLabel": "头部",
-              "name": "头盔",
-              "desc": "通用制式头盔。"
-            },
-            {
-              "slot": "neckguard",
-              "slotLabel": "护颈",
-              "name": "护颈",
-              "desc": "垂在颈后的护片，防止劈砍伤及颈项。"
-            },
-            {
-              "slot": "armor",
-              "slotLabel": "护甲",
-              "name": "盔甲",
-              "desc": "通用制式护甲。"
-            },
-            {
-              "slot": "gloves",
-              "slotLabel": "手部",
-              "name": "手套",
-              "desc": "通用护手。"
-            },
-            {
-              "slot": "legs",
-              "slotLabel": "腿部",
-              "name": "腿甲",
-              "desc": "覆盖大腿与膝部的甲片。"
-            },
-            {
-              "slot": "weapons",
-              "slotLabel": "武器",
-              "name": "近战主武器",
-              "desc": "通用的近战主手武器。"
-            },
-            {
-              "slot": "weapons",
-              "slotLabel": "武器",
-              "name": "副手/盾牌",
-              "desc": "副手持用的盾牌。"
-            },
-            {
-              "slot": "weapons",
-              "slotLabel": "武器",
-              "name": "远程兵械",
-              "desc": "通用的远程投射兵器。"
-            },
-            {
-              "slot": "weapons",
-              "slotLabel": "武器",
-              "name": "战备佩刃",
-              "desc": "随身佩戴的备用短刃。"
-            },
-            {
-              "slot": "mount",
-              "slotLabel": "坐骑",
-              "name": "战马",
-              "desc": "训练有素的战马，可供骑乘冲锋。"
-            }
-          ],
-          "desc": "身着覆身钢甲、手执两米塔盾的重装步兵战阵，专司抵御猛兽与骑兵冲击。",
-          "equipment": {
-            "helmet": {
-              "name": "头盔",
-              "desc": ""
-            },
-            "neckguard": {
-              "name": "护颈",
-              "desc": ""
-            },
-            "armor": {
-              "name": "盔甲",
-              "desc": ""
-            },
-            "gloves": {
-              "name": "手套",
-              "desc": ""
-            },
-            "legs": {
-              "name": "腿甲",
-              "desc": ""
-            },
-            "weapons": [
-              {
-                "name": "近战主武器",
-                "desc": "",
-                "category": "长剑"
-              },
-              {
-                "name": "副手/盾牌",
-                "desc": "",
-                "category": "圆盾"
-              },
-              {
-                "name": "远程兵械",
-                "desc": "",
-                "category": "重弩"
-              },
-              {
-                "name": "战备佩刃",
-                "desc": "",
-                "category": "短匕"
-              }
-            ],
-            "mount": {
-              "name": "战马",
-              "desc": ""
-            }
-          }
+          "id": "f_1794744033780",
+          "name": "达克伦氏族",
+          "leader": "达克伦",
+          "influence": 76,
+          "color": "#5489a2"
         },
         {
-          "id": "u_2",
-          "name": "北境雪鸮游侠",
-          "role": "斥候/游击",
-          "race": "人类",
-          "size": 400,
-          "modifiers": "风雪伪装 · 致命贯穿",
-          "traits": [],
+          "id": "f_1794744033911",
+          "name": "穆尔瓦氏族",
+          "leader": "穆尔瓦二世",
+          "influence": 24,
+          "color": "#b29357"
+        }
+      ],
+      "modifiers": [
+        {
+          "id": "m_1794743949471",
+          "name": "孤立之治",
+          "desc": "尽管克洛斯千方百计地想要进行扩张，但克洛斯亚基人却早已经受够了无处不在的蜥蜴人...",
+          "effect": "“自闭...”"
+        }
+      ],
+      "wonders": [],
+      "heroes": []
+    },
+    "military": {
+      "legions": [],
+      "units": [
+        {
+          "id": "u_1794745691872",
+          "name": "克洛斯龙马骑手",
+          "role": "战线撕裂者",
+          "race": "亚基",
+          "size": 24,
+          "modifiers": "【捍卫者】【引发恐惧】【惊骇敌军】",
+          "traits": [
+            {
+              "name": "捍卫者",
+              "desc": ""
+            },
+            {
+              "name": "引发恐惧",
+              "desc": "军容凶悍，接敌瞬间便足以震慑对手，削弱敌军士气。"
+            },
+            {
+              "name": "惊骇敌军",
+              "desc": ""
+            }
+          ],
           "gear": [
             {
               "slot": "helmet",
               "slotLabel": "头部",
-              "name": "头盔",
-              "desc": "通用制式头盔。"
-            },
-            {
-              "slot": "neckguard",
-              "slotLabel": "护颈",
-              "name": "护颈",
-              "desc": "垂在颈后的护片，防止劈砍伤及颈项。"
+              "name": "几丁质头盔",
+              "desc": ""
             },
             {
               "slot": "armor",
               "slotLabel": "护甲",
-              "name": "盔甲",
-              "desc": "通用制式护甲。"
+              "name": "几丁质胸甲",
+              "desc": ""
             },
             {
               "slot": "gloves",
               "slotLabel": "手部",
-              "name": "手套",
-              "desc": "通用护手。"
+              "name": "几丁质护手",
+              "desc": ""
             },
             {
               "slot": "legs",
               "slotLabel": "腿部",
-              "name": "腿甲",
-              "desc": "覆盖大腿与膝部的甲片。"
+              "name": "几丁质腿甲",
+              "desc": ""
             },
             {
               "slot": "weapons",
               "slotLabel": "武器",
-              "name": "近战主武器",
-              "desc": "通用的近战主手武器。"
-            },
-            {
-              "slot": "weapons",
-              "slotLabel": "武器",
-              "name": "副手/盾牌",
-              "desc": "副手持用的盾牌。"
-            },
-            {
-              "slot": "weapons",
-              "slotLabel": "武器",
-              "name": "远程兵械",
-              "desc": "通用的远程投射兵器。"
-            },
-            {
-              "slot": "weapons",
-              "slotLabel": "武器",
-              "name": "战备佩刃",
-              "desc": "随身佩戴的备用短刃。"
+              "name": "亚基螳螂刀",
+              "desc": ""
             },
             {
               "slot": "mount",
               "slotLabel": "坐骑",
-              "name": "战马",
-              "desc": "训练有素的战马，可供骑乘冲锋。"
+              "name": "龙马",
+              "desc": ""
             }
           ],
-          "desc": "猎手出身的精准射手，擅长借助雪原风暴掩护进行冷箭狙杀。",
+          "desc": "",
           "equipment": {
             "helmet": {
-              "name": "头盔",
+              "name": "几丁质头盔",
               "desc": ""
             },
             "neckguard": {
-              "name": "护颈",
+              "name": "无",
               "desc": ""
             },
             "armor": {
-              "name": "盔甲",
+              "name": "几丁质胸甲",
               "desc": ""
             },
             "gloves": {
-              "name": "手套",
+              "name": "几丁质护手",
               "desc": ""
             },
             "legs": {
-              "name": "腿甲",
+              "name": "几丁质腿甲",
               "desc": ""
             },
             "weapons": [
               {
-                "name": "近战主武器",
+                "name": "亚基螳螂刀",
                 "desc": "",
-                "category": "长剑"
+                "category": "徒手"
               },
               {
-                "name": "副手/盾牌",
+                "name": "无",
                 "desc": "",
-                "category": "圆盾"
+                "category": "无"
               },
               {
-                "name": "远程兵械",
+                "name": "无",
                 "desc": "",
-                "category": "重弩"
+                "category": "无"
               },
               {
-                "name": "战备佩刃",
+                "name": "无",
                 "desc": "",
-                "category": "短匕"
+                "category": "无"
               }
             ],
             "mount": {
-              "name": "战马",
+              "name": "龙马",
               "desc": ""
             }
           }
@@ -4350,10 +4172,369 @@ export default [
     "stats": {
       "diplomacy": 11,
       "stewardship": 1,
-      "martial": 2,
-      "intrigue": 2,
-      "learning": 15,
-      "prowess": 13
+      "martial": 17,
+      "intrigue": 8,
+      "learning": 1,
+      "prowess": 9
+    }
+  },
+  {
+    "id": "c_1794746121167_1kw45",
+    "slug": "薪炎龙庭",
+    "index": 22,
+    "name": "薪炎龙庭",
+    "race": "利扎",
+    "capital": "奈龙城",
+    "faith": "先祖崇拜",
+    "population": "15.4K",
+    "bio": "昔日的龙众不堪亚基的骚扰，率众向西南迁徙，高大威猛的双足飞龙掠过亲王的宫殿，意外扰动了那耽溺于幻梦的龙之王的血嗣，它的怒吼将随着火雨撒满大地，龙庭的勇士啊，是否能驱逐那有翼的大王？还是再度沦丧...",
+    "accent": "#5489a2",
+    "region": {
+      "name": "垠土",
+      "traits": [
+        "熔铁红铜",
+        "镀金沙海"
+      ],
+      "customTag": "",
+      "desc": "熔铁与红铜的荒凉边塞，烈日神君战车曾踏足的镀金遗迹。"
+    },
+    "politics": {
+      "system": "氏族联盟",
+      "leader": {
+        "name": "昊阳",
+        "title": "大王",
+        "avatar": "/countries/c22-leader.jpg",
+        "traits": [
+          "急躁",
+          "愤世嫉俗",
+          "轻信他人"
+        ],
+        "stats": {
+          "diplomacy": 11,
+          "stewardship": 6,
+          "martial": 3,
+          "intrigue": 4,
+          "learning": 6,
+          "prowess": 12
+        },
+        "bio": "骁勇善战的龙庭勇士，曾驾驭着最为可怖的双足飞龙，却被亚基人所暗算，逃亡此地的他，如今脑袋里时常有呢喃在回荡..."
+      },
+      "factions": [
+        {
+          "id": "f_1794746219903",
+          "name": "昊阳与他的小子们",
+          "leader": "昊阳",
+          "influence": 67,
+          "color": "#5489a2"
+        },
+        {
+          "id": "f_1794748556420",
+          "name": "长老团",
+          "leader": "无",
+          "influence": 33,
+          "color": "#b29357"
+        }
+      ],
+      "modifiers": [
+        {
+          "id": "m_1794747157386",
+          "name": "邪魔寄宿",
+          "desc": "自从被亚基人的螳螂刀重伤，侥幸逃过一劫的他，迁徙此地后，脑袋里就一直有喃喃低语...令他寝食难安，而在内部，对于彼方高山的有翼大王的恐惧，长老团试图推动罢免昊阳的行动...",
+          "effect": "“为了■■■■■的复兴...为了■■■■■■的族裔...听从我！听从我！”外交：-10；管理：-10；军事：-10；谋略：-10；学识：-10；武艺：-10"
+        }
+      ],
+      "wonders": [],
+      "heroes": []
+    },
+    "military": {
+      "legions": [
+        {
+          "id": "leg_1794747154426",
+          "name": "龙庭第一军团",
+          "training": "一般",
+          "loyalty": 3,
+          "composition": [
+            {
+              "name": "龙庭勇士",
+              "count": 5,
+              "role": "怪物步兵",
+              "race": "利扎",
+              "size": 16,
+              "total": 80,
+              "modifiers": "【原生本能】【掠食战士】【引发恐惧】",
+              "traits": [
+                {
+                  "name": "原生本能",
+                  "desc": ""
+                },
+                {
+                  "name": "掠食战士",
+                  "desc": ""
+                },
+                {
+                  "name": "引发恐惧",
+                  "desc": "军容凶悍，接敌瞬间便足以震慑对手，削弱敌军士气。"
+                }
+              ],
+              "gear": [
+                {
+                  "slot": "armor",
+                  "slotLabel": "护甲",
+                  "name": "元素鳞甲",
+                  "desc": ""
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "黑曜石大剑",
+                  "desc": ""
+                }
+              ],
+              "desc": ""
+            },
+            {
+              "name": "双足飞龙骑手",
+              "count": 3,
+              "role": "巨兽单位",
+              "race": "利扎",
+              "size": 1,
+              "total": 3,
+              "modifiers": "【飞行】【癫狂】【引发恐惧】【惊骇敌军】",
+              "traits": [
+                {
+                  "name": "飞行",
+                  "desc": "可越过城墙与河川机动，难以携带重装。"
+                },
+                {
+                  "name": "癫狂",
+                  "desc": ""
+                },
+                {
+                  "name": "引发恐惧",
+                  "desc": "军容凶悍，接敌瞬间便足以震慑对手，削弱敌军士气。"
+                },
+                {
+                  "name": "惊骇敌军",
+                  "desc": ""
+                }
+              ],
+              "gear": [
+                {
+                  "slot": "armor",
+                  "slotLabel": "护甲",
+                  "name": "元素鳞甲",
+                  "desc": ""
+                },
+                {
+                  "slot": "weapons",
+                  "slotLabel": "武器",
+                  "name": "黑曜石短矛",
+                  "desc": ""
+                },
+                {
+                  "slot": "mount",
+                  "slotLabel": "坐骑",
+                  "name": "双足飞龙",
+                  "desc": ""
+                }
+              ],
+              "desc": ""
+            }
+          ],
+          "total": 83,
+          "cards": 8
+        }
+      ],
+      "units": [
+        {
+          "id": "u_1794747149145",
+          "name": "龙庭勇士",
+          "role": "怪物步兵",
+          "race": "利扎",
+          "size": 16,
+          "modifiers": "【原生本能】【掠食战士】【引发恐惧】",
+          "traits": [
+            {
+              "name": "原生本能",
+              "desc": ""
+            },
+            {
+              "name": "掠食战士",
+              "desc": ""
+            },
+            {
+              "name": "引发恐惧",
+              "desc": "军容凶悍，接敌瞬间便足以震慑对手，削弱敌军士气。"
+            }
+          ],
+          "gear": [
+            {
+              "slot": "armor",
+              "slotLabel": "护甲",
+              "name": "元素鳞甲",
+              "desc": ""
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "黑曜石大剑",
+              "desc": ""
+            }
+          ],
+          "desc": "",
+          "equipment": {
+            "helmet": {
+              "name": "无",
+              "desc": ""
+            },
+            "neckguard": {
+              "name": "无",
+              "desc": ""
+            },
+            "armor": {
+              "name": "元素鳞甲",
+              "desc": ""
+            },
+            "gloves": {
+              "name": "无",
+              "desc": ""
+            },
+            "legs": {
+              "name": "无",
+              "desc": ""
+            },
+            "weapons": [
+              {
+                "name": "黑曜石大剑",
+                "desc": "",
+                "category": "双手剑"
+              },
+              {
+                "name": "无",
+                "desc": "",
+                "category": "无"
+              },
+              {
+                "name": "无",
+                "desc": "",
+                "category": "无"
+              },
+              {
+                "name": "无",
+                "desc": "",
+                "category": "无"
+              }
+            ],
+            "mount": {
+              "name": "无",
+              "desc": ""
+            }
+          }
+        },
+        {
+          "id": "u_1794747151410",
+          "name": "双足飞龙骑手",
+          "role": "巨兽单位",
+          "race": "利扎",
+          "size": 1,
+          "modifiers": "【飞行】【癫狂】【引发恐惧】【惊骇敌军】",
+          "traits": [
+            {
+              "name": "飞行",
+              "desc": "可越过城墙与河川机动，难以携带重装。"
+            },
+            {
+              "name": "癫狂",
+              "desc": ""
+            },
+            {
+              "name": "引发恐惧",
+              "desc": "军容凶悍，接敌瞬间便足以震慑对手，削弱敌军士气。"
+            },
+            {
+              "name": "惊骇敌军",
+              "desc": ""
+            }
+          ],
+          "gear": [
+            {
+              "slot": "armor",
+              "slotLabel": "护甲",
+              "name": "元素鳞甲",
+              "desc": ""
+            },
+            {
+              "slot": "weapons",
+              "slotLabel": "武器",
+              "name": "黑曜石短矛",
+              "desc": ""
+            },
+            {
+              "slot": "mount",
+              "slotLabel": "坐骑",
+              "name": "双足飞龙",
+              "desc": ""
+            }
+          ],
+          "desc": "",
+          "equipment": {
+            "helmet": {
+              "name": "无",
+              "desc": ""
+            },
+            "neckguard": {
+              "name": "无",
+              "desc": ""
+            },
+            "armor": {
+              "name": "元素鳞甲",
+              "desc": ""
+            },
+            "gloves": {
+              "name": "无",
+              "desc": ""
+            },
+            "legs": {
+              "name": "无",
+              "desc": ""
+            },
+            "weapons": [
+              {
+                "name": "黑曜石短矛",
+                "desc": "",
+                "category": "投掷"
+              },
+              {
+                "name": "无",
+                "desc": "",
+                "category": "无"
+              },
+              {
+                "name": "无",
+                "desc": "",
+                "category": "无"
+              },
+              {
+                "name": "无",
+                "desc": "",
+                "category": "无"
+              }
+            ],
+            "mount": {
+              "name": "双足飞龙",
+              "desc": ""
+            }
+          }
+        }
+      ]
+    },
+    "stats": {
+      "diplomacy": 11,
+      "stewardship": 6,
+      "martial": 3,
+      "intrigue": 4,
+      "learning": 6,
+      "prowess": 12
     }
   }
 ]

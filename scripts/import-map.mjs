@@ -146,7 +146,8 @@ try {
 
 const alias = {
   八薮之囿: '八菽之囿',
-  白韵: '白昀'
+  白韵: '白昀',
+  伊瑟兰: '伊瑟兰议邦'
 }
 
 const normalize = (name) =>
