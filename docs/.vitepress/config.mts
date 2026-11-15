@@ -36,7 +36,8 @@ export default defineConfig({
       { text: '首页', link: '/' },
       { text: '国家', link: '/countries/', activeMatch: '/countries/' },
       { text: '地图', link: '/map/', activeMatch: '/map/' },
-      { text: '经济', link: '/economy/', activeMatch: '/economy/' }
+      { text: '经济', link: '/economy/', activeMatch: '/economy/' },
+      { text: '账号', link: '/account/', activeMatch: '/account/' }
     ],
 
     sidebar: {

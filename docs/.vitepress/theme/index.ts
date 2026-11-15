@@ -6,6 +6,8 @@ import CountryExplorer from './components/CountryExplorer.vue'
 import MapViewer from './components/MapViewer.vue'
 import EconomyExplorer from './components/EconomyExplorer.vue'
 import HomePage from './components/HomePage.vue'
+import AccountPage from './components/AccountPage.vue'
+import AdminPage from './components/AdminPage.vue'
 import './style.css'
 
 export default {
@@ -16,5 +18,7 @@ export default {
     app.component('MapViewer', MapViewer)
   app.component('EconomyExplorer', EconomyExplorer)
   app.component('HomePage', HomePage)
+  app.component('AccountPage', AccountPage)
+  app.component('AdminPage', AdminPage)
   }
 } satisfies Theme

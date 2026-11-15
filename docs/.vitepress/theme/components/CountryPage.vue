@@ -1,13 +1,19 @@
 ﻿<script setup>
-import { computed } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { withBase } from 'vitepress'
 import countries from '../../data/countries.mjs'
+import { applyOverride, getOverride } from '../auth'
 
 const props = defineProps({
   index: { type: Number, required: true }
 })
 
-const country = computed(() => countries[props.index] || countries[0])
+const baseCountry = computed(() => countries[props.index] || countries[0])
+const ov = ref(null)
+onMounted(() => {
+  ov.value = getOverride(baseCountry.value.slug)
+})
+const country = computed(() => applyOverride(baseCountry.value, ov.value))
 
 const leaderAvatar = computed(() =>
   country.value.politics.leader.avatar ? withBase(country.value.politics.leader.avatar) : ''
