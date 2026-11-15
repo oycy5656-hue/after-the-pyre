@@ -4,6 +4,8 @@ import countries from '../../data/countries.mjs'
 import map from '../../data/map.mjs'
 import { buildRows, DEFAULT_BASE, DEFAULT_COUNTRY_TRAITS, DEFAULT_GOODS, DEFAULT_TRAITS } from '../../data/economy-model.mjs'
 import { currentUser, getOverride, initAuth, loadEdits, saveOverride } from '../auth'
+import { geoOf } from '../../data/geography.mjs'
+import { RESOURCES, RESOURCE_GROUPS, deriveSectors, deriveSpecialties } from '../../data/resources.mjs'
 
 const unit = { name: 'D（当量）', desc: '一名成年人维持一天基本生活所需的商品与劳务。全大陆通用，不依赖货币。' }
 
@@ -73,6 +75,27 @@ const fmt = (n) => {
   if (n >= 1e4) return (n / 1e4).toFixed(1) + '万'
   return String(Math.round(n))
 }
+
+const specsOf = (name) => deriveSpecialties(geoOf(name), 5)
+const currentSpecs = computed(() => (current.value ? specsOf(current.value.name) : []))
+const currentSectors = computed(() => deriveSectors(currentSpecs.value))
+const allSpecs = computed(() =>
+  rows.value.map((r) => ({ name: r.name, slug: r.slug, specs: specsOf(r.name) }))
+)
+const sectorLabel = (specs) => {
+  const secs = deriveSectors(specs)
+  const top = [...secs].sort((a, b) => b.share - a.share).slice(0, 2)
+  return top.map((x) => x.name + ' ' + Math.round(x.share * 100) + '%').join(' · ')
+}
+
+const groupedResources = computed(() => {
+  const m = new Map()
+  for (const r of RESOURCES) {
+    if (!m.has(r.group)) m.set(r.group, [])
+    m.get(r.group).push(r)
+  }
+  return [...m.entries()]
+})
 
 const alloc = computed(() => {
   const r = current.value
@@ -252,6 +275,30 @@ const resetCfg = () => {
           </div>
           <p v-if="!editing && current.manual" class="eco-manual-tag">含手工设定的数值</p>
 
+          <p class="eco-mini-title">主要物产</p>
+          <ul class="eco-spec-list">
+            <li v-for="sp in currentSpecs" :key="sp.id">
+              <i :style="{ background: RESOURCE_GROUPS[sp.group] }"></i>
+              <span>{{ sp.name }}</span>
+              <em>{{ sp.group }} · {{ sp.value }} D/{{ sp.unit }}</em>
+            </li>
+          </ul>
+
+          <p class="eco-mini-title">产业环节</p>
+          <div class="eco-stack slim">
+            <span
+              v-for="(sec, i) in currentSectors"
+              :key="sec.id"
+              :style="{ width: sec.share * 100 + '%', background: ['#6f8ba8','#b08a4f','#9c6f9c','#2f7d63','#c9a24a'][i % 5] }"
+              :title="sec.name + ' ' + Math.round(sec.share * 100) + '%'"
+            ></span>
+          </div>
+          <ul class="eco-legend tight">
+            <li v-for="(sec, i) in currentSectors" :key="sec.id">
+              <i :style="{ background: ['#6f8ba8','#b08a4f','#9c6f9c','#2f7d63','#c9a24a'][i % 5] }"></i>{{ sec.name }} {{ Math.round(sec.share * 100) }}%
+            </li>
+          </ul>
+
           <p class="eco-mini-title">产出构成</p>
           <div class="eco-stack slim">
             <span
@@ -345,6 +392,49 @@ const resetCfg = () => {
         </section>
       </div>
     </div>
+
+    <!-- 物产 -->
+    <section class="eco-block eco-res-section">
+      <h2>基础物产</h2>
+      <p class="eco-lead">
+        共 {{ RESOURCES.length }} 种基础资源，按农业、畜牧、渔猎、林业、矿产与特产六类归并。
+        数值是该物产一单位折合的当量（D），各国能产出什么，取决于所处生物群系、海拔、河流与海岸线。
+      </p>
+      <div class="eco-res-groups">
+        <div v-for="[group, items] in groupedResources" :key="group" class="eco-res-group">
+          <h4><i :style="{ background: RESOURCE_GROUPS[group] }"></i>{{ group }}<em>{{ items.length }}</em></h4>
+          <div class="eco-res-chips">
+            <span v-for="r in items" :key="r.id" class="eco-res-chip" :title="r.group + ' · ' + r.value + ' D/' + r.unit">
+              {{ r.name }}<em>{{ r.value }}</em>
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="eco-block">
+      <h2>各国物产</h2>
+      <p class="eco-lead">
+        按地形与气候推导：湿地多稻米与淡水鱼，针叶林带出木材与树脂，高海拔出金属矿与玉石，热带雨林出香料、硬木与羽毛。
+        同一片区域的国家往往共享物产。
+      </p>
+      <table class="eco-spec-table">
+        <thead>
+          <tr><th>国家</th><th>主要物产</th><th>环节重心</th></tr>
+        </thead>
+        <tbody>
+          <tr v-for="row in allSpecs" :key="row.name" :class="{ on: row.name === selected }" @click="pick(row.name)">
+            <td class="eco-spec-country">{{ row.name }}</td>
+            <td>
+              <span v-for="sp in row.specs" :key="sp.id" class="eco-spec-chip" :style="{ borderColor: RESOURCE_GROUPS[sp.group] }">
+                <i :style="{ background: RESOURCE_GROUPS[sp.group] }"></i>{{ sp.name }}
+              </span>
+            </td>
+            <td class="eco-spec-sector">{{ sectorLabel(row.specs) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
 
     <!-- 底部：天赋数值表 -->
     <section class="eco-block eco-traits-section">
@@ -1132,6 +1222,164 @@ const resetCfg = () => {
   margin: 0 0 10px;
   font-size: 10.5px;
   color: #a07b25;
+}
+
+
+.eco-spec-list {
+  display: grid;
+  gap: 4px;
+  margin: 0 0 6px;
+  padding: 0;
+  list-style: none;
+}
+
+.eco-spec-list li {
+  display: grid;
+  grid-template-columns: 10px auto 1fr;
+  gap: 6px;
+  align-items: center;
+  font-size: 11.5px;
+  color: var(--vp-c-text-2);
+}
+
+.eco-spec-list i {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+.eco-spec-list em {
+  justify-self: end;
+  font-style: normal;
+  font-size: 10.5px;
+  color: var(--vp-c-text-3);
+}
+
+.eco-res-section {
+  margin-top: 40px;
+}
+
+.eco-res-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.eco-res-group {
+  padding: 12px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 9px;
+  background: var(--vp-c-bg-soft);
+}
+
+.eco-res-group h4 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 9px;
+  font-size: 12.5px;
+  color: var(--vp-c-text-2);
+}
+
+.eco-res-group h4 i {
+  width: 4px;
+  height: 14px;
+  border-radius: 2px;
+}
+
+.eco-res-group h4 em {
+  margin-left: auto;
+  font-style: normal;
+  font-size: 10.5px;
+  color: var(--vp-c-text-3);
+}
+
+.eco-res-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.eco-res-chip {
+  padding: 2px 7px;
+  font-size: 11.5px;
+  color: var(--vp-c-text-1);
+  background: var(--vp-c-bg);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 4px;
+}
+
+.eco-res-chip em {
+  margin-left: 5px;
+  font-style: normal;
+  font-size: 10px;
+  color: var(--vp-c-text-3);
+}
+
+.eco-spec-table {
+  display: table;
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+
+.eco-spec-table th {
+  padding: 7px 8px;
+  text-align: left;
+  font-weight: 500;
+  font-size: 11.5px;
+  color: var(--vp-c-text-3);
+  border-bottom: 1px solid var(--vp-c-divider);
+}
+
+.eco-spec-table td {
+  padding: 8px;
+  border-bottom: 1px solid var(--vp-c-divider);
+  color: var(--vp-c-text-2);
+  vertical-align: middle;
+}
+
+.eco-spec-table tbody tr {
+  cursor: pointer;
+}
+
+.eco-spec-table tbody tr:hover td {
+  background: var(--vp-c-bg-soft);
+}
+
+.eco-spec-table tbody tr.on td {
+  background: color-mix(in srgb, var(--vp-c-brand-1) 8%, transparent);
+}
+
+.eco-spec-country {
+  min-width: 120px;
+  color: var(--vp-c-text-1);
+  white-space: nowrap;
+}
+
+.eco-spec-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 2px 6px 2px 0;
+  padding: 2px 8px;
+  font-size: 11.5px;
+  color: var(--vp-c-text-1);
+  background: var(--vp-c-bg);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 4px;
+}
+
+.eco-spec-chip i {
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+}
+
+.eco-spec-sector {
+  font-size: 11.5px;
+  color: var(--vp-c-text-3);
+  white-space: nowrap;
 }
 
 </style>
