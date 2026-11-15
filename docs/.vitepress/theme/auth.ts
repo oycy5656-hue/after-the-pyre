@@ -248,23 +248,57 @@ export function applyOverride(country, ov) {
     if (ov[key] !== undefined && ov[key] !== '') next[key] = ov[key]
   }
   if (ov.regionDesc) next.region = { ...next.region, desc: ov.regionDesc }
-  if (ov.leaderBio) next.politics = { ...next.politics, leader: { ...next.politics.leader, bio: ov.leaderBio } }
+  if (ov.leaderBio || ov.leaderName || ov.leaderTitle) {
+    next.politics = {
+      ...next.politics,
+      leader: {
+        ...next.politics.leader,
+        bio: ov.leaderBio ?? next.politics.leader.bio,
+        name: ov.leaderName ?? next.politics.leader.name,
+        title: ov.leaderTitle ?? next.politics.leader.title
+      }
+    }
+  }
   if (ov.system) next.politics = { ...next.politics, system: ov.system }
+
+  // 数组型覆盖：按 id 对齐，允许增删改
+  const mergeById = (base, patch, keepExtra = true) => {
+    if (!Array.isArray(patch)) return base
+    const map = new Map(patch.map((x) => [x.id, x]))
+    const merged = base.map((x) => (map.has(x.id) ? { ...x, ...map.get(x.id) } : x))
+    if (keepExtra) {
+      for (const x of patch) if (!base.some((b) => b.id === x.id)) merged.push(x)
+    }
+    return merged
+  }
+
+  if (Array.isArray(ov.factions)) {
+    next.politics = { ...next.politics, factions: mergeById(next.politics.factions || [], ov.factions) }
+  }
+  if (Array.isArray(ov.modifiers)) {
+    next.politics = { ...next.politics, modifiers: mergeById(next.politics.modifiers || [], ov.modifiers) }
+  }
+  if (Array.isArray(ov.wonders)) {
+    next.politics = { ...next.politics, wonders: mergeById(next.politics.wonders || [], ov.wonders) }
+  }
+  if (Array.isArray(ov.legions)) {
+    const legions = mergeById(next.military.legions || [], ov.legions).map((l) => {
+      const composition = l.composition || []
+      const total = composition.reduce((n, c) => n + (Number(c.size) || 0) * (Number(c.count) || 0), 0)
+      const cards = composition.reduce((n, c) => n + (Number(c.count) || 0), 0)
+      return { ...l, total, cards }
+    })
+    next.military = { ...next.military, legions }
+  }
+
+  // 旧格式兼容
   if (ov.influences) {
     next.politics = {
       ...next.politics,
-      factions: next.politics.factions.map((f) => ({
+      factions: (next.politics.factions || []).map((f) => ({
         ...f,
         influence: ov.influences[f.id] !== undefined ? Number(ov.influences[f.id]) : f.influence
       }))
-    }
-  }
-  if (ov.modifiers) {
-    next.politics = {
-      ...next.politics,
-      modifiers: next.politics.modifiers.map((m) =>
-        ov.modifiers[m.id] ? { ...m, desc: ov.modifiers[m.id].desc ?? m.desc, effect: ov.modifiers[m.id].effect ?? m.effect } : m
-      )
     }
   }
   return next

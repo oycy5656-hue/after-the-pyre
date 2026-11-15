@@ -4,29 +4,55 @@ import { withBase } from 'vitepress'
 import countries from '../../data/countries.mjs'
 import map from '../../data/map.mjs'
 import { buildRows, DEFAULT_BASE, DEFAULT_COUNTRY_TRAITS, DEFAULT_GOODS, DEFAULT_TRAITS } from '../../data/economy-model.mjs'
-import { getOverride, initAuth, loadEdits } from '../auth'
+import { currentUser, getOverride, initAuth, loadEdits, saveOverride } from '../auth'
 
 const unit = { name: 'D（当量）', desc: '一名成年人维持一天基本生活所需的商品与劳务。全大陆通用，不依赖货币。' }
 
-const goods = ref(DEFAULT_GOODS)
-const traitsList = ref(DEFAULT_TRAITS)
-const rows = ref(buildRows(countries, map))
+const clone = (v) => JSON.parse(JSON.stringify(v))
+const cfg = ref({
+  base: clone(DEFAULT_BASE),
+  goods: clone(DEFAULT_GOODS),
+  traits: clone(DEFAULT_TRAITS),
+  countryTraits: clone(DEFAULT_COUNTRY_TRAITS)
+})
+
+const isAdminUser = ref(false)
+const editing = ref(false)
+const saving = ref(false)
+const flash = ref('')
+const traitCountry = ref(countries[0].name)
+
+const PARAM_KEYS = [
+  ['perCapita', '人均年产出 (D)'],
+  ['extraction', '上层抽取率'],
+  ['ritual', '神庙仪式率'],
+  ['upkeep', '种子损耗率'],
+  ['exchangeBase', '交换效率基准'],
+  ['reserveMonths', '基准储备（月）'],
+  ['mobilization', '动员率'],
+  ['laborShare', '劳力参与率']
+]
+const PARAM_LABEL = { yield: '产出', extraction: '抽取', ritual: '仪式', exchange: '交换', stability: '稳定', military: '动员', labor: '劳役' }
 
 onMounted(async () => {
   await initAuth()
+  const u = currentUser()
+  isAdminUser.value = !!u && u.role === 'admin'
   await loadEdits()
   const ov = getOverride('__economy__')
   if (ov) {
-    if (ov.goods) goods.value = ov.goods
-    if (ov.traits) traitsList.value = ov.traits
-    rows.value = buildRows(countries, map, {
-      base: ov.base || DEFAULT_BASE,
-      traits: ov.traits || DEFAULT_TRAITS,
-      countryTraits: ov.countryTraits || DEFAULT_COUNTRY_TRAITS
-    })
+    cfg.value = {
+      base: { ...DEFAULT_BASE, ...(ov.base || {}) },
+      goods: clone(ov.goods || DEFAULT_GOODS),
+      traits: clone(ov.traits || DEFAULT_TRAITS),
+      countryTraits: clone(ov.countryTraits || DEFAULT_COUNTRY_TRAITS)
+    }
   }
 })
 
+const rows = computed(() => buildRows(countries, map, cfg.value))
+const goods = computed(() => cfg.value.goods)
+const traitsList = computed(() => cfg.value.traits)
 const listed = computed(() => rows.value.filter((r) => r.traitNames > 0))
 const sortKey = ref('perCapitaSurplus')
 const sorted = computed(() => [...rows.value].sort((a, b) => b[sortKey.value] - a[sortKey.value]))
@@ -38,8 +64,6 @@ const fmt = (n) => {
   if (n >= 1e4) return (n / 1e4).toFixed(1) + '万'
   return String(Math.round(n))
 }
-
-const PARAM_LABEL = { yield: '产出', extraction: '抽取', ritual: '仪式', exchange: '交换', stability: '稳定', military: '动员', labor: '劳役' }
 
 const traitGroups = computed(() => {
   const m = new Map()
@@ -66,10 +90,103 @@ const alloc = computed(() => {
     { label: '可支配剩余', value: Math.max(0, r.surplus), color: '#2f7d63' }
   ]
 })
+
+const toggleTrait = (name) => {
+  const list = cfg.value.countryTraits[traitCountry.value] || []
+  const i = list.indexOf(name)
+  if (i >= 0) list.splice(i, 1)
+  else list.push(name)
+  cfg.value.countryTraits[traitCountry.value] = list
+}
+
+const saveCfg = async () => {
+  saving.value = true
+  flash.value = ''
+  try {
+    await saveOverride('__economy__', cfg.value)
+    flash.value = '已保存经济参数，全站生效'
+    editing.value = false
+  } catch (e) {
+    flash.value = '保存失败：' + e.message
+  } finally {
+    saving.value = false
+  }
+}
+
+const resetCfg = () => {
+  cfg.value = {
+    base: clone(DEFAULT_BASE),
+    goods: clone(DEFAULT_GOODS),
+    traits: clone(DEFAULT_TRAITS),
+    countryTraits: clone(DEFAULT_COUNTRY_TRAITS)
+  }
+  flash.value = '已恢复默认值（尚未保存）'
+}
 </script>
 
 <template>
-  <div class="eco">
+  <div v-if="isAdminUser" class="eco-toolbar">
+      <button v-if="!editing" type="button" class="eco-btn" @click="editing = true">编辑经济参数</button>
+      <template v-else>
+        <button type="button" class="eco-btn primary" :disabled="saving" @click="saveCfg">{{ saving ? '保存中…' : '保存并生效' }}</button>
+        <button type="button" class="eco-btn" @click="editing = false">退出编辑</button>
+        <button type="button" class="eco-btn" @click="resetCfg">恢复默认</button>
+        <span class="eco-tip">修改会实时反映到下方数字，保存后全站生效。</span>
+      </template>
+      <span v-if="flash" class="eco-flash">{{ flash }}</span>
+    </div>
+
+    <section v-if="editing" class="eco-edit">
+      <h3>基础参数</h3>
+      <div class="eco-edit-grid">
+        <label v-for="[key, label] in PARAM_KEYS" :key="key">
+          <span>{{ label }}</span>
+          <input v-model.number="cfg.base[key]" type="number" step="0.01" />
+        </label>
+      </div>
+
+      <h3>当量折算表</h3>
+      <div class="eco-edit-goods">
+        <label v-for="g in cfg.goods" :key="g.name">
+          <span>{{ g.name }}</span>
+          <input v-model.number="g.value" type="number" step="0.1" />
+        </label>
+      </div>
+
+      <h3>天赋系数</h3>
+      <div class="eco-edit-traits">
+        <div class="eco-trait-head">
+          <span>天赋</span>
+          <span v-for="(label, key) in PARAM_LABEL" :key="key">{{ label }}</span>
+        </div>
+        <div v-for="t in cfg.traits" :key="t.name" class="eco-trait-line">
+          <span>{{ t.name }}</span>
+          <input
+            v-for="(label, key) in PARAM_LABEL"
+            :key="key"
+            v-model.number="t.e[key]"
+            type="number"
+            step="0.01"
+            placeholder="0"
+          />
+        </div>
+      </div>
+
+      <h3>各国生效的天赋</h3>
+      <div class="eco-edit-country">
+        <select v-model="traitCountry">
+          <option v-for="c in countries" :key="c.name" :value="c.name">{{ c.name }}</option>
+        </select>
+        <div class="eco-checks">
+          <label v-for="t in cfg.traits" :key="t.name">
+            <input type="checkbox" :checked="(cfg.countryTraits[traitCountry] || []).includes(t.name)" @change="toggleTrait(t.name)" />
+            <span>{{ t.name }}</span>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <div class="eco">
     <!-- 口径 -->
     <section class="eco-block">
       <h2>统一口径：当量（D）</h2>
@@ -592,4 +709,170 @@ const alloc = computed(() => {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.eco-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0 4px;
+}
+
+.eco-btn {
+  padding: 7px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--vp-c-text-1);
+  background: var(--vp-c-bg);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+.eco-btn.primary {
+  color: #fff;
+  background: var(--vp-c-brand-1);
+  border-color: transparent;
+}
+
+.eco-tip,
+.eco-flash {
+  font-size: 12px;
+  color: var(--vp-c-text-3);
+}
+
+.eco-flash {
+  color: #1f6f4f;
+}
+
+.eco-edit {
+  margin: 12px 0 22px;
+  padding: 18px;
+  border: 1px dashed color-mix(in srgb, var(--vp-c-brand-1) 45%, var(--vp-c-divider));
+  border-radius: 12px;
+  background: var(--vp-c-bg-soft);
+}
+
+.eco-edit h3 {
+  margin: 18px 0 8px;
+  font-size: 14px;
+}
+
+.eco-edit h3:first-child {
+  margin-top: 0;
+}
+
+.eco-edit label {
+  display: grid;
+  gap: 4px;
+}
+
+.eco-edit span {
+  font-size: 11.5px;
+  color: var(--vp-c-text-3);
+}
+
+.eco-edit input,
+.eco-edit select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 9px;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--vp-c-text-1);
+  background: var(--vp-c-bg);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 6px;
+  outline: none;
+}
+
+.eco-edit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+.eco-edit-goods {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px;
+}
+
+.eco-edit-goods label {
+  grid-template-columns: minmax(0, 1fr) 80px;
+  align-items: center;
+}
+
+.eco-edit-traits {
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--vp-c-bg);
+}
+
+.eco-trait-head,
+.eco-trait-line {
+  display: grid;
+  grid-template-columns: minmax(88px, 1.2fr) repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  align-items: center;
+  padding: 5px 8px;
+}
+
+.eco-trait-head {
+  font-size: 10.5px;
+  color: var(--vp-c-text-3);
+  background: var(--vp-c-bg-soft);
+  border-bottom: 1px solid var(--vp-c-divider);
+}
+
+.eco-trait-line {
+  border-bottom: 1px solid var(--vp-c-divider);
+}
+
+.eco-trait-line:last-child {
+  border-bottom: none;
+}
+
+.eco-trait-line span {
+  font-size: 12px;
+  color: var(--vp-c-text-1);
+}
+
+.eco-trait-line input {
+  padding: 3px 5px;
+  font-size: 11.5px;
+  text-align: right;
+}
+
+.eco-edit-country {
+  display: grid;
+  gap: 10px;
+}
+
+.eco-edit-country select {
+  max-width: 220px;
+}
+
+.eco-checks {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 4px 12px;
+}
+
+.eco-checks label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.eco-checks input {
+  width: auto;
+}
+
+.eco-checks span {
+  font-size: 12px;
+  color: var(--vp-c-text-2);
+}
+
 </style>

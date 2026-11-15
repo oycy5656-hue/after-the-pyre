@@ -2,7 +2,8 @@
 import { computed, onMounted, ref } from 'vue'
 import { withBase } from 'vitepress'
 import countries from '../../data/countries.mjs'
-import { applyOverride, getOverride, initAuth, loadEdits } from '../auth'
+import { applyOverride, currentUser, getOverride, initAuth, loadEdits, saveOverride } from '../auth'
+import { toggleEditMode } from '../editmode'
 
 const props = defineProps({
   index: { type: Number, required: true }
@@ -12,6 +13,8 @@ const baseCountry = computed(() => countries[props.index] || countries[0])
 const ov = ref(null)
 onMounted(async () => {
   await initAuth()
+  const u = currentUser()
+  isAdminUser.value = !!u && u.role === 'admin'
   await loadEdits()
   ov.value = getOverride(baseCountry.value.slug)
 })
@@ -20,6 +23,58 @@ const country = computed(() => applyOverride(baseCountry.value, ov.value))
 const leaderAvatar = computed(() =>
   country.value.politics.leader.avatar ? withBase(country.value.politics.leader.avatar) : ''
 )
+
+
+const isAdminUser = ref(false)
+const editing = ref(false)
+const draft = ref(null)
+const saving = ref(false)
+const flash = ref('')
+
+const startEdit = () => {
+  draft.value = JSON.parse(JSON.stringify(country.value))
+  editing.value = true
+  toggleEditMode(true)
+}
+
+const cancelEdit = () => {
+  draft.value = null
+  editing.value = false
+  toggleEditMode(false)
+}
+
+const saveAll = async () => {
+  saving.value = true
+  flash.value = ''
+  try {
+    const d = draft.value
+    ov.value = await saveOverride(country.value.slug, {
+      name: d.name,
+      population: d.population,
+      bio: d.bio,
+      capital: d.capital,
+      faith: d.faith,
+      race: d.race,
+      system: d.politics.system,
+      regionDesc: d.region.desc,
+      leaderName: d.politics.leader.name,
+      leaderTitle: d.politics.leader.title,
+      leaderBio: d.politics.leader.bio,
+      factions: d.politics.factions,
+      modifiers: d.politics.modifiers,
+      wonders: d.politics.wonders,
+      legions: d.military.legions
+    })
+    editing.value = false
+    toggleEditMode(false)
+    flash.value = '已保存'
+    setTimeout(() => (flash.value = ''), 2600)
+  } catch (e) {
+    flash.value = '保存失败：' + e.message
+  } finally {
+    saving.value = false
+  }
+}
 
 const statLabels = {
   diplomacy: '外交',
@@ -97,6 +152,95 @@ const toc = computed(() => [
 <template>
   <div class="wp-page" :style="{ '--accent': country.accent }">
     <div class="wp-main">
+      <div v-if="isAdminUser && !editing" class="wp-edit-toggle">
+        <button type="button" class="wp-btn" @click="startEdit">编辑本页</button>
+      </div>
+      <p v-if="flash" class="wp-flash">{{ flash }}</p>
+
+<template v-if="editing && draft">
+      <div class="wp-editbar">
+        <span>编辑模式 · 正在修改「{{ draft.name }}」</span>
+        <span class="wp-editbar-actions">
+          <button type="button" class="wp-btn primary" :disabled="saving" @click="saveAll">{{ saving ? '保存中…' : '保存全部' }}</button>
+          <button type="button" class="wp-btn" @click="cancelEdit">取消</button>
+        </span>
+      </div>
+
+      <section class="wp-editsection">
+        <h2>基本信息</h2>
+        <div class="wp-editgrid">
+          <label><span>国名</span><input v-model="draft.name" /></label>
+          <label><span>人口</span><input v-model="draft.population" /></label>
+          <label><span>种族</span><input v-model="draft.race" /></label>
+          <label><span>首都</span><input v-model="draft.capital" /></label>
+          <label><span>信仰</span><input v-model="draft.faith" /></label>
+          <label><span>政体</span><input v-model="draft.politics.system" /></label>
+        </div>
+        <label class="wp-editblock"><span>国家简介</span><textarea v-model="draft.bio" rows="6" /></label>
+        <label class="wp-editblock"><span>风土描述</span><input v-model="draft.region.desc" /></label>
+      </section>
+
+      <section class="wp-editsection">
+        <h2>统治者</h2>
+        <div class="wp-editgrid">
+          <label><span>姓名</span><input v-model="draft.politics.leader.name" /></label>
+          <label><span>头衔</span><input v-model="draft.politics.leader.title" /></label>
+        </div>
+        <label class="wp-editblock"><span>小传</span><textarea v-model="draft.politics.leader.bio" rows="3" /></label>
+      </section>
+
+      <section class="wp-editsection">
+        <h2>势力格局</h2>
+        <div class="wp-editrows">
+          <div v-for="f in draft.politics.factions" :key="f.id" class="wp-editrow">
+            <input v-model="f.name" class="w-name" placeholder="派系名" />
+            <input v-model="f.leader" class="w-leader" placeholder="领袖" />
+            <input v-model.number="f.influence" type="number" min="0" max="100" class="w-num" />
+            <span class="wp-pct">%</span>
+          </div>
+        </div>
+      </section>
+
+      <section v-if="draft.politics.modifiers.length" class="wp-editsection">
+        <h2>国策与修正</h2>
+        <div v-for="m in draft.politics.modifiers" :key="m.id" class="wp-editcard">
+          <input v-model="m.name" class="w-full" placeholder="名称" />
+          <textarea v-model="m.desc" rows="3" placeholder="说明" />
+          <input v-model="m.effect" placeholder="效果" />
+        </div>
+      </section>
+
+      <section class="wp-editsection">
+        <h2>军事</h2>
+        <p v-if="!draft.military.legions.length" class="wp-empty">这个国家还没有军团记录。</p>
+        <div v-for="legion in draft.military.legions" :key="legion.id" class="wp-editcard">
+          <div class="wp-editgrid">
+            <label><span>军团名</span><input v-model="legion.name" /></label>
+            <label><span>训练</span><input v-model="legion.training" /></label>
+            <label><span>忠诚</span><input v-model.number="legion.loyalty" type="number" min="1" max="5" /></label>
+          </div>
+          <div v-for="c in legion.composition" :key="c.name" class="wp-editrow comp">
+            <input v-model="c.name" class="w-name" placeholder="兵牌名" />
+            <input v-model.number="c.count" type="number" min="1" class="w-num" placeholder="数量" />
+            <input v-model.number="c.size" type="number" min="1" class="w-num" placeholder="单牌人数" />
+            <input v-model="c.role" class="w-role" placeholder="定位" />
+            <input v-model="c.race" class="w-role" placeholder="种族" />
+            <input v-model="c.modifiers" class="w-full" placeholder="特质，如【飞行】【激励友军】" />
+          </div>
+          <button type="button" class="wp-btn small" @click="legion.composition.push({ name: '新兵牌', count: 1, size: 100, role: '', race: '', modifiers: '' })">+ 添加兵牌</button>
+        </div>
+      </section>
+
+      <section v-if="draft.politics.wonders.length" class="wp-editsection">
+        <h2>奇观</h2>
+        <div v-for="w in draft.politics.wonders" :key="w.id" class="wp-editcard">
+          <input v-model="w.name" class="w-full" placeholder="名称" />
+          <textarea v-model="w.desc" rows="2" placeholder="描述" />
+        </div>
+      </section>
+    </template>
+
+    <template v-else>
       <p id="overview" class="wp-lead">{{ country.bio }}</p>
 
       <section id="region" class="wp-section">
@@ -260,6 +404,7 @@ const toc = computed(() => [
         分类：<a>{{ country.race }}</a> · <a>{{ country.politics.system }}</a> ·
         <a>{{ country.region.name }}</a> · <a>葬火之后国家</a>
       </p>
+    </template>
     </div>
 
     <aside class="wp-aside">
@@ -961,4 +1106,174 @@ const toc = computed(() => [
     justify-items: center;
   }
 }
+
+/* 编辑模式 */
+.wp-edit-toggle {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+
+.wp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--vp-c-text-1);
+  background: var(--vp-c-bg);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+.wp-btn.primary {
+  color: #fff;
+  background: var(--vp-c-brand-1);
+  border-color: transparent;
+}
+
+.wp-btn.small {
+  padding: 5px 10px;
+  font-size: 11.5px;
+}
+
+.wp-btn:disabled {
+  opacity: 0.6;
+}
+
+.wp-flash {
+  margin: 0 0 10px;
+  padding: 8px 12px;
+  font-size: 12.5px;
+  color: #1f6f4f;
+  background: rgba(47, 125, 99, 0.12);
+  border-radius: 7px;
+}
+
+.wp-editbar {
+  position: sticky;
+  top: 70px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding: 10px 14px;
+  font-size: 12.5px;
+  color: #fff;
+  background: linear-gradient(100deg, #2f7d63, #245c4a);
+  border-radius: 9px;
+  box-shadow: 0 8px 20px rgba(16, 32, 28, 0.18);
+}
+
+.wp-editbar-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.wp-editbar .wp-btn {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.wp-editbar .wp-btn.primary {
+  color: #10201c;
+  background: #f0d9a4;
+  border-color: transparent;
+}
+
+.wp-editsection {
+  margin-top: 26px;
+}
+
+.wp-editsection h2 {
+  margin: 0 0 12px;
+  padding-bottom: 6px;
+  font-size: 18px;
+  border-bottom: 1px solid var(--vp-c-divider);
+}
+
+.wp-editgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.wp-editgrid label,
+.wp-editblock {
+  display: grid;
+  gap: 5px;
+}
+
+.wp-editsection span {
+  font-size: 12px;
+  color: var(--vp-c-text-3);
+}
+
+.wp-editsection input,
+.wp-editsection textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 7px 10px;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--vp-c-text-1);
+  background: var(--vp-c-bg);
+  border: 1px dashed color-mix(in srgb, var(--vp-c-brand-1) 45%, var(--vp-c-divider));
+  border-radius: 6px;
+  outline: none;
+  resize: vertical;
+}
+
+.wp-editsection input:focus,
+.wp-editsection textarea:focus {
+  border-style: solid;
+  border-color: var(--vp-c-brand-1);
+}
+
+.wp-editrows {
+  display: grid;
+  gap: 6px;
+}
+
+.wp-editrow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 70px 16px;
+  gap: 6px;
+  align-items: center;
+}
+
+.wp-editrow.comp {
+  grid-template-columns: minmax(0, 1.2fr) 60px 70px minmax(0, 1fr) 70px minmax(0, 1.4fr);
+  margin: 6px 0;
+}
+
+.wp-editrow .w-full {
+  grid-column: 1 / -1;
+}
+
+.wp-pct {
+  font-size: 12px;
+  color: var(--vp-c-text-3);
+}
+
+.wp-editcard {
+  margin-bottom: 12px;
+  padding: 12px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 9px;
+  background: var(--vp-c-bg-soft);
+}
+
+.wp-editcard input,
+.wp-editcard textarea {
+  margin-bottom: 6px;
+}
+
 </style>
