@@ -6,6 +6,13 @@ import { simulate } from './sim.mjs'
 import { geoOf } from './geography.mjs'
 
 export const YEARS_PER_TURN = 100
+
+/** 人口增长参数（管理员可调） */
+export const DEFAULT_GROWTH = {
+  max: 0.007,      // 年增速上限
+  min: -0.006,     // 年增速下限
+  sensitivity: 0.008 // 粮食自给率每高 100%，年增速的加成
+}
 export const START_YEAR = 1003
 const MAX_HISTORY = 12
 
@@ -22,14 +29,15 @@ const parsePop = (raw) => {
 
 const fmtPop = (n) => (n >= 1e6 ? (n / 1e6).toFixed(2) + 'M' : n >= 1e3 ? (n / 1e3).toFixed(1) + 'K' : String(Math.round(n)))
 
-function countryTurn({ country, prev, geo, specs, area, race }) {
+function countryTurn({ country, prev, geo, specs, area, race, growth = DEFAULT_GROWTH }) {
   const basePop = prev?.pop || parsePop(country.population)
   const levels = prev?.levels ? { ...prev.levels } : {}
 
   const before = simulate({ specs, population: basePop, race, geo, area, levels, autoAdjust: true })
 
   const foodRatio = before.totals.foodSupply / Math.max(1, before.totals.foodNeed)
-  const annual = Math.max(-0.006, Math.min(0.007, (foodRatio - 1) * 0.008))
+  const g = { ...DEFAULT_GROWTH, ...(growth || {}) }
+  const annual = Math.max(g.min, Math.min(g.max, (foodRatio - 1) * g.sensitivity))
   const pop = Math.max(200, Math.round(basePop * Math.pow(1 + annual, YEARS_PER_TURN)))
 
   // 折旧：百年间淘汰约 25% 的旧产能
@@ -77,7 +85,7 @@ function countryTurn({ country, prev, geo, specs, area, race }) {
 }
 
 /** 推进一回合（100 年） */
-export function advanceTurn(state, countries) {
+export function advanceTurn(state, countries, options = {}) {
   const prevState = state || emptyTurnState()
   const next = {
     turn: (prevState.turn || 0) + 1,
@@ -95,11 +103,12 @@ export function advanceTurn(state, countries) {
     const geo = geoOf(c.name)
     const specs = deriveSpecialties(geo, 6)
     const prev = prevState.countries?.[c.name]
-    const res = countryTurn({ country: c, prev, geo, specs, area: prev?.area || 140, race: c.race })
+    const res = countryTurn({ country: c, prev, geo, specs, area: prev?.area || 140, race: c.race, growth: options.growth })
     next.countries[c.name] = { ...res, area: prev?.area || 140 }
     for (const e of res.entries) allEntries.push(c.name + '：' + e)
   }
 
+  next.growth = { ...DEFAULT_GROWTH, ...(options.growth || {}) }
   next.log.unshift({
     turn: next.turn,
     year: next.year,

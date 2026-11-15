@@ -8,7 +8,7 @@ import { geoOf } from '../../data/geography.mjs'
 import { RESOURCES, RESOURCE_GROUPS, deriveSectors, deriveSpecialties } from '../../data/resources.mjs'
 import { BUILDING_GROUPS, BUILDINGS } from '../../data/buildings.mjs'
 import { simulate } from '../../data/sim.mjs'
-import { advanceTurn, emptyTurnState, undoTurn, worldSummary, START_YEAR, YEARS_PER_TURN } from '../../data/turn.mjs'
+import { DEFAULT_GROWTH, advanceTurn, emptyTurnState, undoTurn, worldSummary, START_YEAR, YEARS_PER_TURN } from '../../data/turn.mjs'
 
 const unit = { name: 'D（当量）', desc: '一名成年人维持一天基本生活所需的商品与劳务。全大陆通用，不依赖货币。' }
 
@@ -23,7 +23,8 @@ const cfg = ref({
   resourceValues: {},
   buildingLevels: {},
   stock: {},
-  buildLog: {}
+  buildLog: {},
+  growth: { ...DEFAULT_GROWTH }
 })
 
 
@@ -42,7 +43,7 @@ const doAdvance = async () => {
   if (!isAdminUser.value || turnBusy.value) return
   turnBusy.value = true
   try {
-    const next = advanceTurn(turn.value, countries)
+    const next = advanceTurn(turn.value, countries, { growth: cfg.value.growth })
     await saveOverride('__turn__', next)
     turn.value = next
     turnMsg.value = '已推进 ' + YEARS_PER_TURN + ' 年'
@@ -110,7 +111,8 @@ onMounted(async () => {
       resourceValues: clone(ov.resourceValues || {}),
       buildingLevels: clone(ov.buildingLevels || {}),
       stock: clone(ov.stock || {}),
-      buildLog: clone(ov.buildLog || {})
+      buildLog: clone(ov.buildLog || {}),
+      growth: { ...DEFAULT_GROWTH, ...(ov.growth || {}) }
     }
   }
 })
@@ -334,7 +336,8 @@ const resetCfg = () => {
     resourceValues: {},
     buildingLevels: {},
     stock: {},
-    buildLog: {}
+    buildLog: {},
+    growth: { ...DEFAULT_GROWTH }
   }
   flash.value = '已恢复默认值（尚未保存）'
 }
@@ -835,6 +838,27 @@ const resetCfg = () => {
           <input v-model.number="g.value" type="number" step="0.1" />
         </label>
       </div>
+
+      <h3>人口增长（每回合 100 年）</h3>
+      <div class="eco-edit-grid">
+        <label>
+          <span>年增速上限（%）</span>
+          <input type="number" step="0.1" :value="Math.round(cfg.growth.max * 1000) / 10" @input="cfg.growth.max = Number($event.target.value) / 100" />
+        </label>
+        <label>
+          <span>年增速下限（%）</span>
+          <input type="number" step="0.1" :value="Math.round(cfg.growth.min * 1000) / 10" @input="cfg.growth.min = Number($event.target.value) / 100" />
+        </label>
+        <label>
+          <span>粮食敏感度</span>
+          <input type="number" step="0.001" :value="cfg.growth.sensitivity" @input="cfg.growth.sensitivity = Number($event.target.value)" />
+        </label>
+      </div>
+      <p class="eco-edit-note">
+        当前设置下，粮食自给 150% 的国家约按年增
+        {{ (Math.min(cfg.growth.max, 0.5 * cfg.growth.sensitivity) * 100).toFixed(2) }}% 增长，100 年约
+        {{ Math.round((Math.pow(1 + Math.min(cfg.growth.max, 0.5 * cfg.growth.sensitivity), 100) - 1) * 100) }}%。
+      </p>
 
       <h3>天赋系数</h3>
       <div class="eco-edit-traits">
@@ -2160,6 +2184,13 @@ const resetCfg = () => {
 
 .eco-turn-entry li {
   margin: 2px 0;
+}
+
+
+.eco-edit-note {
+  margin: 4px 0 8px;
+  font-size: 11.5px;
+  color: var(--vp-c-text-3);
 }
 
 </style>
