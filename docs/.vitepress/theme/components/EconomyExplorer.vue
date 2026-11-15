@@ -6,6 +6,7 @@ import { buildRows, DEFAULT_BASE, DEFAULT_COUNTRY_TRAITS, DEFAULT_GOODS, DEFAULT
 import { currentUser, getOverride, initAuth, loadEdits, saveOverride } from '../auth'
 import { geoOf } from '../../data/geography.mjs'
 import { RESOURCES, RESOURCE_GROUPS, deriveSectors, deriveSpecialties } from '../../data/resources.mjs'
+import { BUILDING_GROUPS, BUILDINGS, buildingTotals, deriveBuildings } from '../../data/buildings.mjs'
 
 const unit = { name: 'D（当量）', desc: '一名成年人维持一天基本生活所需的商品与劳务。全大陆通用，不依赖货币。' }
 
@@ -16,7 +17,9 @@ const cfg = ref({
   traits: clone(DEFAULT_TRAITS),
   countryTraits: clone(DEFAULT_COUNTRY_TRAITS),
   populations: {},
-  countryOverrides: {}
+  countryOverrides: {},
+  resourceValues: {},
+  buildingLevels: {}
 })
 
 const isAdminUser = ref(false)
@@ -51,7 +54,9 @@ onMounted(async () => {
       traits: clone(ov.traits || DEFAULT_TRAITS),
       countryTraits: clone(ov.countryTraits || DEFAULT_COUNTRY_TRAITS),
       populations: clone(ov.populations || {}),
-      countryOverrides: clone(ov.countryOverrides || {})
+      countryOverrides: clone(ov.countryOverrides || {}),
+      resourceValues: clone(ov.resourceValues || {}),
+      buildingLevels: clone(ov.buildingLevels || {})
     }
   }
 })
@@ -87,6 +92,47 @@ const sectorLabel = (specs) => {
   const top = [...secs].sort((a, b) => b.share - a.share).slice(0, 2)
   return top.map((x) => x.name + ' ' + Math.round(x.share * 100) + '%').join(' · ')
 }
+
+
+const resValue = (r) => {
+  const v = cfg.value.resourceValues?.[r.id]
+  return v === undefined ? r.value : v
+}
+
+const setResValue = (id, raw) => {
+  if (raw === '' || raw === null) delete cfg.value.resourceValues[id]
+  else cfg.value.resourceValues[id] = Number(raw)
+}
+
+const buildingsOf = (name) => {
+  const spec = specsOf(name)
+  const pop = rows.value.find((r) => r.name === name)?.population || 1000
+  const base = deriveBuildings(spec, pop)
+  const ov = cfg.value.buildingLevels?.[name] || {}
+  return base.map((b) => {
+    const level = ov[b.id] === undefined ? b.level : Number(ov[b.id])
+    return { ...b, level, laborTotal: level * b.labor, outputTotal: Math.round(level * b.output) }
+  })
+}
+
+const setBuildingLevel = (name, id, raw) => {
+  const bucket = cfg.value.buildingLevels[name] || {}
+  if (raw === '' || raw === null) delete bucket[id]
+  else bucket[id] = Math.max(0, Number(raw))
+  if (Object.keys(bucket).length) cfg.value.buildingLevels[name] = bucket
+  else delete cfg.value.buildingLevels[name]
+}
+
+const clearBuildings = (name) => {
+  delete cfg.value.buildingLevels[name]
+}
+
+const currentBuildings = computed(() => (current.value ? buildingsOf(current.value.name) : []))
+const currentBuildingTotals = computed(() => buildingTotals(currentBuildings.value))
+const buildingGap = computed(() => {
+  if (!current.value || !currentBuildingTotals.value.output) return null
+  return Math.round((currentBuildingTotals.value.output / current.value.gross - 1) * 100)
+})
 
 const groupedResources = computed(() => {
   const m = new Map()
@@ -167,7 +213,9 @@ const resetCfg = () => {
     traits: clone(DEFAULT_TRAITS),
     countryTraits: clone(DEFAULT_COUNTRY_TRAITS),
     populations: {},
-    countryOverrides: {}
+    countryOverrides: {},
+    resourceValues: {},
+    buildingLevels: {}
   }
   flash.value = '已恢复默认值（尚未保存）'
 }
@@ -330,21 +378,6 @@ const resetCfg = () => {
       <!-- 右栏 -->
       <div class="eco-main">
         <section class="eco-block">
-          <h2>统一口径：当量（D）</h2>
-          <p class="eco-lead">
-            这片大陆没有铸币，也没有信用票据。本系统以 <strong>{{ unit.name }}</strong> 为唯一记账单位——{{ unit.desc }}
-            商品与劳役先折算成 D，再进入统计。
-          </p>
-          <div class="eco-goods">
-            <div v-for="g in goods" :key="g.name" class="eco-good">
-              <p class="eco-good-name">{{ g.name }}</p>
-              <p class="eco-good-bar"><span :style="{ width: Math.min(100, (g.value / 60) * 100) + '%' }"></span></p>
-              <p class="eco-good-value">{{ g.value }} D</p>
-            </div>
-          </div>
-        </section>
-
-        <section class="eco-block">
           <h2>全境经济对照</h2>
           <p class="eco-lead">
             按
@@ -395,17 +428,37 @@ const resetCfg = () => {
 
     <!-- 物产 -->
     <section class="eco-block eco-res-section">
-      <h2>基础物产</h2>
+      <h2>物产与当量</h2>
       <p class="eco-lead">
-        共 {{ RESOURCES.length }} 种基础资源，按农业、畜牧、渔猎、林业、矿产与特产六类归并。
-        数值是该物产一单位折合的当量（D），各国能产出什么，取决于所处生物群系、海拔、河流与海岸线。
+        这片大陆没有铸币，也没有信用票据。全境以 <strong>D（当量）</strong> 记账——一名成年人维持一天基本生活所需的商品与劳务。
+        下列 {{ RESOURCES.length }} 种基础物产各有定价，商品与劳役先折算成 D，再进入统计。编辑模式下可直接改写单价。
       </p>
+
+      <div class="eco-labor">
+        <span v-for="l in [
+          { n: '普通劳役', v: 1.0, u: '人·日' },
+          { n: '工匠劳役', v: 2.4, u: '人·日' },
+          { n: '祭司劳役', v: 3.0, u: '人·日' }
+        ]" :key="l.n" class="eco-labor-chip">
+          {{ l.n }} <b>{{ l.v }}</b> D/{{ l.u }}
+        </span>
+      </div>
+
       <div class="eco-res-groups">
         <div v-for="[group, items] in groupedResources" :key="group" class="eco-res-group">
           <h4><i :style="{ background: RESOURCE_GROUPS[group] }"></i>{{ group }}<em>{{ items.length }}</em></h4>
           <div class="eco-res-chips">
             <span v-for="r in items" :key="r.id" class="eco-res-chip" :title="r.group + ' · ' + r.value + ' D/' + r.unit">
-              {{ r.name }}<em>{{ r.value }}</em>
+              {{ r.name }}
+              <input
+                v-if="editing"
+                class="eco-res-input"
+                type="number"
+                step="0.1"
+                :value="resValue(r)"
+                @input="setResValue(r.id, $event.target.value)"
+              />
+              <em v-else>{{ resValue(r) }}</em>
             </span>
           </div>
         </div>
@@ -434,6 +487,61 @@ const resetCfg = () => {
           </tr>
         </tbody>
       </table>
+    </section>
+
+    <section class="eco-block">
+      <h2>生产建筑</h2>
+      <p class="eco-lead">
+        每级建筑吃一份劳力、出一份产值：农场供口粮，矿井出金属，作坊把原料变成布匹与兵器，商栈决定货走多远。
+        等级由该国的物产与人口推导，编辑模式下可逐项改。
+      </p>
+
+      <div class="eco-b-summary">
+        <div><dt>{{ currentBuildingTotals.levels }}</dt><dd>总等级</dd></div>
+        <div><dt>{{ fmt(currentBuildingTotals.labor) }}</dt><dd>建筑用工</dd></div>
+        <div><dt>{{ fmt(currentBuildingTotals.output) }}</dt><dd>建筑产值</dd></div>
+        <div>
+          <dt :class="{ good: Math.abs(buildingGap) <= 8, mid: Math.abs(buildingGap) > 8 }">
+            {{ buildingGap === null ? '—' : (buildingGap > 0 ? '+' : '') + buildingGap + '%' }}
+          </dt>
+          <dd>与账面总产出差</dd>
+        </div>
+      </div>
+
+      <table class="eco-b-table">
+        <thead>
+          <tr><th>建筑</th><th>类</th><th>等级</th><th>用工</th><th>产值</th><th>说明</th></tr>
+        </thead>
+        <tbody>
+          <tr v-for="b in currentBuildings" :key="b.id">
+            <td class="eco-b-name"><i :style="{ background: BUILDING_GROUPS[b.group] }"></i>{{ b.name }}</td>
+            <td class="eco-b-group">{{ b.group }}</td>
+            <td class="num">
+              <input
+                v-if="editing"
+                class="eco-b-input"
+                type="number"
+                min="0"
+                :value="b.level"
+                @input="setBuildingLevel(current.name, b.id, $event.target.value)"
+              />
+              <b v-else>{{ b.level }}</b>
+            </td>
+            <td class="num">{{ fmt(b.laborTotal) }}</td>
+            <td class="num">{{ fmt(b.outputTotal) }}</td>
+            <td class="eco-b-note">{{ b.note }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <button v-if="editing" type="button" class="eco-btn small" @click="clearBuildings(current.name)">建筑等级恢复推导值</button>
+
+      <div class="eco-b-catalog">
+        <div v-for="b in BUILDINGS" :key="b.id" class="eco-b-card">
+          <p class="eco-b-card-name"><i :style="{ background: BUILDING_GROUPS[b.group] }"></i>{{ b.name }}</p>
+          <p class="eco-b-card-meta">{{ b.labor }} 人/级 · {{ b.output }} D/级</p>
+          <p class="eco-b-card-note">{{ b.note }}</p>
+        </div>
+      </div>
     </section>
 
     <!-- 底部：天赋数值表 -->
@@ -1380,6 +1488,171 @@ const resetCfg = () => {
   font-size: 11.5px;
   color: var(--vp-c-text-3);
   white-space: nowrap;
+}
+
+
+.eco-labor {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 14px;
+}
+
+.eco-labor-chip {
+  padding: 4px 10px;
+  font-size: 11.5px;
+  color: var(--vp-c-text-2);
+  background: var(--vp-c-bg-soft);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 999px;
+}
+
+.eco-labor-chip b {
+  color: var(--vp-c-text-1);
+}
+
+.eco-res-input {
+  width: 54px;
+  margin-left: 4px;
+  padding: 1px 4px;
+  font: inherit;
+  font-size: 10.5px;
+  text-align: right;
+  color: var(--vp-c-text-1);
+  background: var(--vp-c-bg-soft);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 4px;
+}
+
+.eco-b-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.eco-b-summary div {
+  padding: 10px 12px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 8px;
+  background: var(--vp-c-bg-soft);
+}
+
+.eco-b-summary dt {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--vp-c-text-1);
+  font-variant-numeric: tabular-nums;
+}
+
+.eco-b-summary dd {
+  margin: 2px 0 0;
+  font-size: 10.5px;
+  color: var(--vp-c-text-3);
+}
+
+.eco-b-table {
+  display: table;
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+
+.eco-b-table th {
+  padding: 7px 8px;
+  text-align: left;
+  font-weight: 500;
+  font-size: 11.5px;
+  color: var(--vp-c-text-3);
+  border-bottom: 1px solid var(--vp-c-divider);
+}
+
+.eco-b-table td {
+  padding: 7px 8px;
+  border-bottom: 1px solid var(--vp-c-divider);
+  color: var(--vp-c-text-2);
+}
+
+.eco-b-table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.eco-b-name {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--vp-c-text-1);
+  white-space: nowrap;
+}
+
+.eco-b-name i {
+  width: 4px;
+  height: 13px;
+  border-radius: 2px;
+}
+
+.eco-b-group,
+.eco-b-note {
+  font-size: 11.5px;
+  color: var(--vp-c-text-3);
+}
+
+.eco-b-input {
+  width: 52px;
+  padding: 2px 5px;
+  font: inherit;
+  font-size: 11.5px;
+  text-align: right;
+  color: var(--vp-c-text-1);
+  background: var(--vp-c-bg-soft);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 4px;
+}
+
+.eco-b-catalog {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.eco-b-card {
+  padding: 11px 12px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 8px;
+  background: var(--vp-c-bg-soft);
+}
+
+.eco-b-card-name {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 4px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--vp-c-text-1);
+}
+
+.eco-b-card-name i {
+  width: 4px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.eco-b-card-meta {
+  margin: 0 0 4px;
+  font-size: 11px;
+  color: var(--vp-c-brand-1);
+  font-variant-numeric: tabular-nums;
+}
+
+.eco-b-card-note {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--vp-c-text-3);
 }
 
 </style>
