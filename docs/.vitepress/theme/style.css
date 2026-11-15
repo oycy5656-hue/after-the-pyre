@@ -104,3 +104,17 @@
     padding: 0 32px !important;
   }
 }
+/* 居中修正：没有侧栏的页面，正文水平居中且放宽 */
+.VPDoc:not(.has-sidebar) .container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.VPDoc:not(.has-sidebar) .content-container {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.VPDoc:not(.has-sidebar) .content {
+  padding: 0;
+}

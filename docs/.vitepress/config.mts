@@ -1,4 +1,4 @@
-﻿import { defineConfig } from 'vitepress'
+import { defineConfig } from 'vitepress'
 import countrySidebar from './data/sidebar-countries.mjs'
 
 // 仓库名决定线上路径；换成你的仓库名时只改这一行
@@ -41,19 +41,9 @@ export default defineConfig({
       { text: '账号', link: '/account/', activeMatch: '/account/' }
     ],
 
+    // 只有国家页保留目录侧栏，其余页面靠顶部导航，正文居中
     sidebar: {
-      // 国家页面显示完整的国家目录，其余页面用通用目录
-      '/countries/': countrySidebar,
-      '/': [
-        {
-          text: '葬火之后',
-          items: [
-            { text: '首页', link: '/' },
-            { text: '国家档案', link: '/countries/' },
-            { text: '世界地图', link: '/map/' }
-          ]
-        }
-      ]
+      '/countries/': countrySidebar
     },
 
     // 本地全文搜索（不需要联网、不需要 API Key）
