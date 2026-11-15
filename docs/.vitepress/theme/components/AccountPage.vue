@@ -42,7 +42,9 @@ const submit = async () => {
     refresh()
     users.value = await listUsers()
   } catch (e) {
-    error.value = e.message
+    error.value = String(e.message).includes('Email not confirmed')
+      ? '邮箱未验证：请查收验证邮件，或让管理员确认账号'
+      : e.message
   } finally {
     busy.value = false
   }
