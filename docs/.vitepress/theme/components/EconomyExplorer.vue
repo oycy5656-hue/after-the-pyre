@@ -1,18 +1,37 @@
 ﻿<script setup>
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { withBase } from 'vitepress'
-import economy from '../../data/economy.mjs'
+import countries from '../../data/countries.mjs'
+import map from '../../data/map.mjs'
+import { buildRows, DEFAULT_BASE, DEFAULT_COUNTRY_TRAITS, DEFAULT_GOODS, DEFAULT_TRAITS } from '../../data/economy-model.mjs'
+import { getOverride, initAuth, loadEdits } from '../auth'
 
-const data = economy
-const rows = computed(() => data.countries)
+const unit = { name: 'D（当量）', desc: '一名成年人维持一天基本生活所需的商品与劳务。全大陆通用，不依赖货币。' }
+
+const goods = ref(DEFAULT_GOODS)
+const traitsList = ref(DEFAULT_TRAITS)
+const rows = ref(buildRows(countries, map))
+
+onMounted(async () => {
+  await initAuth()
+  await loadEdits()
+  const ov = getOverride('__economy__')
+  if (ov) {
+    if (ov.goods) goods.value = ov.goods
+    if (ov.traits) traitsList.value = ov.traits
+    rows.value = buildRows(countries, map, {
+      base: ov.base || DEFAULT_BASE,
+      traits: ov.traits || DEFAULT_TRAITS,
+      countryTraits: ov.countryTraits || DEFAULT_COUNTRY_TRAITS
+    })
+  }
+})
+
 const listed = computed(() => rows.value.filter((r) => r.traitNames > 0))
-const detail = computed(() => data.detail[0] || null)
-
 const sortKey = ref('perCapitaSurplus')
 const sorted = computed(() => [...rows.value].sort((a, b) => b[sortKey.value] - a[sortKey.value]))
-
-const maxGross = computed(() => Math.max(...rows.value.map((r) => r.gross)))
-const maxSurplus = computed(() => Math.max(...rows.value.map((r) => Math.abs(r.perCapitaSurplus))))
+const maxGross = computed(() => Math.max(...rows.value.map((r) => r.gross), 1))
+const maxSurplus = computed(() => Math.max(...rows.value.map((r) => Math.abs(r.perCapitaSurplus)), 1))
 
 const fmt = (n) => {
   if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M'
@@ -20,29 +39,21 @@ const fmt = (n) => {
   return String(Math.round(n))
 }
 
+const PARAM_LABEL = { yield: '产出', extraction: '抽取', ritual: '仪式', exchange: '交换', stability: '稳定', military: '动员', labor: '劳役' }
+
 const traitGroups = computed(() => {
-  const map = new Map()
-  for (const t of data.traits) {
-    if (!map.has(t.group)) map.set(t.group, [])
-    map.get(t.group).push(t)
+  const m = new Map()
+  for (const t of traitsList.value) {
+    if (!m.has(t.group)) m.set(t.group, [])
+    m.get(t.group).push(t)
   }
-  return [...map.entries()]
+  return [...m.entries()]
 })
 
-const PARAM_LABEL = {
-  yield: '产出',
-  extraction: '抽取',
-  ritual: '仪式',
-  exchange: '交换',
-  stability: '稳定',
-  military: '动员',
-  labor: '劳役'
-}
-
 const activeTraits = computed(() => {
-  const country = rows.value.find((r) => r.traitNames > 0)
+  const country = listed.value[0]
   if (!country) return []
-  return data.traits.filter((t) => country.traits.includes(t.name))
+  return traitsList.value.filter((t) => country.traits.includes(t.name))
 })
 
 const alloc = computed(() => {
@@ -65,12 +76,12 @@ const alloc = computed(() => {
       <p class="eco-lead">
         这片大陆没有铸币，也没有信用票据。交易靠实物、劳役与面子，征税靠粮仓与布匹。
         要横向比较，就必须先钉死一把尺子：本系统以
-        <strong>{{ data.unit.name }}</strong>
-        为唯一记账单位——{{ data.unit.desc }}
+        <strong>{{ unit.name }}</strong>
+        为唯一记账单位——{{ unit.desc }}
         一切商品、劳役、贡赋先折算成 D，再进入统计。
       </p>
       <div class="eco-goods">
-        <div v-for="g in data.goods" :key="g.name" class="eco-good">
+        <div v-for="g in goods" :key="g.name" class="eco-good">
           <p class="eco-good-name">{{ g.name }}</p>
           <p class="eco-good-bar"><span :style="{ width: Math.min(100, (g.value / 60) * 100) + '%' }"></span></p>
           <p class="eco-good-value">{{ g.value }} D<em>{{ g.note }}</em></p>
@@ -121,14 +132,14 @@ const alloc = computed(() => {
         <h3>产出构成</h3>
         <div class="eco-stack">
           <span
-            v-for="p in detail.parts"
+            v-for="p in listed[0].parts"
             :key="p.label"
             :style="{ width: (p.value / listed[0].gross) * 100 + '%', background: p.color }"
             :title="`${p.label} ${fmt(p.value)} D`"
           ></span>
         </div>
         <ul class="eco-legend">
-          <li v-for="p in detail.parts" :key="p.label">
+          <li v-for="p in listed[0].parts" :key="p.label">
             <i :style="{ background: p.color }"></i>{{ p.label }}<em>{{ fmt(p.value) }} D</em>
           </li>
         </ul>

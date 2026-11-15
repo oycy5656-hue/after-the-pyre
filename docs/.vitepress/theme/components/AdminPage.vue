@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { withBase } from 'vitepress'
 import countries from '../../data/countries.mjs'
+import { DEFAULT_BASE, DEFAULT_COUNTRY_TRAITS, DEFAULT_GOODS, DEFAULT_TRAITS } from '../../data/economy-model.mjs'
 import { authMode,
   clearOverride,
   currentUser,
@@ -24,6 +25,61 @@ const io = ref('')
 
 const country = computed(() => countries.find((c) => c.slug === selected.value) || countries[0])
 const dirty = computed(() => Object.keys(store.value).length)
+
+const tab = ref('country')
+const econ = ref(null)
+const econMsg = ref('')
+const econErr = ref('')
+const traitCountry = ref(countries[0].name)
+
+const PARAM_KEYS = [
+  ['perCapita', '人均年产出 (D)'],
+  ['extraction', '上层抽取率'],
+  ['ritual', '神庙仪式率'],
+  ['upkeep', '种子损耗率'],
+  ['exchangeBase', '交换效率基准'],
+  ['reserveMonths', '基准储备（月）'],
+  ['mobilization', '动员率'],
+  ['laborShare', '劳力参与率']
+]
+
+const PARAM_LABEL = { yield: '产出', extraction: '抽取', ritual: '仪式', exchange: '交换', stability: '稳定', military: '动员', labor: '劳役' }
+
+const buildEcon = (ov) => ({
+  base: { ...DEFAULT_BASE, ...(ov?.base || {}) },
+  goods: (ov?.goods || DEFAULT_GOODS).map((g) => ({ ...g })),
+  traits: (ov?.traits || DEFAULT_TRAITS).map((t) => ({ ...t, e: { ...t.e } })),
+  countryTraits: JSON.parse(JSON.stringify(ov?.countryTraits || DEFAULT_COUNTRY_TRAITS))
+})
+
+const saveEcon = async () => {
+  econErr.value = ''
+  try {
+    await saveOverride('__economy__', econ.value)
+    econMsg.value = `已保存经济参数：${new Date().toLocaleTimeString()}`
+  } catch (e) {
+    econErr.value = e.message
+  }
+}
+
+const resetEcon = async () => {
+  econErr.value = ''
+  try {
+    await clearOverride('__economy__')
+    econ.value = buildEcon(null)
+    econMsg.value = '已还原为默认经济模型'
+  } catch (e) {
+    econErr.value = e.message
+  }
+}
+
+const toggleTrait = (name) => {
+  const list = econ.value.countryTraits[traitCountry.value] || []
+  const idx = list.indexOf(name)
+  if (idx >= 0) list.splice(idx, 1)
+  else list.push(name)
+  econ.value.countryTraits[traitCountry.value] = list
+}
 
 const loadForm = () => {
   const c = country.value
@@ -59,6 +115,7 @@ const refresh = () => {
 onMounted(async () => {
   await initAuth()
   await loadEdits()
+  econ.value = buildEcon(getOverrides()['__economy__'])
   refresh()
   ready.value = true
 })
@@ -129,7 +186,12 @@ const doImport = async () => {
         <span class="adm-badge">{{ dirty }} 个国家有改动</span>
       </header>
 
-      <div class="adm-layout">
+      <div class="adm-tabs">
+        <button type="button" :class="{ on: tab === 'country' }" @click="tab = 'country'">国家档案</button>
+        <button type="button" :class="{ on: tab === 'economy' }" @click="tab = 'economy'">经济参数</button>
+      </div>
+
+      <div v-if="tab === 'country'" class="adm-layout">
         <aside class="adm-list">
           <button
             v-for="c in countries"
@@ -198,7 +260,7 @@ const doImport = async () => {
         </section>
       </div>
 
-      <section class="adm-io">
+      <section v-if="tab === 'country'" class="adm-io">
         <h3>备份与迁移</h3>
         <p class="adm-sub">把 JSON 发给别人，对方在同一页面「导入」后即可看到同样的修改。</p>
         <div class="adm-io-row">
@@ -208,6 +270,73 @@ const doImport = async () => {
         <textarea v-model="io" rows="8" placeholder="JSON：" />
       </section>
     </template>
+
+      <section v-if="tab === 'economy' && econ" class="adm-econ">
+        <h3>基础参数</h3>
+        <p class="adm-sub">全境通用的口径。改这里会影响所有国家的产出、抽取与评分。</p>
+        <div class="adm-grid">
+          <label v-for="[key, label] in PARAM_KEYS" :key="key">
+            <span>{{ label }}</span>
+            <input v-model.number="econ.base[key]" type="number" step="0.01" />
+          </label>
+        </div>
+
+        <h3>当量折算表</h3>
+        <p class="adm-sub">锚定 1 D 的商品交换比。改玉米会整体缩放所有数字。</p>
+        <div class="adm-goods">
+          <label v-for="g in econ.goods" :key="g.name">
+            <span>{{ g.name }}</span>
+            <input v-model.number="g.value" type="number" step="0.1" />
+            <em>D</em>
+          </label>
+        </div>
+
+        <h3>天赋系数</h3>
+        <p class="adm-sub">每项天赋对六个参数的加减（0.05 = +5%）。</p>
+        <div class="adm-trait-table">
+          <div class="adm-trait-head">
+            <span>天赋</span>
+            <span v-for="(label, key) in PARAM_LABEL" :key="key">{{ label }}</span>
+          </div>
+          <div v-for="t in econ.traits" :key="t.name" class="adm-trait-row">
+            <span class="adm-trait-name">{{ t.name }}</span>
+            <input
+              v-for="(label, key) in PARAM_LABEL"
+              :key="key"
+              v-model.number="t.e[key]"
+              type="number"
+              step="0.01"
+              :placeholder="'0'"
+            />
+          </div>
+        </div>
+
+        <h3>各国生效的天赋</h3>
+        <p class="adm-sub">没勾选的国家按基础盘计算（对照表里标「未录入」）。</p>
+        <div class="adm-trait-country">
+          <select v-model="traitCountry">
+            <option v-for="c in countries" :key="c.name" :value="c.name">{{ c.name }}</option>
+          </select>
+          <div class="adm-trait-checks">
+            <label v-for="t in econ.traits" :key="t.name">
+              <input
+                type="checkbox"
+                :checked="(econ.countryTraits[traitCountry] || []).includes(t.name)"
+                @change="toggleTrait(t.name)"
+              />
+              <span>{{ t.name }}</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="adm-actions">
+          <button type="button" class="adm-btn primary" @click="saveEcon">保存经济参数</button>
+          <button type="button" class="adm-btn" @click="resetEcon">还原默认模型</button>
+          <a class="adm-btn" :href="withBase('/economy/')" target="_blank" rel="noreferrer">预览经济页</a>
+        </div>
+        <p v-if="econMsg" class="adm-msg ok">{{ econMsg }}</p>
+        <p v-if="econErr" class="adm-msg err">{{ econErr }}</p>
+      </section>
   </div>
 </template>
 
@@ -490,6 +619,181 @@ const doImport = async () => {
   margin-top: 12px;
   font-family: var(--vp-font-family-mono);
   font-size: 12px;
+}
+
+
+.adm-tabs {
+  display: inline-flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  padding: 4px;
+  border-radius: 10px;
+  background: var(--vp-c-default-soft);
+}
+
+.adm-tabs button {
+  padding: 7px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--vp-c-text-2);
+  background: none;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.adm-tabs button.on {
+  color: var(--vp-c-text-1);
+  background: var(--vp-c-bg);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.adm-econ {
+  padding: 20px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 12px;
+  background: var(--vp-c-bg-soft);
+}
+
+.adm-econ h3 {
+  margin: 22px 0 4px;
+  font-size: 15px;
+}
+
+.adm-econ h3:first-child {
+  margin-top: 0;
+}
+
+.adm-econ .adm-grid label {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.adm-econ .adm-grid label span {
+  font-size: 12.5px;
+  color: var(--vp-c-text-3);
+}
+
+.adm-econ .adm-grid input {
+  width: 100%;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 13.5px;
+  color: var(--vp-c-text-1);
+  background: var(--vp-c-bg);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 8px;
+  outline: none;
+}
+
+.adm-goods {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.adm-goods label {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 74px 16px;
+  gap: 8px;
+  align-items: center;
+  margin: 0;
+  font-size: 12.5px;
+}
+
+.adm-goods label span {
+  color: var(--vp-c-text-2);
+}
+
+.adm-goods em {
+  font-style: normal;
+  font-size: 11.5px;
+  color: var(--vp-c-text-3);
+}
+
+.adm-trait-table {
+  margin-top: 12px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 9px;
+  overflow: hidden;
+  background: var(--vp-c-bg);
+}
+
+.adm-trait-head,
+.adm-trait-row {
+  display: grid;
+  grid-template-columns: minmax(90px, 1.2fr) repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  align-items: center;
+  padding: 6px 10px;
+}
+
+.adm-trait-head {
+  font-size: 11px;
+  color: var(--vp-c-text-3);
+  background: var(--vp-c-bg-soft);
+  border-bottom: 1px solid var(--vp-c-divider);
+}
+
+.adm-trait-row {
+  border-bottom: 1px solid var(--vp-c-divider);
+}
+
+.adm-trait-row:last-child {
+  border-bottom: none;
+}
+
+.adm-trait-name {
+  font-size: 12.5px;
+  color: var(--vp-c-text-1);
+}
+
+.adm-trait-row input {
+  width: 100%;
+  padding: 4px 6px;
+  font-size: 12px;
+  text-align: right;
+  background: var(--vp-c-bg);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 5px;
+}
+
+.adm-trait-country {
+  margin-top: 12px;
+}
+
+.adm-trait-country select {
+  padding: 7px 10px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--vp-c-text-1);
+  background: var(--vp-c-bg);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 8px;
+}
+
+.adm-trait-checks {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 4px 12px;
+  margin-top: 12px;
+}
+
+.adm-trait-checks label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--vp-c-text-2);
+  cursor: pointer;
+}
+
+.adm-trait-checks input {
+  width: auto;
+  margin: 0;
 }
 
 @media (max-width: 860px) {
