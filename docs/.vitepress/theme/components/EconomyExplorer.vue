@@ -13,7 +13,8 @@ const cfg = ref({
   goods: clone(DEFAULT_GOODS),
   traits: clone(DEFAULT_TRAITS),
   countryTraits: clone(DEFAULT_COUNTRY_TRAITS),
-  populations: {}
+  populations: {},
+  countryOverrides: {}
 })
 
 const isAdminUser = ref(false)
@@ -47,7 +48,8 @@ onMounted(async () => {
       goods: clone(ov.goods || DEFAULT_GOODS),
       traits: clone(ov.traits || DEFAULT_TRAITS),
       countryTraits: clone(ov.countryTraits || DEFAULT_COUNTRY_TRAITS),
-      populations: clone(ov.populations || {})
+      populations: clone(ov.populations || {}),
+      countryOverrides: clone(ov.countryOverrides || {})
     }
   }
 })
@@ -104,6 +106,23 @@ const toggleTraitFor = (countryName, traitName) => {
   cfg.value.countryTraits[countryName] = list
 }
 
+const setManual = (countryName, key, raw) => {
+  const bucket = cfg.value.countryOverrides[countryName] || {}
+  if (raw === '' || raw === null || raw === undefined) delete bucket[key]
+  else bucket[key] = Number(raw)
+  if (Object.keys(bucket).length) cfg.value.countryOverrides[countryName] = bucket
+  else delete cfg.value.countryOverrides[countryName]
+}
+
+const clearManual = (countryName) => {
+  delete cfg.value.countryOverrides[countryName]
+}
+
+const manualOf = (countryName, key, fallback) => {
+  const v = cfg.value.countryOverrides?.[countryName]?.[key]
+  return v === undefined ? fallback : v
+}
+
 const saveCfg = async () => {
   saving.value = true
   flash.value = ''
@@ -124,7 +143,8 @@ const resetCfg = () => {
     goods: clone(DEFAULT_GOODS),
     traits: clone(DEFAULT_TRAITS),
     countryTraits: clone(DEFAULT_COUNTRY_TRAITS),
-    populations: {}
+    populations: {},
+    countryOverrides: {}
   }
   flash.value = '已恢复默认值（尚未保存）'
 }
@@ -184,7 +204,7 @@ const resetCfg = () => {
               </label>
             </div>
           </div>
-          <dl class="eco-kpi-mini">
+          <dl v-if="!editing" class="eco-kpi-mini">
             <div><dt>{{ fmt(current.gross) }}</dt><dd>总产出</dd></div>
             <div><dt>{{ current.perCapita }}</dt><dd>人均产出</dd></div>
             <div><dt>{{ Math.round(current.extractionRate * 100) }}%</dt><dd>抽取率</dd></div>
@@ -194,6 +214,43 @@ const resetCfg = () => {
             <div><dt>{{ fmt(current.levy) }}</dt><dd>可动员</dd></div>
             <div><dt>{{ current.score ?? '—' }}</dt><dd>体质</dd></div>
           </dl>
+
+          <div v-else class="eco-kpi-edit">
+            <label>
+              <span>总产出 (D)</span>
+              <input type="number" :value="manualOf(current.name, 'gross', current.gross)" @input="setManual(current.name, 'gross', $event.target.value)" />
+            </label>
+            <label>
+              <span>人均产出</span>
+              <input type="number" :value="manualOf(current.name, 'perCapita', current.perCapita)" @input="setManual(current.name, 'perCapita', $event.target.value)" />
+            </label>
+            <label>
+              <span>抽取率 %</span>
+              <input type="number" step="1" :value="manualOf(current.name, 'extractionPct', Math.round(current.extractionRate * 100))" @input="setManual(current.name, 'extractionPct', $event.target.value)" />
+            </label>
+            <label>
+              <span>剩余率 %</span>
+              <input type="number" step="1" :value="manualOf(current.name, 'surplusPct', Math.round(current.surplusRate * 100))" @input="setManual(current.name, 'surplusPct', $event.target.value)" />
+            </label>
+            <label>
+              <span>储备（月）</span>
+              <input type="number" step="0.1" :value="manualOf(current.name, 'reserveMonths', current.reserveMonths)" @input="setManual(current.name, 'reserveMonths', $event.target.value)" />
+            </label>
+            <label>
+              <span>交换半径 km</span>
+              <input type="number" :value="manualOf(current.name, 'radius', current.radius)" @input="setManual(current.name, 'radius', $event.target.value)" />
+            </label>
+            <label>
+              <span>可动员</span>
+              <input type="number" :value="manualOf(current.name, 'levy', current.levy)" @input="setManual(current.name, 'levy', $event.target.value)" />
+            </label>
+            <label>
+              <span>体质评分</span>
+              <input type="number" :value="manualOf(current.name, 'score', current.score ?? '')" @input="setManual(current.name, 'score', $event.target.value)" />
+            </label>
+            <button type="button" class="eco-btn small" @click="clearManual(current.name)">清除手填</button>
+          </div>
+          <p v-if="!editing && current.manual" class="eco-manual-tag">含手工设定的数值</p>
 
           <p class="eco-mini-title">产出构成</p>
           <div class="eco-stack slim">
@@ -1030,6 +1087,51 @@ const resetCfg = () => {
   line-height: 1.4;
   color: var(--vp-c-text-2);
   white-space: nowrap;
+}
+
+
+.eco-kpi-edit {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 0 0 12px;
+}
+
+.eco-kpi-edit label {
+  display: grid;
+  gap: 3px;
+}
+
+.eco-kpi-edit span {
+  font-size: 10.5px;
+  color: var(--vp-c-text-3);
+}
+
+.eco-kpi-edit input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 5px 8px;
+  font: inherit;
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--vp-c-text-1);
+  background: var(--vp-c-bg-soft);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 6px;
+  outline: none;
+}
+
+.eco-kpi-edit .eco-btn.small {
+  grid-column: 1 / -1;
+  justify-self: start;
+  padding: 5px 10px;
+  font-size: 11.5px;
+}
+
+.eco-manual-tag {
+  margin: 0 0 10px;
+  font-size: 10.5px;
+  color: #a07b25;
 }
 
 </style>

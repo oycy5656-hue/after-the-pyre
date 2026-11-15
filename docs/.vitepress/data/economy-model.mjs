@@ -167,35 +167,58 @@ export function buildRows(countries, map, cfg = {}) {
       60 * Math.max(0, extractionRate - base.extraction) -
       40 * Math.max(0, ritualRate - base.ritual)
 
+    // 手工覆盖：允许直接改写最终数字
+    const ov = (cfg.countryOverrides || {})[c.name] || {}
+    const num = (k) => (ov[k] === undefined || ov[k] === '' || ov[k] === null ? null : Number(ov[k]))
+
+    let finalGross = num('gross') ?? Math.round(gross)
+    let finalPerCapita = num('perCapita') ?? Math.round(yieldRate)
+    let finalExtraction = num('extractionPct') != null ? num('extractionPct') / 100 : extractionRate
+    let finalRitual = ritualRate
+    let finalReserve = num('reserveMonths') ?? Math.round(reserveMonths * 10) / 10
+    let finalRadius = num('radius') ?? Math.round(12 + 140 * Math.sqrt((area || 300) / 1000) * (0.4 + exchange))
+    let finalLevy = num('levy') ?? Math.round(pop * mobilization)
+    let finalScore = num('score') ?? (pop ? Math.max(1, Math.min(100, Math.round(raw))) : null)
+
+    const finalExtracted = Math.round(finalGross * finalExtraction)
+    const finalRitualCost = Math.round(finalGross * finalRitual)
+    const finalUpkeep = Math.round(finalGross * base.upkeep)
+    const finalSurplus =
+      num('surplusPct') != null
+        ? Math.round(finalGross * (num('surplusPct') / 100))
+        : finalGross - finalExtracted - finalRitualCost - finalUpkeep
+    const finalSurplusRate = finalGross ? finalSurplus / finalGross : 0
+
     return {
       name: c.name,
       slug: c.slug,
+      manual: Object.keys(ov).length > 0,
       population: pop,
       populationText: c.population || '—',
       area,
       traits: active.map((t) => t.name),
       traitNames: active.length,
-      gross: Math.round(gross),
-      perCapita: Math.round(yieldRate),
-      extractionRate,
-      ritualRate,
-      upkeep: Math.round(upkeep),
-      extracted: Math.round(extracted),
-      ritual: Math.round(ritual),
-      surplus: Math.round(surplus),
-      perCapitaSurplus: Math.round(perCapitaSurplus),
-      surplusRate,
+      gross: finalGross,
+      perCapita: finalPerCapita,
+      extractionRate: finalExtraction,
+      ritualRate: finalRitual,
+      upkeep: finalUpkeep,
+      extracted: finalExtracted,
+      ritual: finalRitualCost,
+      surplus: finalSurplus,
+      perCapitaSurplus: pop ? Math.round(finalSurplus / pop) : 0,
+      surplusRate: finalSurplusRate,
       exchange,
-      radius,
-      reserveMonths: Math.round(reserveMonths * 10) / 10,
-      levy,
-      score: pop ? Math.max(1, Math.min(100, Math.round(raw))) : null,
+      radius: finalRadius,
+      reserveMonths: finalReserve,
+      levy: finalLevy,
+      score: finalScore,
       parts: [
-        { label: '谷物与根茎', value: Math.round(gross * 0.58), color: '#8fae6a' },
-        { label: '织物与陶器', value: Math.round(gross * 0.17), color: '#b08a4f' },
-        { label: '盐与黑曜石', value: Math.round(gross * 0.11), color: '#6f8ba8' },
-        { label: '贡赋与转输', value: Math.round(gross * 0.09), color: '#9c6f9c' },
-        { label: '朝圣与仪式', value: Math.round(gross * 0.05), color: '#c9a24a' }
+        { label: '谷物与根茎', value: Math.round(finalGross * 0.58), color: '#8fae6a' },
+        { label: '织物与陶器', value: Math.round(finalGross * 0.17), color: '#b08a4f' },
+        { label: '盐与黑曜石', value: Math.round(finalGross * 0.11), color: '#6f8ba8' },
+        { label: '贡赋与转输', value: Math.round(finalGross * 0.09), color: '#9c6f9c' },
+        { label: '朝圣与仪式', value: Math.round(finalGross * 0.05), color: '#c9a24a' }
       ]
     }
   })
