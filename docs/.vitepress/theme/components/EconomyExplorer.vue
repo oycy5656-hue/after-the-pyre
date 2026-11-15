@@ -12,7 +12,8 @@ const cfg = ref({
   base: clone(DEFAULT_BASE),
   goods: clone(DEFAULT_GOODS),
   traits: clone(DEFAULT_TRAITS),
-  countryTraits: clone(DEFAULT_COUNTRY_TRAITS)
+  countryTraits: clone(DEFAULT_COUNTRY_TRAITS),
+  populations: {}
 })
 
 const isAdminUser = ref(false)
@@ -45,7 +46,8 @@ onMounted(async () => {
       base: { ...DEFAULT_BASE, ...(ov.base || {}) },
       goods: clone(ov.goods || DEFAULT_GOODS),
       traits: clone(ov.traits || DEFAULT_TRAITS),
-      countryTraits: clone(ov.countryTraits || DEFAULT_COUNTRY_TRAITS)
+      countryTraits: clone(ov.countryTraits || DEFAULT_COUNTRY_TRAITS),
+      populations: clone(ov.populations || {})
     }
   }
 })
@@ -81,12 +83,25 @@ const alloc = computed(() => {
   ]
 })
 
+const pick = (name) => {
+  selected.value = name
+  traitCountry.value = name
+}
+
 const toggleTrait = (name) => {
   const list = cfg.value.countryTraits[traitCountry.value] || []
   const i = list.indexOf(name)
   if (i >= 0) list.splice(i, 1)
   else list.push(name)
   cfg.value.countryTraits[traitCountry.value] = list
+}
+
+const toggleTraitFor = (countryName, traitName) => {
+  const list = cfg.value.countryTraits[countryName] || []
+  const i = list.indexOf(traitName)
+  if (i >= 0) list.splice(i, 1)
+  else list.push(traitName)
+  cfg.value.countryTraits[countryName] = list
 }
 
 const saveCfg = async () => {
@@ -108,7 +123,8 @@ const resetCfg = () => {
     base: clone(DEFAULT_BASE),
     goods: clone(DEFAULT_GOODS),
     traits: clone(DEFAULT_TRAITS),
-    countryTraits: clone(DEFAULT_COUNTRY_TRAITS)
+    countryTraits: clone(DEFAULT_COUNTRY_TRAITS),
+    populations: {}
   }
   flash.value = '已恢复默认值（尚未保存）'
 }
@@ -134,7 +150,7 @@ const resetCfg = () => {
         <p class="eco-rail-hint">点国家查看单国账目</p>
         <ul class="eco-country-list">
           <li v-for="r in sorted" :key="r.name">
-            <button type="button" :class="{ on: r.name === selected }" @click="selected = r.name">
+            <button type="button" :class="{ on: r.name === selected }" @click="pick(r.name)">
               <span class="eco-cn">{{ r.name }}</span>
               <span class="eco-cv">{{ r.perCapitaSurplus }}</span>
               <span class="eco-cd" :class="r.score >= 70 ? 'good' : r.score >= 55 ? 'mid' : 'low'">{{ r.score ?? '—' }}</span>
@@ -144,9 +160,30 @@ const resetCfg = () => {
 
         <div v-if="current" class="eco-card">
           <h4>{{ current.name }}</h4>
-          <p class="eco-card-sub">
+          <p v-if="!editing" class="eco-card-sub">
             人口 {{ current.populationText }} · 面积 {{ current.area ?? '—' }} · {{ current.traitNames }} 项天赋
           </p>
+          <div v-else class="eco-card-edit">
+            <label class="eco-rail-pop">
+              <span>人口</span>
+              <input
+                :value="cfg.populations[current.name] ?? current.populationText"
+                placeholder="如 203K"
+                @input="cfg.populations[current.name] = $event.target.value"
+              />
+            </label>
+            <p class="eco-rail-traits-title">该国的天赋（勾选生效）</p>
+            <div class="eco-rail-traits">
+              <label v-for="t in cfg.traits" :key="t.name">
+                <input
+                  type="checkbox"
+                  :checked="(cfg.countryTraits[current.name] || []).includes(t.name)"
+                  @change="toggleTraitFor(current.name, t.name)"
+                />
+                <span>{{ t.name }}</span>
+              </label>
+            </div>
+          </div>
           <dl class="eco-kpi-mini">
             <div><dt>{{ fmt(current.gross) }}</dt><dd>总产出</dd></div>
             <div><dt>{{ current.perCapita }}</dt><dd>人均产出</dd></div>
@@ -226,7 +263,7 @@ const resetCfg = () => {
               </tr>
             </thead>
             <tbody>
-              <tr v-for="r in sorted" :key="r.name" :class="{ on: r.name === selected }" @click="selected = r.name">
+              <tr v-for="r in sorted" :key="r.name" :class="{ on: r.name === selected }" @click="pick(r.name)">
                 <td class="eco-name">
                   <span>{{ r.name }}</span>
                   <em v-if="r.traitNames" class="eco-badge">{{ r.traitNames }} 项</em>
@@ -925,4 +962,74 @@ const resetCfg = () => {
     max-height: 200px;
   }
 }
+
+/* 左栏编辑态 */
+.eco-card-edit {
+  margin: 10px 0 4px;
+  padding: 10px;
+  border: 1px dashed color-mix(in srgb, var(--vp-c-brand-1) 45%, var(--vp-c-divider));
+  border-radius: 8px;
+  background: var(--vp-c-bg);
+}
+
+.eco-rail-pop {
+  display: grid;
+  gap: 4px;
+}
+
+.eco-rail-pop span {
+  font-size: 11px;
+  color: var(--vp-c-text-3);
+}
+
+.eco-rail-pop input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 5px 8px;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--vp-c-text-1);
+  background: var(--vp-c-bg-soft);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 6px;
+  outline: none;
+}
+
+.eco-rail-traits-title {
+  margin: 10px 0 6px;
+  font-size: 11px;
+  color: var(--vp-c-text-3);
+}
+
+.eco-rail-traits {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2px;
+  max-height: 210px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.eco-rail-traits label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 20px;
+  cursor: pointer;
+}
+
+.eco-rail-traits input {
+  flex: 0 0 auto;
+  width: 13px;
+  height: 13px;
+  margin: 0;
+}
+
+.eco-rail-traits span {
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--vp-c-text-2);
+  white-space: nowrap;
+}
+
 </style>

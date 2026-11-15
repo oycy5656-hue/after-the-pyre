@@ -96,6 +96,7 @@ export function buildRows(countries, map, cfg = {}) {
   const base = { ...DEFAULT_BASE, ...(cfg.base || {}) }
   const traits = cfg.traits || DEFAULT_TRAITS
   const countryTraits = cfg.countryTraits || DEFAULT_COUNTRY_TRAITS
+  const popOverride = cfg.populations || {}
   const traitByName = new Map(traits.map((t) => [t.name, t]))
 
   const stateByName = new Map()
@@ -112,7 +113,7 @@ export function buildRows(countries, map, cfg = {}) {
   }
 
   const rows = countries.map((c) => {
-    const pop = parsePopulation(c.population)
+    const pop = parsePopulation(popOverride[c.name] ?? c.population)
     const st = findState(c)
     const area = st ? Math.max(1, st.area || 0) : null
     const active = (countryTraits[c.name] || []).map((n) => traitByName.get(n)).filter(Boolean)
