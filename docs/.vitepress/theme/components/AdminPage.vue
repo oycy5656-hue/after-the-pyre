@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { computed, onMounted, ref } from 'vue'
 import { withBase } from 'vitepress'
 import countries from '../../data/countries.mjs'
@@ -8,6 +8,8 @@ import {
   exportOverrides,
   getOverrides,
   importOverrides,
+  initAuth,
+  loadEdits,
   saveOverride
 } from '../auth'
 
@@ -54,7 +56,9 @@ const refresh = () => {
   loadForm()
 }
 
-onMounted(() => {
+onMounted(async () => {
+  await initAuth()
+  await loadEdits()
   refresh()
   ready.value = true
 })
@@ -66,10 +70,10 @@ const select = (slug) => {
   loadForm()
 }
 
-const save = () => {
+const save = async () => {
   error.value = ''
   try {
-    saveOverride(selected.value, form.value)
+    await saveOverride(selected.value, form.value)
     saved.value = `已保存到本地：${new Date().toLocaleTimeString()}`
     refresh()
     saved.value = `已保存到本地：${new Date().toLocaleTimeString()}`
@@ -78,8 +82,8 @@ const save = () => {
   }
 }
 
-const reset = () => {
-  clearOverride(selected.value)
+const reset = async () => {
+  await clearOverride(selected.value)
   refresh()
   saved.value = '已还原为原始资料'
 }
@@ -88,10 +92,10 @@ const doExport = () => {
   io.value = exportOverrides()
 }
 
-const doImport = () => {
+const doImport = async () => {
   error.value = ''
   try {
-    const n = importOverrides(io.value)
+    const n = await importOverrides(io.value)
     refresh()
     saved.value = `已导入 ${n} 个国家的修改`
   } catch (e) {

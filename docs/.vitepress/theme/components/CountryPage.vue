@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { withBase } from 'vitepress'
 import countries from '../../data/countries.mjs'
-import { applyOverride, getOverride } from '../auth'
+import { applyOverride, getOverride, initAuth, loadEdits } from '../auth'
 
 const props = defineProps({
   index: { type: Number, required: true }
@@ -10,7 +10,9 @@ const props = defineProps({
 
 const baseCountry = computed(() => countries[props.index] || countries[0])
 const ov = ref(null)
-onMounted(() => {
+onMounted(async () => {
+  await initAuth()
+  await loadEdits()
   ov.value = getOverride(baseCountry.value.slug)
 })
 const country = computed(() => applyOverride(baseCountry.value, ov.value))

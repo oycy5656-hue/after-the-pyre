@@ -1,30 +1,44 @@
-// 本地账号与内容覆盖层
-// 说明：这是纯前端实现，账号与修改保存在当前浏览器的 localStorage 里。
-// 它适合单人/小团队在自己电脑上维护内容，不能当作服务端鉴权使用。
+// 账号与内容编辑：本地模式 / 云模式（Supabase）双通道
+// 云模式：邮箱 + 密码，角色存在 profiles.role，改动存在 edits 表，全站共享。
+// 本地模式：没有配置 Supabase 时回退到 localStorage，只在本机生效。
+
+import {
+  currentEmail,
+  currentUserId,
+  deleteEdit,
+  fetchEdits,
+  fetchProfile,
+  initCloud,
+  isCloud,
+  loadSession,
+  pushEdit,
+  signIn,
+  signOut,
+  signUp,
+  updateDisplay
+} from './cloud'
 
 const USERS_KEY = 'pyre.users.v1'
 const SESSION_KEY = 'pyre.session.v1'
 const OVERRIDE_KEY = 'pyre.overrides.v1'
 
-// 首次打开时写入的两个管理员账号（密码在 README 与交付说明中给出）
 const SEED_ADMINS = [
   { username: 'admin', password: 'PyreAdmin!2026', display: '首席管理员', role: 'admin' },
   { username: 'curator', password: 'PyreCurator!2026', display: '内容管理员', role: 'admin' }
 ]
 
-const enc = new TextEncoder()
+let mode = 'local' // 'cloud' | 'local'
+let profileCache = null
+let editsCache = {}
 
+const enc = new TextEncoder()
 const b64 = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf)))
 const unb64 = (str) => Uint8Array.from(atob(str), (c) => c.charCodeAt(0))
 
 async function hash(password, saltB64) {
   const salt = saltB64 ? unb64(saltB64) : crypto.getRandomValues(new Uint8Array(16))
   const key = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits'])
-  const bits = await crypto.subtle.deriveBits(
-    { name: 'PBKDF2', salt, iterations: 120000, hash: 'SHA-256' },
-    key,
-    256
-  )
+  const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt, iterations: 120000, hash: 'SHA-256' }, key, 256)
   return { hash: b64(bits), salt: b64(salt) }
 }
 
@@ -36,18 +50,34 @@ const read = (key, fallback) => {
     return fallback
   }
 }
-
 const write = (key, value) => {
   if (typeof localStorage === 'undefined') return
   localStorage.setItem(key, JSON.stringify(value))
 }
 
-export function listUsers() {
-  if (typeof localStorage === 'undefined') return []
-  return read(USERS_KEY, []).map(({ passwordHash, salt, ...rest }) => rest)
+/** 初始化：有 Supabase 配置就走云模式 */
+export async function initAuth() {
+  const cfg = await initCloud()
+  if (cfg) {
+    mode = 'cloud'
+    loadSession()
+    if (currentUserId()) {
+      const p = await fetchProfile()
+      profileCache = p
+        ? { username: currentEmail(), display: p.display || currentEmail(), role: p.role || 'user' }
+        : { username: currentEmail(), display: currentEmail(), role: 'user' }
+    }
+  } else {
+    mode = 'local'
+    await ensureSeed()
+  }
+  return mode
 }
 
+export const authMode = () => mode
+
 export function currentUser() {
+  if (mode === 'cloud') return profileCache
   if (typeof localStorage === 'undefined') return null
   const session = read(SESSION_KEY, null)
   if (!session) return null
@@ -56,9 +86,14 @@ export function currentUser() {
   return { username: user.username, display: user.display, role: user.role, createdAt: user.createdAt }
 }
 
-export function isAdmin() {
+export const isAdmin = () => {
   const u = currentUser()
   return !!u && u.role === 'admin'
+}
+
+export async function listUsers() {
+  if (mode === 'cloud') return []
+  return read(USERS_KEY, []).map(({ passwordHash, salt, ...rest }) => rest)
 }
 
 export async function ensureSeed() {
@@ -68,19 +103,20 @@ export async function ensureSeed() {
   const seeded = []
   for (const a of SEED_ADMINS) {
     const { hash: h, salt } = await hash(a.password)
-    seeded.push({
-      username: a.username,
-      display: a.display,
-      role: a.role,
-      passwordHash: h,
-      salt,
-      createdAt: Date.now()
-    })
+    seeded.push({ username: a.username, display: a.display, role: a.role, passwordHash: h, salt, createdAt: Date.now() })
   }
   write(USERS_KEY, seeded)
 }
 
 export async function register(username, password, display) {
+  if (mode === 'cloud') {
+    const email = String(username || '').trim()
+    if (!email.includes('@')) throw new Error('云模式下请用邮箱注册')
+    await signUp(email, password, display)
+    const p = await fetchProfile()
+    profileCache = { username: email, display: p?.display || display || email, role: p?.role || 'user' }
+    return profileCache
+  }
   await ensureSeed()
   const name = String(username || '').trim()
   if (name.length < 3) throw new Error('用户名至少 3 个字符')
@@ -88,19 +124,19 @@ export async function register(username, password, display) {
   const users = read(USERS_KEY, [])
   if (users.some((u) => u.username.toLowerCase() === name.toLowerCase())) throw new Error('用户名已存在')
   const { hash: h, salt } = await hash(password)
-  users.push({
-    username: name,
-    display: String(display || name).trim(),
-    role: 'user',
-    passwordHash: h,
-    salt,
-    createdAt: Date.now()
-  })
+  users.push({ username: name, display: String(display || name).trim(), role: 'user', passwordHash: h, salt, createdAt: Date.now() })
   write(USERS_KEY, users)
   return { username: name, display: display || name, role: 'user' }
 }
 
 export async function login(username, password) {
+  if (mode === 'cloud') {
+    const email = String(username || '').trim()
+    await signIn(email, password)
+    const p = await fetchProfile()
+    profileCache = { username: email, display: p?.display || email, role: p?.role || 'user' }
+    return profileCache
+  }
   await ensureSeed()
   const name = String(username || '').trim().toLowerCase()
   const users = read(USERS_KEY, [])
@@ -112,12 +148,18 @@ export async function login(username, password) {
   return { username: user.username, display: user.display, role: user.role }
 }
 
-export function logout() {
+export async function logout() {
+  if (mode === 'cloud') {
+    await signOut()
+    profileCache = null
+    return
+  }
   if (typeof localStorage === 'undefined') return
   localStorage.removeItem(SESSION_KEY)
 }
 
 export async function changePassword(username, oldPassword, newPassword) {
+  if (mode === 'cloud') throw new Error('云模式请通过登录邮件里的「重置密码」链接修改')
   const users = read(USERS_KEY, [])
   const user = users.find((u) => u.username === username)
   if (!user) throw new Error('账号不存在')
@@ -132,22 +174,44 @@ export async function changePassword(username, oldPassword, newPassword) {
 
 // ---------- 内容覆盖 ----------
 
+export async function loadEdits() {
+  if (mode === 'cloud') {
+    editsCache = await fetchEdits()
+  } else {
+    editsCache = read(OVERRIDE_KEY, {})
+  }
+  return editsCache
+}
+
 export function getOverrides() {
-  return read(OVERRIDE_KEY, {})
+  return mode === 'cloud' ? editsCache : read(OVERRIDE_KEY, {})
 }
 
 export function getOverride(slug) {
   return getOverrides()[slug] || null
 }
 
-export function saveOverride(slug, patch) {
+export async function saveOverride(slug, patch) {
+  const merged = { ...(getOverrides()[slug] || {}), ...patch }
+  if (mode === 'cloud') {
+    await pushEdit(slug, merged)
+    editsCache = { ...editsCache, [slug]: merged }
+    return merged
+  }
   const all = getOverrides()
-  all[slug] = { ...(all[slug] || {}), ...patch, updatedAt: Date.now() }
+  all[slug] = { ...merged, updatedAt: Date.now() }
   write(OVERRIDE_KEY, all)
   return all[slug]
 }
 
-export function clearOverride(slug) {
+export async function clearOverride(slug) {
+  if (mode === 'cloud') {
+    await deleteEdit(slug)
+    const next = { ...editsCache }
+    delete next[slug]
+    editsCache = next
+    return
+  }
   const all = getOverrides()
   delete all[slug]
   write(OVERRIDE_KEY, all)
@@ -157,11 +221,23 @@ export function exportOverrides() {
   return JSON.stringify(getOverrides(), null, 2)
 }
 
-export function importOverrides(json) {
+export async function importOverrides(json) {
   const parsed = JSON.parse(json)
   if (!parsed || typeof parsed !== 'object') throw new Error('格式不正确')
+  if (mode === 'cloud') {
+    for (const [slug, data] of Object.entries(parsed)) await pushEdit(slug, data)
+    editsCache = { ...editsCache, ...parsed }
+    return Object.keys(parsed).length
+  }
   write(OVERRIDE_KEY, parsed)
   return Object.keys(parsed).length
+}
+
+export async function setDisplayName(display) {
+  if (mode === 'cloud') {
+    await updateDisplay(display)
+    if (profileCache) profileCache = { ...profileCache, display }
+  }
 }
 
 // 把覆盖合并进国家数据（只在浏览器端调用）

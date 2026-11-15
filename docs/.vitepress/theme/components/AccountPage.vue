@@ -1,7 +1,7 @@
-<script setup>
+﻿<script setup>
 import { onMounted, ref } from 'vue'
 import { withBase } from 'vitepress'
-import { changePassword, currentUser, ensureSeed, listUsers, login, logout, register } from '../auth'
+import { authMode, changePassword, currentUser, initAuth, listUsers, login, logout, register } from '../auth'
 
 const user = ref(null)
 const users = ref([])
@@ -14,12 +14,15 @@ const busy = ref(false)
 
 const refresh = () => {
   user.value = currentUser()
-  users.value = listUsers()
+  users.value = []
 }
 
+const mode2 = ref('local')
+
 onMounted(async () => {
-  await ensureSeed()
+  mode2.value = await initAuth()
   refresh()
+  users.value = await listUsers()
 })
 
 const submit = async () => {
@@ -37,6 +40,7 @@ const submit = async () => {
     }
     form.value = { username: '', password: '', display: '' }
     refresh()
+    users.value = await listUsers()
   } catch (e) {
     error.value = e.message
   } finally {
@@ -44,8 +48,8 @@ const submit = async () => {
   }
 }
 
-const doLogout = () => {
-  logout()
+const doLogout = async () => {
+  await logout()
   refresh()
   message.value = '已退出登录'
 }
@@ -86,7 +90,7 @@ const doChangePwd = async () => {
         <button type="button" class="acc-btn" @click="doLogout">退出登录</button>
       </div>
 
-      <details class="acc-pwd">
+      <details v-if="mode2 !== 'cloud'" class="acc-pwd">
         <summary>修改密码</summary>
         <div class="acc-row">
           <input v-model="pwd.old" type="password" placeholder="原密码" autocomplete="current-password" />
@@ -95,7 +99,7 @@ const doChangePwd = async () => {
         </div>
       </details>
 
-      <p class="acc-hint">本机已注册 {{ users.length }} 个账号。</p>
+      <p class="acc-hint">{{ mode2 === 'cloud' ? '已连接 Supabase，账号全站共用。' : '本机已注册 ' + users.length + ' 个账号。' }}</p>
     </section>
 
     <!-- 未登录 -->
@@ -107,8 +111,8 @@ const doChangePwd = async () => {
 
       <form class="acc-form" @submit.prevent="submit">
         <label>
-          <span>用户名</span>
-          <input v-model="form.username" autocomplete="username" placeholder="用于登录" />
+          <span>{{ mode2 === 'cloud' ? '邮箱' : '用户名' }}</span>
+          <input v-model="form.username" autocomplete="username" :placeholder="mode2 === 'cloud' ? 'you@example.com' : '用于登录'" />
         </label>
         <label v-if="mode === 'register'">
           <span>显示名</span>
