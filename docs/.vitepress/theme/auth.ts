@@ -64,8 +64,8 @@ export async function initAuth() {
     if (currentUserId()) {
       const p = await fetchProfile()
       profileCache = p
-        ? { username: currentEmail(), display: p.display || currentEmail(), role: p.role || 'user' }
-        : { username: currentEmail(), display: currentEmail(), role: 'user' }
+        ? { id: currentUserId(), username: currentEmail(), display: p.display || currentEmail(), role: p.role || 'user' }
+        : { id: currentUserId(), username: currentEmail(), display: currentEmail(), role: 'user' }
     }
   } else {
     mode = 'local'
@@ -114,7 +114,7 @@ export async function register(username, password, display) {
     if (!email.includes('@')) throw new Error('云模式下请用邮箱注册')
     await signUp(email, password, display)
     const p = await fetchProfile()
-    profileCache = { username: email, display: p?.display || display || email, role: p?.role || 'user' }
+    profileCache = { id: currentUserId(), username: email, display: p?.display || display || email, role: p?.role || 'user' }
     return profileCache
   }
   await ensureSeed()
@@ -134,7 +134,7 @@ export async function login(username, password) {
     const email = String(username || '').trim()
     await signIn(email, password)
     const p = await fetchProfile()
-    profileCache = { username: email, display: p?.display || email, role: p?.role || 'user' }
+    profileCache = { id: currentUserId(), username: email, display: p?.display || email, role: p?.role || 'user' }
     return profileCache
   }
   await ensureSeed()

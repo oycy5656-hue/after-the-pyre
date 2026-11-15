@@ -153,3 +153,55 @@ export async function deleteEdit(slug) {
     headers: headers()
   })
 }
+
+// ---------- 国家认领与国策 ----------
+
+export async function fetchClaims() {
+  const res = await fetch(`${config.url}/rest/v1/claims?select=slug,user_id,display`, { headers: headers() })
+  if (!res.ok) return {}
+  const rows = await res.json()
+  const map = {}
+  for (const r of rows) map[r.slug] = { userId: r.user_id, display: r.display }
+  return map
+}
+
+export async function claimCountry(slug, display) {
+  const res = await fetch(`${config.url}/rest/v1/claims`, {
+    method: 'POST',
+    headers: headers({ Prefer: 'return=minimal' }),
+    body: JSON.stringify([{ slug, user_id: session?.user?.id, display }])
+  })
+  if (!res.ok) {
+    const text = await res.text().catch(() => '')
+    throw new Error(text.includes('duplicate') ? '该国已被他人锁定' : text || '锁定失败')
+  }
+}
+
+export async function releaseClaim(slug) {
+  const res = await fetch(`${config.url}/rest/v1/claims?slug=eq.${encodeURIComponent(slug)}`, {
+    method: 'DELETE',
+    headers: headers()
+  })
+  if (!res.ok) throw new Error('解除锁定失败（可能没有权限）')
+}
+
+export async function fetchPolicies() {
+  const res = await fetch(`${config.url}/rest/v1/policies?select=slug,data`, { headers: headers() })
+  if (!res.ok) return {}
+  const rows = await res.json()
+  const map = {}
+  for (const r of rows) map[r.slug] = r.data
+  return map
+}
+
+export async function savePolicy(slug, data) {
+  const res = await fetch(`${config.url}/rest/v1/policies?on_conflict=slug`, {
+    method: 'POST',
+    headers: headers({ Prefer: 'resolution=merge-duplicates,return=minimal' }),
+    body: JSON.stringify([{ slug, data, updated_by: session?.user?.id || null, updated_at: new Date().toISOString() }])
+  })
+  if (!res.ok) {
+    const text = await res.text().catch(() => '')
+    throw new Error(text || '保存失败（可能不是该国认领者）')
+  }
+}

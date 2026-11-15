@@ -8,6 +8,7 @@ import EconomyExplorer from './components/EconomyExplorer.vue'
 import HomePage from './components/HomePage.vue'
 import AccountPage from './components/AccountPage.vue'
 import AdminPage from './components/AdminPage.vue'
+import PolicyBoard from './components/PolicyBoard.vue'
 import './style.css'
 
 export default {
@@ -20,5 +21,6 @@ export default {
   app.component('HomePage', HomePage)
   app.component('AccountPage', AccountPage)
   app.component('AdminPage', AdminPage)
+  app.component('PolicyBoard', PolicyBoard)
   }
 } satisfies Theme
