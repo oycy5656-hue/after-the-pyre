@@ -8,6 +8,7 @@ import { geoOf } from '../../data/geography.mjs'
 import { RESOURCES, RESOURCE_GROUPS, deriveSectors, deriveSpecialties } from '../../data/resources.mjs'
 import { BUILDING_GROUPS, BUILDINGS } from '../../data/buildings.mjs'
 import { simulate } from '../../data/sim.mjs'
+import { advanceTurn, emptyTurnState, undoTurn, worldSummary, START_YEAR, YEARS_PER_TURN } from '../../data/turn.mjs'
 
 const unit = { name: 'D（当量）', desc: '一名成年人维持一天基本生活所需的商品与劳务。全大陆通用，不依赖货币。' }
 
@@ -24,6 +25,52 @@ const cfg = ref({
   stock: {},
   buildLog: {}
 })
+
+
+const turn = ref(emptyTurnState())
+const turnBusy = ref(false)
+const turnMsg = ref('')
+const summary = computed(() => worldSummary(turn.value, countries))
+
+const loadTurn = async () => {
+  await loadEdits()
+  const ov = getOverride('__turn__')
+  if (ov && typeof ov.turn === 'number') turn.value = { ...emptyTurnState(), ...ov }
+}
+
+const doAdvance = async () => {
+  if (!isAdminUser.value || turnBusy.value) return
+  turnBusy.value = true
+  try {
+    const next = advanceTurn(turn.value, countries)
+    await saveOverride('__turn__', next)
+    turn.value = next
+    turnMsg.value = '已推进 ' + YEARS_PER_TURN + ' 年'
+  } catch (e) {
+    turnMsg.value = '推进失败：' + e.message
+  } finally {
+    turnBusy.value = false
+  }
+}
+
+const doUndo = async () => {
+  if (!isAdminUser.value || turnBusy.value) return
+  const prev = undoTurn(turn.value)
+  if (!prev) {
+    turnMsg.value = '已经是最早的一回合'
+    return
+  }
+  turnBusy.value = true
+  try {
+    await saveOverride('__turn__', prev)
+    turn.value = prev
+    turnMsg.value = '已回到第 ' + prev.turn + ' 回合'
+  } catch (e) {
+    turnMsg.value = '撤销失败：' + e.message
+  } finally {
+    turnBusy.value = false
+  }
+}
 
 const isAdminUser = ref(false)
 const editing = ref(false)
@@ -49,6 +96,8 @@ onMounted(async () => {
   const u = currentUser()
   isAdminUser.value = !!u && u.role === 'admin'
   await loadEdits()
+  const tv = getOverride('__turn__')
+  if (tv && typeof tv.turn === 'number') turn.value = { ...emptyTurnState(), ...tv }
   const ov = getOverride('__economy__')
   if (ov) {
     cfg.value = {
@@ -293,6 +342,41 @@ const resetCfg = () => {
 
 <template>
   <div class="eco">
+  <div class="eco-turn">
+    <div class="eco-turn-main">
+      <span class="eco-turn-no">第 {{ turn.turn }} 回合</span>
+      <span class="eco-turn-year">纪元 {{ turn.year }} 年</span>
+      <span class="eco-turn-sep">·</span>
+      <span>一回合 {{ YEARS_PER_TURN }} 年</span>
+      <template v-if="summary">
+        <span class="eco-turn-sep">·</span>
+        <span>全境人口 {{ (summary.pop / 1e6).toFixed(2) }}M</span>
+        <span class="eco-turn-sep">·</span>
+        <span>总产值 {{ (summary.gdp / 1e6).toFixed(0) }}M D</span>
+      </template>
+    </div>
+    <div class="eco-turn-actions">
+      <template v-if="isAdminUser">
+        <button type="button" class="eco-btn primary" :disabled="turnBusy" @click="doAdvance">
+          {{ turnBusy ? '推进中…' : '推进 ' + YEARS_PER_TURN + ' 年' }}
+        </button>
+        <button type="button" class="eco-btn" :disabled="turnBusy || !summary?.canUndo" @click="doUndo">撤销上一回合</button>
+      </template>
+      <span v-else class="eco-turn-lock">仅管理员可推进回合</span>
+      <span v-if="turnMsg" class="eco-turn-msg">{{ turnMsg }}</span>
+    </div>
+  </div>
+
+  <details v-if="turn.log.length" class="eco-turn-log">
+    <summary>回合史（{{ turn.log.length }} 条）</summary>
+    <div v-for="entry in turn.log.slice(0, 6)" :key="entry.turn + '-' + entry.at" class="eco-turn-entry">
+      <p class="eco-turn-entry-head">第 {{ entry.turn }} 回合 · {{ entry.year }} 年 · {{ entry.at }}</p>
+      <ul>
+        <li v-for="(line, i) in entry.entries.slice(0, 12)" :key="i">{{ line }}</li>
+      </ul>
+    </div>
+  </details>
+
     <div v-if="isAdminUser" class="eco-toolbar">
       <button v-if="!editing" type="button" class="eco-btn" @click="editing = true">编辑经济参数</button>
       <template v-else>
@@ -1986,6 +2070,96 @@ const resetCfg = () => {
 
 .eco-log li {
   margin: 3px 0;
+}
+
+
+.eco-turn {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 14px;
+  padding: 12px 16px;
+  border: 1px solid color-mix(in srgb, var(--vp-c-brand-1) 35%, var(--vp-c-divider));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--vp-c-brand-1) 6%, var(--vp-c-bg-soft));
+}
+
+.eco-turn-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--vp-c-text-2);
+}
+
+.eco-turn-no {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--vp-c-text-1);
+}
+
+.eco-turn-year {
+  font-weight: 600;
+  color: var(--vp-c-brand-1);
+}
+
+.eco-turn-sep {
+  color: var(--vp-c-text-3);
+}
+
+.eco-turn-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.eco-turn-lock {
+  font-size: 11.5px;
+  color: var(--vp-c-text-3);
+}
+
+.eco-turn-msg {
+  font-size: 11.5px;
+  color: #1f6f4f;
+}
+
+.eco-turn-log {
+  margin: 0 0 18px;
+  padding: 10px 14px;
+  font-size: 12px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 8px;
+  background: var(--vp-c-bg-soft);
+}
+
+.eco-turn-log summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--vp-c-text-2);
+}
+
+.eco-turn-entry {
+  margin-top: 10px;
+}
+
+.eco-turn-entry-head {
+  margin: 0 0 4px;
+  font-size: 11.5px;
+  color: var(--vp-c-text-3);
+}
+
+.eco-turn-entry ul {
+  margin: 0;
+  padding-left: 16px;
+  color: var(--vp-c-text-2);
+}
+
+.eco-turn-entry li {
+  margin: 2px 0;
 }
 
 </style>
