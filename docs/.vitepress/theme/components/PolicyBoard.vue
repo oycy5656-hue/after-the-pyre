@@ -3,12 +3,14 @@ import { computed, onMounted, ref } from 'vue'
 import { withBase } from 'vitepress'
 import countries from '../../data/countries.mjs'
 import { currentUser, initAuth } from '../auth'
-import { claimCountry, fetchClaims, fetchPolicies, releaseClaim, savePolicy } from '../cloud'
+import { claimCountry, claimableSlugs, fetchAllClaims, fetchClaims, fetchPolicies, myClaim, releaseClaim, savePolicy } from '../cloud'
 
 const user = ref(null)
+const mySlug = ref(null)
 const claims = ref({})
 const policies = ref({})
-const selected = ref(countries[0].slug)
+const freeSlugs = ref([])
+const selected = ref(null)
 const draft = ref(null)
 const busy = ref(false)
 const msg = ref('')
@@ -16,27 +18,48 @@ const err = ref('')
 const ready = ref(false)
 
 const SLOTS = 3
-
-const isEmptyPolicy = (p) => !p || !Array.isArray(p.slots) || p.slots.every((s) => !s?.title && !s?.body)
-
-const claimOf = (slug) => claims.value[slug] || null
-const isMine = (slug) => !!(user.value && claimOf(slug)?.userId === user.value.id)
 const isAdminUser = computed(() => user.value?.role === 'admin')
 
-const currentCountry = computed(() => countries.find((c) => c.slug === selected.value) || countries[0])
-const currentClaim = computed(() => claimOf(selected.value))
-const canEdit = computed(() => isMine(selected.value) || (isAdminUser.value && !!currentClaim.value))
+const bySlug = new Map(countries.map((c) => [c.slug, c]))
+const countryOf = (slug) => bySlug.get(slug) || null
+
+/** 玩家可见：我锁定的 + 仍可认领的；管理员：全部 */
+const visible = computed(() => {
+  if (isAdminUser.value) return countries
+  const list = []
+  if (mySlug.value && bySlug.has(mySlug.value)) list.push(bySlug.get(mySlug.value))
+  for (const slug of freeSlugs.value) {
+    if (slug !== mySlug.value && bySlug.has(slug)) list.push(bySlug.get(slug))
+  }
+  return list
+})
+
+const currentCountry = computed(() => (selected.value ? countryOf(selected.value) : null))
+const currentClaim = computed(() => (selected.value ? claims.value[selected.value] : null))
+const isMine = computed(() => !!mySlug.value && selected.value === mySlug.value)
+const canEdit = computed(() => isMine.value || (isAdminUser.value && !!currentClaim.value))
 
 const blankSlots = () => Array.from({ length: SLOTS }, () => ({ title: '', body: '' }))
 
 const loadDraft = () => {
+  if (!selected.value) {
+    draft.value = null
+    return
+  }
   const saved = policies.value[selected.value]
-  const slots = blankSlots().map((s, i) => ({ ...s, ...(saved?.slots?.[i] || {}) }))
-  draft.value = { slots }
+  draft.value = { slots: blankSlots().map((s, i) => ({ ...s, ...(saved?.slots?.[i] || {}) })) }
 }
 
 const refresh = async () => {
-  claims.value = await fetchClaims()
+  const allSlugs = countries.map((c) => c.slug)
+  const [claim, list, free] = await Promise.all([
+    myClaim(),
+    isAdminUser.value ? fetchAllClaims() : fetchClaims(),
+    claimableSlugs(allSlugs)
+  ])
+  mySlug.value = claim || null
+  claims.value = list || {}
+  freeSlugs.value = free || []
   policies.value = await fetchPolicies()
   loadDraft()
 }
@@ -45,6 +68,9 @@ onMounted(async () => {
   await initAuth()
   user.value = currentUser()
   await refresh()
+  const first = visible.value[0]
+  selected.value = mySlug.value || (first ? first.slug : null)
+  loadDraft()
   ready.value = true
 })
 
@@ -56,7 +82,11 @@ const pick = (slug) => {
 }
 
 const doClaim = async () => {
-  if (!user.value) return
+  if (!user.value || !selected.value) return
+  if (mySlug.value) {
+    err.value = '你已经锁定了「' + (countryOf(mySlug.value)?.name || mySlug.value) + '」，每人只能锁一个'
+    return
+  }
   busy.value = true
   err.value = ''
   try {
@@ -76,6 +106,7 @@ const doRelease = async () => {
   try {
     await releaseClaim(selected.value)
     msg.value = '已解除锁定'
+    mySlug.value = null
     await refresh()
   } catch (e) {
     err.value = e.message
@@ -111,7 +142,8 @@ const exportJson = () => {
   const all = {}
   for (const c of countries) {
     const p = policies.value[c.slug]
-    if (!isEmptyPolicy(p)) all[c.name] = { claim: claimOf(c.slug)?.display || null, slots: p.slots }
+    if (!p) continue
+    all[c.name] = { claim: claims.value[c.slug]?.display || null, slots: p.slots }
   }
   download('国策导出.json', JSON.stringify(all, null, 2), 'application/json')
 }
@@ -120,8 +152,8 @@ const exportText = () => {
   const lines = []
   for (const c of countries) {
     const p = policies.value[c.slug]
-    if (isEmptyPolicy(p)) continue
-    lines.push('【' + c.name + '】' + (claimOf(c.slug)?.display ? '（' + claimOf(c.slug).display + '）' : ''))
+    if (!p) continue
+    lines.push('【' + c.name + '】' + (claims.value[c.slug]?.display ? '（' + claims.value[c.slug].display + '）' : ''))
     p.slots.forEach((s, i) => {
       if (!s?.title && !s?.body) return
       lines.push('  ' + (i + 1) + '. ' + (s.title || '未命名'))
@@ -141,305 +173,138 @@ const exportText = () => {
       <a class="pol-btn primary" :href="withBase('/account/')">去登录</a>
     </div>
 
+    <div v-else-if="!ready" class="pol-gate"><p>加载中…</p></div>
+
     <div v-else class="pol-layout">
       <aside class="pol-list">
-        <h3>国家</h3>
-        <ul>
-          <li v-for="c in countries" :key="c.slug">
+        <h3>
+          {{ isAdminUser ? '全部国家' : '可选国家' }}
+          <em class="pol-count">{{ visible.length }}</em>
+        </h3>
+        <ul v-if="visible.length">
+          <li v-for="c in visible" :key="c.slug">
             <button type="button" :class="{ on: c.slug === selected }" @click="pick(c.slug)">
               <span class="pol-name">{{ c.name }}</span>
-              <em v-if="isMine(c.slug)" class="pol-tag mine">我的</em>
-              <em v-else-if="claimOf(c.slug)" class="pol-tag">已锁定</em>
+              <em v-if="c.slug === mySlug" class="pol-tag mine">我的</em>
+              <em v-else-if="isAdminUser && claims[c.slug]" class="pol-tag">{{ claims[c.slug].display || '已锁定' }}</em>
               <em v-else class="pol-tag free">空闲</em>
             </button>
           </li>
         </ul>
+        <p v-else class="pol-none">暂无可认领的国家——都已名花有主。</p>
 
         <div v-if="isAdminUser" class="pol-export">
-          <h3>导出</h3>
+          <h3>导出（仅管理员）</h3>
           <button type="button" class="pol-btn" @click="exportJson">全部国策 JSON</button>
           <button type="button" class="pol-btn" @click="exportText">全部国策 TXT</button>
         </div>
       </aside>
 
       <section class="pol-main">
-        <header class="pol-head">
-          <div>
-            <h2>{{ currentCountry.name }}</h2>
-            <p class="pol-sub">
-              <template v-if="currentClaim">锁定者：{{ currentClaim.display || '未知' }}</template>
-              <template v-else>尚未被认领</template>
-              <template v-if="!isMine(selected) && currentClaim"> · 你只能查看</template>
-            </p>
-          </div>
-          <div class="pol-actions">
-            <button v-if="!currentClaim" type="button" class="pol-btn primary" :disabled="busy" @click="doClaim">
-              锁定此国
-            </button>
-            <button v-if="isAdminUser && currentClaim" type="button" class="pol-btn" :disabled="busy" @click="doRelease">
-              解除锁定（管理员）
-            </button>
-            <button v-if="isMine(selected)" type="button" class="pol-btn" :disabled="busy" @click="doRelease">
-              放弃此国
-            </button>
-          </div>
-        </header>
-
-        <p v-if="msg" class="pol-msg ok">{{ msg }}</p>
-        <p v-if="err" class="pol-msg err">{{ err }}</p>
-
-        <div v-if="draft" class="pol-slots">
-          <div v-for="(slot, i) in draft.slots" :key="i" class="pol-slot">
-            <div class="pol-slot-head">
-              <span>国策 {{ i + 1 }}</span>
-              <em v-if="!slot.title && !slot.body">空</em>
+        <template v-if="currentCountry">
+          <header class="pol-head">
+            <div>
+              <h2>{{ currentCountry.name }}</h2>
+              <p class="pol-sub">
+                <template v-if="isMine">你已锁定此国，可以填写国策</template>
+                <template v-else-if="isAdminUser && currentClaim">锁定者：{{ currentClaim.display || '未知' }}</template>
+                <template v-else-if="isAdminUser">尚未被认领</template>
+                <template v-else>此国仍可认领</template>
+              </p>
             </div>
-            <input v-model="slot.title" :disabled="!canEdit" placeholder="国策标题" />
-            <textarea v-model="slot.body" :disabled="!canEdit" rows="5" placeholder="内容：手段、代价、预期效果" />
-          </div>
-          <button v-if="canEdit" type="button" class="pol-btn primary" :disabled="busy" @click="doSave">保存国策</button>
-        </div>
+            <div class="pol-actions">
+              <button v-if="!isMine && (!currentClaim || isAdminUser) && !mySlug" type="button" class="pol-btn primary" :disabled="busy" @click="doClaim">
+                锁定此国
+              </button>
+              <button v-if="isAdminUser && currentClaim" type="button" class="pol-btn" :disabled="busy" @click="doRelease">
+                解除锁定
+              </button>
+              <button v-if="isMine" type="button" class="pol-btn" :disabled="busy" @click="doRelease">放弃此国</button>
+            </div>
+          </header>
 
-        <p v-if="!canEdit && !currentClaim" class="pol-hint">锁定该国后才能填写国策。</p>
+          <p v-if="msg" class="pol-msg ok">{{ msg }}</p>
+          <p v-if="err" class="pol-msg err">{{ err }}</p>
+
+          <div v-if="draft && canEdit" class="pol-slots">
+            <div v-for="(slot, i) in draft.slots" :key="i" class="pol-slot">
+              <div class="pol-slot-head"><span>国策 {{ i + 1 }}</span><em v-if="!slot.title && !slot.body">空</em></div>
+              <input v-model="slot.title" placeholder="国策标题" />
+              <textarea v-model="slot.body" rows="5" placeholder="内容：手段、代价、预期效果" />
+            </div>
+            <button type="button" class="pol-btn primary" :disabled="busy" @click="doSave">保存国策</button>
+          </div>
+
+          <p v-else-if="isAdminUser && currentClaim" class="pol-hint">管理员可查看该国的国策内容。</p>
+          <p v-else class="pol-hint">锁定该国后才能填写国策。</p>
+        </template>
+
+        <p v-else class="pol-hint">列表里没有可选国家。</p>
       </section>
     </div>
   </div>
 </template>
 
 <style scoped>
-.pol {
-  max-width: 1080px;
-  margin: 0 auto;
-}
+.pol { max-width: 1080px; margin: 0 auto; }
 
 .pol-gate {
-  max-width: 420px;
-  margin: 40px auto;
-  padding: 26px;
-  text-align: center;
-  border: 1px solid var(--vp-c-divider);
-  border-radius: 12px;
-  background: var(--vp-c-bg-soft);
+  max-width: 420px; margin: 40px auto; padding: 26px; text-align: center;
+  border: 1px solid var(--vp-c-divider); border-radius: 12px; background: var(--vp-c-bg-soft);
 }
 
-.pol-layout {
-  display: grid;
-  grid-template-columns: 240px minmax(0, 1fr);
-  gap: 24px;
-  align-items: start;
-}
+.pol-layout { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 24px; align-items: start; }
 
-.pol-list {
-  padding: 14px;
-  border: 1px solid var(--vp-c-divider);
-  border-radius: 12px;
-  background: var(--vp-c-bg-soft);
-}
-
-.pol-list h3 {
-  margin: 0 0 8px;
-  font-size: 13px;
-}
-
-.pol-list ul {
-  display: grid;
-  gap: 2px;
-  max-height: 460px;
-  overflow: auto;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
+.pol-list { padding: 14px; border: 1px solid var(--vp-c-divider); border-radius: 12px; background: var(--vp-c-bg-soft); }
+.pol-list h3 { margin: 0 0 8px; font-size: 13px; display: flex; align-items: center; gap: 6px; }
+.pol-count { font-style: normal; font-size: 11px; color: var(--vp-c-text-3); }
+.pol-list ul { display: grid; gap: 2px; max-height: 460px; overflow: auto; margin: 0; padding: 0; list-style: none; }
 .pol-list button {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: 100%;
-  padding: 6px 8px;
-  font-size: 12.5px;
-  text-align: left;
-  color: var(--vp-c-text-2);
-  background: none;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
+  display: flex; align-items: center; gap: 6px; width: 100%; padding: 6px 8px;
+  font-size: 12.5px; text-align: left; color: var(--vp-c-text-2);
+  background: none; border: none; border-radius: 6px; cursor: pointer;
 }
+.pol-list button:hover { background: var(--vp-c-default-soft); }
+.pol-list button.on { color: var(--vp-c-text-1); font-weight: 600; background: var(--vp-c-bg); }
+.pol-name { flex: 1; }
 
-.pol-list button:hover {
-  background: var(--vp-c-default-soft);
-}
+.pol-tag { font-style: normal; font-size: 10px; padding: 0 5px; border-radius: 3px; color: #8a6a1f; background: rgba(192, 138, 46, 0.16); }
+.pol-tag.mine { color: #1f6f4f; background: rgba(47, 125, 99, 0.16); }
+.pol-tag.free { color: var(--vp-c-text-3); background: var(--vp-c-default-soft); }
+.pol-none { margin: 10px 0 0; font-size: 12px; color: var(--vp-c-text-3); }
 
-.pol-list button.on {
-  color: var(--vp-c-text-1);
-  font-weight: 600;
-  background: var(--vp-c-bg);
-}
+.pol-export { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--vp-c-divider); display: grid; gap: 6px; }
 
-.pol-name {
-  flex: 1;
-}
-
-.pol-tag {
-  font-style: normal;
-  font-size: 10px;
-  padding: 0 5px;
-  border-radius: 3px;
-  color: #8a6a1f;
-  background: rgba(192, 138, 46, 0.16);
-}
-
-.pol-tag.mine {
-  color: #1f6f4f;
-  background: rgba(47, 125, 99, 0.16);
-}
-
-.pol-tag.free {
-  color: var(--vp-c-text-3);
-  background: var(--vp-c-default-soft);
-}
-
-.pol-export {
-  margin-top: 14px;
-  padding-top: 12px;
-  border-top: 1px solid var(--vp-c-divider);
-  display: grid;
-  gap: 6px;
-}
-
-.pol-main {
-  padding: 20px;
-  border: 1px solid var(--vp-c-divider);
-  border-radius: 12px;
-  background: var(--vp-c-bg-soft);
-}
-
-.pol-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.pol-head h2 {
-  margin: 0;
-  font-size: 20px;
-}
-
-.pol-sub {
-  margin: 4px 0 0;
-  font-size: 12.5px;
-  color: var(--vp-c-text-3);
-}
-
-.pol-actions {
-  display: flex;
-  gap: 8px;
-}
+.pol-main { padding: 20px; border: 1px solid var(--vp-c-divider); border-radius: 12px; background: var(--vp-c-bg-soft); }
+.pol-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.pol-head h2 { margin: 0; font-size: 20px; }
+.pol-sub { margin: 4px 0 0; font-size: 12.5px; color: var(--vp-c-text-3); }
+.pol-actions { display: flex; gap: 8px; }
 
 .pol-btn {
-  padding: 7px 14px;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--vp-c-text-1);
-  background: var(--vp-c-bg);
-  border: 1px solid var(--vp-c-divider);
-  border-radius: 7px;
-  cursor: pointer;
+  padding: 7px 14px; font-size: 12.5px; font-weight: 600; color: var(--vp-c-text-1);
+  background: var(--vp-c-bg); border: 1px solid var(--vp-c-divider); border-radius: 7px; cursor: pointer;
+}
+.pol-btn.primary { color: #fff; background: var(--vp-c-brand-1); border-color: transparent; }
+.pol-btn:disabled { opacity: 0.6; cursor: default; }
+
+.pol-slots { display: grid; gap: 14px; }
+.pol-slot { padding: 12px; border: 1px solid var(--vp-c-divider); border-radius: 9px; background: var(--vp-c-bg); }
+.pol-slot-head { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px; font-weight: 600; color: var(--vp-c-text-2); }
+.pol-slot-head em { font-style: normal; font-weight: 400; color: var(--vp-c-text-3); }
+.pol-slot input, .pol-slot textarea {
+  width: 100%; box-sizing: border-box; margin-bottom: 8px; padding: 8px 10px;
+  font: inherit; font-size: 13px; line-height: 1.6; color: var(--vp-c-text-1);
+  background: var(--vp-c-bg-soft); border: 1px solid var(--vp-c-divider); border-radius: 7px; outline: none; resize: vertical;
 }
 
-.pol-btn.primary {
-  color: #fff;
-  background: var(--vp-c-brand-1);
-  border-color: transparent;
-}
-
-.pol-btn:disabled {
-  opacity: 0.6;
-  cursor: default;
-}
-
-.pol-slots {
-  display: grid;
-  gap: 14px;
-}
-
-.pol-slot {
-  padding: 12px;
-  border: 1px solid var(--vp-c-divider);
-  border-radius: 9px;
-  background: var(--vp-c-bg);
-}
-
-.pol-slot-head {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 8px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--vp-c-text-2);
-}
-
-.pol-slot-head em {
-  font-style: normal;
-  font-weight: 400;
-  color: var(--vp-c-text-3);
-}
-
-.pol-slot input,
-.pol-slot textarea {
-  width: 100%;
-  box-sizing: border-box;
-  margin-bottom: 8px;
-  padding: 8px 10px;
-  font: inherit;
-  font-size: 13px;
-  line-height: 1.6;
-  color: var(--vp-c-text-1);
-  background: var(--vp-c-bg-soft);
-  border: 1px solid var(--vp-c-divider);
-  border-radius: 7px;
-  outline: none;
-  resize: vertical;
-}
-
-.pol-slot input:disabled,
-.pol-slot textarea:disabled {
-  opacity: 0.75;
-}
-
-.pol-msg {
-  margin: 0 0 12px;
-  padding: 8px 12px;
-  font-size: 12.5px;
-  border-radius: 7px;
-}
-
-.pol-msg.ok {
-  color: #1f6f4f;
-  background: rgba(47, 125, 99, 0.12);
-}
-
-.pol-msg.err {
-  color: #9c4b4b;
-  background: rgba(156, 75, 75, 0.12);
-}
-
-.pol-hint {
-  margin: 12px 0 0;
-  font-size: 12px;
-  color: var(--vp-c-text-3);
-}
+.pol-msg { margin: 0 0 12px; padding: 8px 12px; font-size: 12.5px; border-radius: 7px; }
+.pol-msg.ok { color: #1f6f4f; background: rgba(47, 125, 99, 0.12); }
+.pol-msg.err { color: #9c4b4b; background: rgba(156, 75, 75, 0.12); }
+.pol-hint { margin: 12px 0 0; font-size: 12px; color: var(--vp-c-text-3); }
 
 @media (max-width: 900px) {
-  .pol-layout {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .pol-list ul {
-    max-height: 220px;
-  }
+  .pol-layout { grid-template-columns: minmax(0, 1fr); }
+  .pol-list ul { max-height: 220px; }
 }
 </style>

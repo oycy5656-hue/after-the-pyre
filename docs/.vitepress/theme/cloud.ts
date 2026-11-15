@@ -209,3 +209,41 @@ export async function savePolicy(slug, data) {
     throw new Error(text || '保存失败（可能不是该国认领者）')
   }
 }
+
+// ---------- 认领规则 v2 ----------
+
+/** 传入选民清单，返回其中可认领（无人认领且空白）的 slug */
+export async function claimableSlugs(candidates) {
+  const res = await fetch(`${config.url}/rest/v1/rpc/claimable_slugs`, {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify({ candidates })
+  })
+  if (!res.ok) return []
+  return res.json()
+}
+
+/** 我锁定的国家（没锁返回 null） */
+export async function myClaim() {
+  const res = await fetch(`${config.url}/rest/v1/rpc/my_claim`, {
+    method: 'POST',
+    headers: headers(),
+    body: '{}'
+  })
+  if (!res.ok) return null
+  return res.json()
+}
+
+/** 管理员：全部认领记录 */
+export async function fetchAllClaims() {
+  const res = await fetch(`${config.url}/rest/v1/rpc/all_claims`, {
+    method: 'POST',
+    headers: headers(),
+    body: '{}'
+  })
+  if (!res.ok) return {}
+  const rows = await res.json()
+  const map = {}
+  for (const r of rows) map[r.slug] = { display: r.display }
+  return map
+}
