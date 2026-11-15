@@ -4,6 +4,7 @@ import { withBase } from 'vitepress'
 import countries from '../../data/countries.mjs'
 import { currentUser, initAuth } from '../auth'
 import { claimCountry, claimableSlugs, fetchAllClaims, fetchClaims, fetchPolicies, myClaim, releaseClaim, savePolicy } from '../cloud'
+import { getOverride, loadEdits, saveOverride } from '../auth'
 
 const user = ref(null)
 const mySlug = ref(null)
@@ -16,6 +17,8 @@ const busy = ref(false)
 const msg = ref('')
 const err = ref('')
 const ready = ref(false)
+const deadline = ref({ open: true, at: '' })
+const canSubmit = computed(() => deadline.value.open || isAdminUser.value)
 
 const SLOTS = 3
 const isAdminUser = computed(() => user.value?.role === 'admin')
@@ -61,6 +64,9 @@ const refresh = async () => {
   claims.value = list || {}
   freeSlugs.value = free || []
   policies.value = await fetchPolicies()
+  await loadEdits()
+  const st = getOverride('__policy_status__')
+  deadline.value = st && typeof st.open === 'boolean' ? st : { open: true, at: '' }
   loadDraft()
 }
 
@@ -116,6 +122,10 @@ const doRelease = async () => {
 }
 
 const doSave = async () => {
+  if (!canSubmit.value) {
+    err.value = '本回合国策提交已截止'
+    return
+  }
   busy.value = true
   err.value = ''
   try {
@@ -129,7 +139,22 @@ const doSave = async () => {
   }
 }
 
-const download = (filename, text, type) => {
+const setDeadline = async (open) => {
+    busy.value = true
+    err.value = ''
+    try {
+      const next = { open, at: new Date().toLocaleString('zh-CN', { hour12: false }).slice(5) }
+      await saveOverride('__policy_status__', next)
+      deadline.value = next
+      msg.value = open ? '已重新开放提交' : '已截止本回合的国策提交'
+    } catch (e) {
+      err.value = e.message
+    } finally {
+      busy.value = false
+    }
+  }
+
+  const download = (filename, text, type) => {
   const blob = new Blob([text], { type })
   const a = document.createElement('a')
   a.href = URL.createObjectURL(blob)
@@ -176,6 +201,17 @@ const exportText = () => {
     <div v-else-if="!ready" class="pol-gate"><p>加载中…</p></div>
 
     <div v-else class="pol-layout">
+      <div class="pol-status" :class="deadline.open ? 'open' : 'closed'">
+        <span>{{ deadline.open ? '本回合国策提交开放中' : '本回合国策提交已截止' }}</span>
+        <template v-if="deadline.at"><em>于 {{ deadline.at }}</em></template>
+        <span v-if="!deadline.open" class="pol-status-note">玩家只能查看，不能再修改；管理员仍可编辑</span>
+        <span class="pol-status-actions" v-if="isAdminUser">
+          <button v-if="deadline.open" type="button" class="pol-btn small" :disabled="busy" @click="setDeadline(false)">截止提交</button>
+          <button v-else type="button" class="pol-btn small primary" :disabled="busy" @click="setDeadline(true)">重新开放</button>
+        </span>
+      </div>
+
+
       <aside class="pol-list">
         <h3>
           {{ isAdminUser ? '全部国家' : '可选国家' }}
@@ -229,10 +265,11 @@ const exportText = () => {
           <div v-if="draft && canEdit" class="pol-slots">
             <div v-for="(slot, i) in draft.slots" :key="i" class="pol-slot">
               <div class="pol-slot-head"><span>国策 {{ i + 1 }}</span><em v-if="!slot.title && !slot.body">空</em></div>
-              <input v-model="slot.title" placeholder="国策标题" />
-              <textarea v-model="slot.body" rows="5" placeholder="内容：手段、代价、预期效果" />
+              <input v-model="slot.title" :disabled="!canSubmit" placeholder="国策标题" />
+              <textarea v-model="slot.body" :disabled="!canSubmit" rows="5" placeholder="内容：手段、代价、预期效果" />
             </div>
-            <button type="button" class="pol-btn primary" :disabled="busy" @click="doSave">保存国策</button>
+            <button v-if="canSubmit" type="button" class="pol-btn primary" :disabled="busy" @click="doSave">保存国策</button>
+            <p v-else class="pol-hint">本回合已截止，等待管理员推进回合。</p>
           </div>
 
           <p v-else-if="isAdminUser && currentClaim" class="pol-hint">管理员可查看该国的国策内容。</p>
@@ -307,4 +344,56 @@ const exportText = () => {
   .pol-layout { grid-template-columns: minmax(0, 1fr); }
   .pol-list ul { max-height: 220px; }
 }
+
+.pol-status {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  font-size: 12.5px;
+  border-radius: 9px;
+  border: 1px solid var(--vp-c-divider);
+}
+
+.pol-status.open {
+  color: #1f6f4f;
+  background: rgba(47, 125, 99, 0.1);
+  border-color: rgba(47, 125, 99, 0.3);
+}
+
+.pol-status.closed {
+  color: #9c4b4b;
+  background: rgba(156, 75, 75, 0.1);
+  border-color: rgba(156, 75, 75, 0.3);
+}
+
+.pol-status em {
+  font-style: normal;
+  opacity: 0.75;
+}
+
+.pol-status-note {
+  opacity: 0.8;
+}
+
+.pol-status-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+
+.pol-btn.small {
+  padding: 4px 10px;
+  font-size: 11.5px;
+}
+
+.pol-slot input:disabled,
+.pol-slot textarea:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
 </style>
