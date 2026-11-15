@@ -17,7 +17,7 @@ export const START_YEAR = 1003
 const MAX_HISTORY = 12
 
 export function emptyTurnState() {
-  return { turn: 0, year: START_YEAR, countries: {}, log: [], history: [] }
+  return { turn: 1, year: START_YEAR, countries: {}, log: [], history: [] }
 }
 
 const parsePop = (raw) => {
@@ -88,13 +88,13 @@ function countryTurn({ country, prev, geo, specs, area, race, growth = DEFAULT_G
 export function advanceTurn(state, countries, options = {}) {
   const prevState = state || emptyTurnState()
   const next = {
-    turn: (prevState.turn || 0) + 1,
+    turn: (prevState.turn || 1) + 1,
     year: (prevState.year || START_YEAR) + YEARS_PER_TURN,
     countries: {},
     log: [...(prevState.log || [])],
     history: [
       ...(prevState.history || []),
-      { turn: prevState.turn || 0, year: prevState.year || START_YEAR, countries: prevState.countries || {}, log: prevState.log || [] }
+      { turn: prevState.turn || 1, year: prevState.year || START_YEAR, countries: prevState.countries || {}, log: prevState.log || [] }
     ].slice(-MAX_HISTORY)
   }
 

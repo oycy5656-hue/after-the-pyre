@@ -98,7 +98,10 @@ onMounted(async () => {
   isAdminUser.value = !!u && u.role === 'admin'
   await loadEdits()
   const tv = getOverride('__turn__')
-  if (tv && typeof tv.turn === 'number') turn.value = { ...emptyTurnState(), ...tv }
+  turn.value =
+    tv && typeof tv.turn === 'number' && Object.keys(tv.countries || {}).length
+      ? { ...emptyTurnState(), ...tv }
+      : buildBaseline()
   const ov = getOverride('__economy__')
   if (ov) {
     cfg.value = {
@@ -117,7 +120,24 @@ onMounted(async () => {
   }
 })
 
-const rows = computed(() => buildRows(countries, map, cfg.value))
+const baseRows = computed(() => buildRows(countries, map, cfg.value))
+
+const turnOf = (name) => turn.value?.countries?.[name] || null
+
+const rows = computed(() =>
+  baseRows.value.map((r) => {
+    const t = turn.value?.countries?.[r.name]
+    if (!t) return r
+    return {
+      ...r,
+      population: t.pop,
+      populationText: t.pop >= 1e6 ? (t.pop / 1e6).toFixed(2) + 'M' : (t.pop / 1e3).toFixed(1) + 'K',
+      gross: t.gdp,
+      perCapita: Math.round(t.gdp / Math.max(1, t.pop)),
+      perCapitaSurplus: Math.round((t.gdp / Math.max(1, t.pop)) * (r.surplusRate || 0.3))
+    }
+  })
+)
 const goods = computed(() => cfg.value.goods)
 const traitsList = computed(() => cfg.value.traits)
 const listed = computed(() => rows.value.filter((r) => r.traitNames > 0))
@@ -163,7 +183,7 @@ const setResValue = (id, raw) => {
 const RES_NAME = new Map(RESOURCES.map((r) => [r.id, r.name]))
 const resName = (id) => (id ? RES_NAME.get(id) || id : '—')
 const raceOf = (name) => countries.find((c) => c.name === name)?.race || '人类'
-const areaOf = (name) => rows.value.find((r) => r.name === name)?.area || 100
+const areaOf = (name) => baseRows.value.find((r) => r.name === name)?.area || 100
 
 
 const BUILD_COST = { timber: 40, stone: 30 }
@@ -224,16 +244,42 @@ const buildLevel = (name, b) => {
   cfg.value.buildLog[name] = log.slice(0, 40)
 }
 
-const simOf = (name) =>
-  simulate({
+const simOf = (name) => {
+  const t = turnOf(name)
+  return simulate({
     specs: specsOf(name),
-    population: rows.value.find((r) => r.name === name)?.population || 1000,
+    population: t?.pop || baseRows.value.find((r) => r.name === name)?.population || 1000,
     race: raceOf(name),
     geo: geoOf(name),
-    area: areaOf(name),
-    levels: cfg.value.buildingLevels?.[name] || {},
+    area: t?.area || areaOf(name),
+    levels: t?.levels || cfg.value.buildingLevels?.[name] || {},
     priceOverrides: cfg.value.resourceValues || {}
   })
+}
+
+/** 第 1 回合基线：用当前国家数据跑一次 */
+const buildBaseline = () => {
+  const snap = {}
+  for (const c of countries) {
+    const sim = simulate({
+      specs: specsOf(c.name),
+      population: baseRows.value.find((r) => r.name === c.name)?.population || 1000,
+      race: c.race,
+      geo: geoOf(c.name),
+      area: areaOf(c.name),
+      priceOverrides: cfg.value.resourceValues || {}
+    })
+    snap[c.name] = {
+      pop: baseRows.value.find((r) => r.name === c.name)?.population || 0,
+      levels: Object.fromEntries(sim.buildings.filter((b) => b.level > 0).map((b) => [b.id, b.level])),
+      gdp: sim.totals.gdp,
+      balance: sim.totals.balance,
+      area: areaOf(c.name),
+      entries: []
+    }
+  }
+  return { turn: 1, year: START_YEAR, countries: snap, log: [], history: [] }
+}
 
 const currentSim = computed(() => (current.value ? simOf(current.value.name) : null))
 const currentBuildings = computed(() => currentSim.value?.buildings || [])
@@ -755,26 +801,34 @@ const resetCfg = () => {
     </section>
 
     <section class="eco-block">
-      <h2>供需与贸易</h2>
+      <h2>国内市场</h2>
       <p class="eco-lead">
-        本国产出多于所需即可出口，不足则进口。紧缺会把价格推高（最多 2.4 倍），过剩则压到 0.55 倍。
-        按贸易额排序，列出影响最大的十项。
+        黑暗时代早期，跨海商路尚未恢复，各国只能吃自己的产出：多的压在仓里，少的就短缺，价格由本地供需决定。
+        成交取产量与需求的较小值，缺口不会自动补上。
       </p>
+      <div class="eco-market-summary">
+        <div><dt>{{ tradeRows.length }}</dt><dd>在市物产</dd></div>
+        <div><dt>{{ fmt(tradeRows.reduce((n, r) => n + r.traded, 0)) }}</dt><dd>总成交</dd></div>
+        <div><dt>{{ fmt(tradeRows.reduce((n, r) => n + r.stock, 0)) }}</dt><dd>积压</dd></div>
+        <div><dt :class="tradeRows.some((r) => r.short > 0) ? 'low' : 'good'">{{ fmt(tradeRows.reduce((n, r) => n + r.short, 0)) }}</dt><dd>短缺</dd></div>
+      </div>
       <table class="eco-trade-table">
         <thead>
-          <tr><th>物产</th><th>产出</th><th>消耗</th><th>净额</th><th>价格</th><th>贸易额</th></tr>
+          <tr><th>物产</th><th>产量</th><th>需求</th><th>成交</th><th>积压</th><th>短缺</th><th>本地价</th></tr>
         </thead>
         <tbody>
           <tr v-for="r in tradeRows" :key="r.id">
             <td class="eco-b-name">{{ r.name }}<em class="eco-unit">{{ r.unit }}</em></td>
-            <td class="num">{{ r.supply }}</td>
-            <td class="num">{{ r.demand }}</td>
-            <td class="num" :class="r.net >= 0 ? 'good' : 'low'">{{ r.net > 0 ? '+' : '' }}{{ r.net }}</td>
+            <td class="num">{{ fmt(r.supply) }}</td>
+            <td class="num">{{ fmt(r.demand) }}</td>
+            <td class="num">{{ fmt(r.traded) }}</td>
+            <td class="num" :class="r.stock > 0 ? 'good' : 'dim'">{{ r.stock ? fmt(r.stock) : '—' }}</td>
+            <td class="num" :class="r.short > 0 ? 'low' : 'dim'">{{ r.short ? fmt(r.short) : '—' }}</td>
             <td class="num">{{ r.price }} D</td>
-            <td class="num">{{ fmt(r.value) }}</td>
           </tr>
         </tbody>
       </table>
+      <p class="eco-market-note">无对外贸易：价格只在本国浮动，短缺推高、积压压低，但不会自动引来进口。</p>
     </section>
 
     <section class="eco-block">
@@ -2189,6 +2243,40 @@ const resetCfg = () => {
 
 .eco-edit-note {
   margin: 4px 0 8px;
+  font-size: 11.5px;
+  color: var(--vp-c-text-3);
+}
+
+
+.eco-market-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.eco-market-summary div {
+  padding: 9px 12px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 8px;
+  background: var(--vp-c-bg-soft);
+}
+
+.eco-market-summary dt {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--vp-c-text-1);
+  font-variant-numeric: tabular-nums;
+}
+
+.eco-market-summary dd {
+  margin: 2px 0 0;
+  font-size: 10.5px;
+  color: var(--vp-c-text-3);
+}
+
+.eco-market-note {
+  margin: 10px 0 0;
   font-size: 11.5px;
   color: var(--vp-c-text-3);
 }

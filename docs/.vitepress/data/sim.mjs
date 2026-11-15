@@ -27,6 +27,8 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
   const specIds = new Set(specs.map((s) => s.id))
   const pop = Math.max(1, population || 1)
   const priceOf = (id) => (id ? priceOverrides[id] ?? byId.get(id)?.value ?? 1 : 1)
+  // 建筑规模随人口缩放：小国不会有和人口相称的产能
+  const scale = clamp(pop / 150000, 0.02, 2.2)
 
   const buildings = deriveBuildings(specs, pop, race).map((b) => {
     const level = levels[b.id] === undefined ? b.level : Number(levels[b.id]) || 0
@@ -46,15 +48,15 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
 
     for (const b of buildings) {
       if (!b.outRes || b.level <= 0 || b.input) continue
-      const qtyPerLevel = b.budget / priceOf(b.outRes)
+      const qtyPerLevel = (b.budget * scale) / priceOf(b.outRes)
       b.qtyPerLevel = qtyPerLevel
       add(produced, b.outRes, qtyPerLevel * b.level)
     }
 
     for (const b of buildings) {
       if (!b.input || b.level <= 0) continue
-      const outQty = b.budget / priceOf(b.outRes)
-      const needPer = (b.budget * (b.inputShare || 0.55)) / priceOf(b.inRes)
+      const outQty = (b.budget * scale) / priceOf(b.outRes)
+      const needPer = (b.budget * scale * (b.inputShare || 0.55)) / priceOf(b.inRes)
       const need = needPer * b.level
       const have = b.inRes ? produced.get(b.inRes) || 0 : 0
       const eff = need > 0 ? clamp(have / need, MIN_EFF, 1) : 1
@@ -114,9 +116,14 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
     const pressure = demand > 0 ? (demand - supply) / Math.max(demand, supply, 1) : 0
     const base = priceOverrides[id] ?? res.value
     const price = Math.round(base * clamp(1 + pressure * 0.9, 0.55, 2.4) * 10) / 10
+    const traded = Math.min(supply, demand)
     rows.push({
       id, name: res.name, unit: res.unit, kind: res.kind, group: res.group,
-      supply, demand, net, base, price, value: Math.round(Math.abs(net) * price)
+      supply, demand, net, base, price,
+      traded,
+      stock: Math.max(0, net),
+      short: Math.max(0, -net),
+      value: Math.round(Math.abs(net) * price)
     })
   }
   rows.sort((a, b) => b.value - a.value)
@@ -130,7 +137,7 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
       continue
     }
     b.eff = b.input ? b.eff ?? 1 : 1
-    b.value = Math.round(b.budget * b.level * (b.input ? b.eff : 1))
+    b.value = Math.round(b.budget * scale * b.level * (b.input ? b.eff : 1))
   }
 
   const gdp = buildings.reduce((n, b) => n + (b.value || 0), 0)
@@ -171,7 +178,8 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
     totals: {
       gdp: Math.round(gdp),
       exports: Math.round(exportsValue),
-      imports: Math.round(importsValue),
+      imports: 0,
+      shortValue: Math.round(importsValue),
       balance: Math.round(exportsValue - importsValue),
       slotsUsed: used,
       slotsCap: cap,
