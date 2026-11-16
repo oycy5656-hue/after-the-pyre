@@ -41,6 +41,7 @@ export default defineConfig({
       { text: '经济', link: '/economy/', activeMatch: '/economy/' },
       { text: '生产', link: '/production/', activeMatch: '/production/' },
       { text: '地块', link: '/tiles/', activeMatch: '/tiles/' },
+      { text: '外交', link: '/diplomacy/', activeMatch: '/diplomacy/' },
       { text: '国策', link: '/policy/', activeMatch: '/policy/' },
       { text: '论坛', link: '/forum/', activeMatch: '/forum/' },
       { text: '账号', link: '/account/', activeMatch: '/account/' }
