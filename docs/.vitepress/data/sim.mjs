@@ -95,7 +95,7 @@ function pickResource(category, specIds, valueOf, allowProcessed = false, mode =
   return pool.sort((a, b) => valueOf(b) - valueOf(a))[0]
 }
 
-export function simulate({ specs, population, race, geo, area, levels = {}, priceOverrides = {}, autoAdjust = true, mods = {} }) {
+export function simulate({ specs, population, race, geo, area, levels = {}, priceOverrides = {}, autoAdjust = true, mods = {}, season = null }) {
   const specIds = new Set(specs.map((s) => s.id))
   const pop = Math.max(1, population || 1)
   const priceOf = (id) => (id ? priceOverrides[id] ?? byId.get(id)?.value ?? 1 : 1)
@@ -267,9 +267,18 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
     const supply = Math.round(produced.get(id) || 0)
     const demand = Math.round(consumed.get(id) || 0)
     const net = supply - demand
-    const pressure = demand > 0 ? (demand - supply) / Math.max(demand, supply, 1) : 0
+    let pressure = demand > 0 ? (demand - supply) / Math.max(demand, supply, 1) : 0
+    // 没有本地需求时，按产量相对基数的多寡给出温和的价格波动（过剩压价、稀缺抬价）
+    if (demand === 0) {
+      const baseline = Math.max(1, pop * 0.02)
+      pressure = clamp((baseline - supply) / Math.max(baseline, supply, 1), -0.25, 0.35)
+    }
+    // 季节：非当季的农产品价格上浮
+    if (season && res.season && res.season !== 'year' && res.season !== season) pressure += 0.12
     const base = priceOverrides[id] ?? res.value
-    const price = Math.round(base * clamp(1 + pressure * 0.9, 0.55, 2.4) * 10) / 10
+    const ratio = demand / Math.max(1, supply)
+    const factor = clamp(0.62 + 0.62 * Math.sqrt(ratio) + pressure * 0.15, 0.5, 2.6)
+    const price = Math.round(base * factor * 10) / 10
     const traded = Math.min(supply, demand)
     rows.push({
       id, name: res.name, unit: res.unit, kind: res.kind, group: res.group,

@@ -43,12 +43,17 @@ function countryTurn({ country, prev, geo, specs, area, race, growth = DEFAULT_G
   // 折旧：百年间淘汰约 25% 的旧产能
   const decayed = {}
   for (const b of before.buildings) {
-    const lv = Math.max(0, Math.round(b.level * 0.75))
+    const lv = Math.max(0, Math.round(b.level * 0.94))
     if (lv > 0) decayed[b.id] = lv
   }
 
-  // 扩建：按产值高低分配可扩建等级
-  let budget = before.totals.buildable
+  // 扩建上限：一回合最多新增现有规模的 12%，且不超过地块余量
+  const slotLeft = Math.max(0, before.totals.slotsCap - before.totals.slotsUsed)
+  const levelTotal = before.buildings.reduce((n, b) => n + b.level, 0)
+  const capByLevel = Math.round(levelTotal * 0.16)
+  const capBySlot = slotLeft * 8
+  // 扩建上限
+  let budget = Math.max(0, Math.min(before.totals.buildable, capByLevel || 0, capBySlot || 0))
   const built = {}
   const ranked = [...before.buildings].filter((b) => b.level > 0).sort((a, b) => b.value - a.value)
   let i = 0
