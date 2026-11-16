@@ -41,6 +41,22 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
     }
   })
 
+  // 容量约束：地块不够时，从最大的建筑开始削减等级
+  {
+    const cap = slotCapacity(geo, area)
+    let used = slotsUsed(buildings)
+    let guard = 500
+    while (used > cap && guard-- > 0) {
+      const target = buildings
+        .filter((b) => b.level > 0)
+        .sort((a, b) => b.level - a.level)[0]
+      if (!target) break
+      target.level -= 1
+      target.overCap = true
+      used = slotsUsed(buildings)
+    }
+  }
+
   const runPass = () => {
     const produced = new Map()
     const consumed = new Map()

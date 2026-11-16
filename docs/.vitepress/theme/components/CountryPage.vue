@@ -296,7 +296,7 @@ const toc = computed(() => [
 
         <h3 class="wp-sub">物产</h3>
         <ul class="wp-tags">
-          <li v-for="sp in econ.specs" :key="sp.id">{{ sp.name }} · {{ sp.value }} D/{{ sp.unit }}</li>
+          <li v-for="sp in econ.specs" :key="sp.id">{{ sp.icon }} {{ sp.name }} · {{ sp.value }} D/{{ sp.unit }}</li>
         </ul>
 
         <h3 class="wp-sub">主要产业</h3>

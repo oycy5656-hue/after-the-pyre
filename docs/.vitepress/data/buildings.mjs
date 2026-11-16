@@ -50,6 +50,12 @@ export const BUILDINGS = [
   { id: 'jeweler', name: '玉石工坊', group: '加工制造', budget: 900000, slots: 1, labor: 700, input: { category: 'ore', qty: 70 }, output: { category: 'luxury' }, note: '玉石与金 → 首饰' },
   { id: 'winery', name: '酒坊', group: '加工制造', budget: 660000, slots: 1, labor: 520, input: { category: 'grain', qty: 200 }, output: { category: 'drink' }, note: '谷物与甘蔗 → 果酒' },
   { id: 'apothecary', name: '药坊', group: '加工制造', budget: 620000, slots: 1, labor: 480, input: { category: 'wood', qty: 120 }, output: { category: 'medicine' }, note: '药材与蜂蜡 → 药与香膏' },
+  { id: 'mill', name: '磨坊与面包房', group: '加工制造', budget: 720000, slots: 1, labor: 620, input: { category: 'grain', qty: 120 }, output: { category: 'food' }, note: '谷物 → 面粉与面包' },
+  { id: 'press', name: '榨油坊', group: '加工制造', budget: 760000, slots: 1, labor: 540, input: { category: 'cashcrop', qty: 100 }, output: { category: 'luxury' }, note: '橄榄与油料 → 橄榄油、香水' },
+  { id: 'glassworks', name: '玻璃坊', group: '加工制造', budget: 880000, slots: 1, labor: 700, input: { category: 'stone', qty: 120 }, output: { category: 'ceramic' }, note: '泡碱与石料 → 玻璃器' },
+  { id: 'brewery', name: '啤酒坊', group: '加工制造', budget: 700000, slots: 1, labor: 560, input: { category: 'grain', qty: 110 }, output: { category: 'drink' }, note: '大麦与啤酒花 → 啤酒' },
+  { id: 'tannery', name: '鞣皮坊', group: '加工制造', budget: 640000, slots: 1, labor: 520, input: { category: 'livestock', qty: 90 }, output: { category: 'wares' }, note: '生皮 → 皮革与甲具' },
+  { id: 'saltern', name: '盐场', group: '采矿采石', budget: 560000, slots: 1, labor: 480, output: { category: 'stone' }, note: '沿海晒盐，腌制与保存之基' },
 
   // —— 流通服务 ——
   { id: 'harbor', name: '商栈与码头', group: '流通服务', budget: 700000, slots: 1, labor: 520, output: { category: 'service' }, note: '转运与仓储，放大交换半径' },

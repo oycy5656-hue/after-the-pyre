@@ -652,7 +652,7 @@ const resetCfg = () => {
           <h4><i :style="{ background: RESOURCE_GROUPS[group] }"></i>{{ group }}<em>{{ items.length }}</em></h4>
           <div class="eco-res-chips">
             <span v-for="r in items" :key="r.id" class="eco-res-chip" :title="r.group + ' · ' + r.value + ' D/' + r.unit">
-              {{ r.name }}
+              <b class="eco-res-icon">{{ r.icon }}</b>{{ r.name }}
               <input
                 v-if="editing"
                 class="eco-res-input"
@@ -1730,6 +1730,12 @@ const resetCfg = () => {
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
+}
+
+.eco-res-icon {
+  margin-right: 4px;
+  font-size: 12px;
+  line-height: 1;
 }
 
 .eco-res-chip {
