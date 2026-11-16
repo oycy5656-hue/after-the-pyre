@@ -116,6 +116,21 @@ export const RESOURCES = [
   { id: 'fur', name: '毛皮', group: '畜牧', kind: 'raw', unit: '张', value: 200, icon: '🦊', climate: '寒带', biomes: { 亚寒带针叶林: 1, 苔原: 1, 寒漠: 0.8 }, h: [40, 100] },
   { id: 'ivory', name: '象牙', group: '特产', kind: 'raw', unit: '件', value: 800, icon: '🦣', climate: '干旱', biomes: { 热带草原: 0.9, 热带沙漠: 0.4 } },
 
+
+  // —— 黑暗时代末至古典早期的加工品 ——
+  { id: 'linen', name: '亚麻布', group: '加工品', kind: 'processed', unit: '匹', value: 210, icon: '🧶', recipe: { 亚麻: 1.4 } },
+  { id: 'woolen', name: '毛呢', group: '加工品', kind: 'processed', unit: '匹', value: 260, icon: '🧥', recipe: { 羊毛: 1.5 } },
+  { id: 'amphora', name: '双耳陶罐', group: '加工品', kind: 'processed', unit: '件', value: 110, icon: '🏺', recipe: { 黏土: 1.2 } },
+  { id: 'tallow', name: '兽脂', group: '加工品', kind: 'processed', unit: '担', value: 95, icon: '🕯️', recipe: { 牛: 0.2, 羊: 0.3 } },
+  { id: 'mead', name: '蜂蜜酒', group: '加工品', kind: 'processed', unit: '桶', value: 150, icon: '🍯', recipe: { 蜂蜜: 0.8, 木材: 0.2 } },
+  { id: 'fishsauce', name: '鱼酱', group: '加工品', kind: 'processed', unit: '罐', value: 140, icon: '🧴', recipe: { 海鱼: 1.1, 盐: 0.35 } },
+  { id: 'millstone', name: '石磨', group: '加工品', kind: 'processed', unit: '件', value: 180, icon: '⚙️', recipe: { 石料: 1.3 } },
+  { id: 'hornware', name: '角器', group: '加工品', kind: 'processed', unit: '件', value: 90, icon: '🦌', recipe: { 兽角: 1 } },
+  { id: 'wicker', name: '编织器', group: '加工品', kind: 'processed', unit: '件', value: 60, icon: '🧺', recipe: { 木材: 0.5, 荨麻: 0.4 } },
+  { id: 'fishhook', name: '鱼钩', group: '加工品', kind: 'processed', unit: '件', value: 70, icon: '🪝', recipe: { 骨料: 0.8, 燧石: 0.2 } },
+  { id: 'bronze_ware', name: '青铜饰', group: '加工品', kind: 'processed', unit: '件', value: 380, icon: '🥉', metal: 'bronze', recipe: { 青铜: 0.5 } },
+  { id: 'pitch', name: '沥青', group: '加工品', kind: 'processed', unit: '桶', value: 120, icon: '🛢️', recipe: { 焦油: 1 } },
+
   // —— 加工品 ——
   { id: 'flour', name: '面粉', group: '加工品', kind: 'processed', unit: '石', value: 55, icon: '🌾', recipe: { 小麦: 1.3 } },
   { id: 'bread', name: '面包', group: '加工品', kind: 'processed', unit: '担', value: 90, icon: '🍞', recipe: { 面粉: 0.9 } },
@@ -167,12 +182,12 @@ export const OUTPUT_CATEGORY = {
   iron: ['iron_tool', 'weapon'],
   bronze: ['bronze', 'bronze_tool'],
   stone: ['stone_tool', 'bone_tool'],
-  textile: ['cloth', 'felt'],
-  ceramic: ['pottery', 'brick'],
-  wares: ['leather', 'rope', 'weapon'],
-  luxury: ['wine', 'oliveoil'],
+  textile: ['cloth', 'felt', 'linen', 'woolen'],
+  ceramic: ['pottery', 'brick', 'amphora'],
+  wares: ['leather', 'rope', 'weapon', 'hornware', 'wicker', 'fishhook'],
+  luxury: ['wine', 'oliveoil', 'mead', 'tallow', 'bronze_ware'],
   drink: ['beer', 'wine'],
-  food: ['bread', 'cheese', 'saltedfish', 'flour']
+  food: ['bread', 'cheese', 'saltedfish', 'flour', 'fishsauce'],
 }
 
 /** 所有国家保底拥有的基础物料 */

@@ -10,39 +10,58 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v))
 export const FOOD_PER_CAPITA = 3
 // 民生需求（每人每年），参考 Vic3 的消费品概念
 export const CIVIC_DEMAND = {
-  // 基本民生：衣、食、器、盐、燃料
-  cloth: 0.02,
-  felt: 0.008,
-  pottery: 0.015,
-  salt: 0.02,
-  leather: 0.008,
-  beer: 0.012,
-  wine: 0.004,
-  cheese: 0.006,
-  bread: 0.01,
-  flour: 0.008,
-  saltedfish: 0.005,
-  charcoal: 0.01,
-  tar: 0.002,
-  rope: 0.004,
-  stone_tool: 0.004,
-  bone_tool: 0.002,
-  // 礼制与交换：香药、织物、金属器
-  herb: 0.004,
-  spice: 0.002,
-  pepper: 0.0015,
-  honey: 0.003,
-  wax: 0.002,
-  oliveoil: 0.003,
-  feather: 0.001,
-  ivory: 0.0004,
-  amber: 0.0003,
-  jade: 0.0004,
-  ochre: 0.002,
-  madder: 0.002,
-  woad: 0.002,
-  resin: 0.003,
-  wood_char: 0
+  // 衣食：主食之外，腌鱼与奶酪是主要蛋白
+  bread: 0.02,
+  flour: 0.012,
+  cheese: 0.02,
+  saltedfish: 0.02,
+  fishsauce: 0.012,
+  beer: 0.03,
+  wine: 0.01,
+  mead: 0.006,
+  // 衣物与家居：家庭纺织消耗原麻与原毛
+  cloth: 0.03,
+  linen: 0.012,
+  woolen: 0.012,
+  felt: 0.012,
+  flax: 0.01,
+  wool: 0.01,
+  hemp: 0.006,
+  nettle: 0.004,
+  leather: 0.012,
+  // 器用
+  pottery: 0.025,
+  amphora: 0.01,
+  brick: 0.006,
+  millstone: 0.002,
+  wicker: 0.004,
+  hornware: 0.003,
+  stone_tool: 0.006,
+  bone_tool: 0.004,
+  fishhook: 0.001,
+  rope: 0.006,
+  pitch: 0.002,
+  // 盐与燃料
+  salt: 0.03,
+  charcoal: 0.02,
+  tar: 0.003,
+  tallow: 0.006,
+  // 医药与礼制
+  herb: 0.02,
+  honey: 0.01,
+  wax: 0.006,
+  oliveoil: 0.008,
+  spice: 0.006,
+  pepper: 0.005,
+  ochre: 0.004,
+  madder: 0.004,
+  woad: 0.004,
+  resin: 0.005,
+  feather: 0.003,
+  ivory: 0.001,
+  amber: 0.001,
+  jade: 0.001,
+  bronze_ware: 0.002
 }
 
 const MIN_EFF = 0.12
@@ -218,6 +237,8 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
   // 民生需求：布、陶、盐、皮革、酒、燃料、工具
   for (const [id, per] of Object.entries(CIVIC_DEMAND)) {
     if (!byId.has(id)) continue
+    // 本国完全产不出来的东西，不凭空产生需求
+    if ((produced.get(id) || 0) <= 0) continue
     const need = Math.round(pop * per)
     if (need > 0) add(consumed, id, need)
   }
