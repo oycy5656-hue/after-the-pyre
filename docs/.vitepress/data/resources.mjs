@@ -191,7 +191,7 @@ export const OUTPUT_CATEGORY = {
 }
 
 /** 所有国家保底拥有的基础物料 */
-export const BASE_RESOURCES = ['timber', 'stone', 'clay', 'flint', 'salt', 'herb', 'hide', 'bone']
+export const BASE_RESOURCES = ['timber', 'stone', 'clay', 'flint', 'salt', 'herb', 'hide', 'bone', 'flax', 'wool', 'nettle']
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v))
 

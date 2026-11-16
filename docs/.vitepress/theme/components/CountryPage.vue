@@ -104,7 +104,8 @@ const econ = computed(() => {
     race: c.race,
     geo,
     area: st ? st.area : 120,
-    mods: countryEffects(c.name).mod
+    mods: countryEffects(c.name).mod,
+    system: c.politics?.system || null
   })
   return { sim, specs }
 })

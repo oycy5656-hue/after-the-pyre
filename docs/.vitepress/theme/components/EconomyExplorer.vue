@@ -8,6 +8,7 @@ import { geoOf } from '../../data/geography.mjs'
 import { CLIMATES, RESOURCES, RESOURCE_GROUPS, SEASON_HINT, SEASON_LABEL, deriveSectors, deriveSpecialties } from '../../data/resources.mjs'
 import { COUNTRY_TRAIT_NAMES, TRAIT_ECON_LIST, countryEffects } from '../../data/trait-economy.mjs'
 import { metalTechOf } from '../../data/country-metal.mjs'
+import { CLASS_BASKETS, classShares } from '../../data/classes.mjs'
 import { BUILDING_GROUPS, BUILDINGS } from '../../data/buildings.mjs'
 import { simulate } from '../../data/sim.mjs'
 import { DEFAULT_GROWTH, advanceTurn, emptyTurnState, undoTurn, worldSummary, START_YEAR, YEARS_PER_TURN } from '../../data/turn.mjs'
@@ -256,7 +257,8 @@ const simOf = (name) => {
     area: t?.area || areaOf(name),
     levels: t?.levels || cfg.value.buildingLevels?.[name] || {},
     priceOverrides: cfg.value.resourceValues || {},
-    mods: countryEffects(name).mod
+    mods: countryEffects(name).mod,
+    system: countries.find((x) => x.name === name)?.politics?.system || null
   })
 }
 
@@ -333,6 +335,21 @@ const currentEffects = computed(() => {
     .map(([key, label]) => ({ key, label, value: mod[key] || 0 }))
     .filter((m) => Math.abs(m.value) > 0.001)
     .sort((a, b) => Math.abs(b.value) - Math.abs(a.value))
+})
+
+const currentClasses = computed(() => {
+  const name = current.value?.name
+  if (!name) return []
+  const c = countries.find((x) => x.name === name)
+  const shares = classShares(c?.politics?.system)
+  return Object.entries(shares).map(([cls, share]) => {
+    const basket = CLASS_BASKETS[cls] || {}
+    const top = Object.entries(basket)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([id]) => RESOURCES.find((r) => r.id === id)?.name || id)
+    return { cls, share, top }
+  })
 })
 
 const groupedResources = computed(() => {
@@ -562,7 +579,15 @@ const resetCfg = () => {
           </div>
           <p v-if="!editing && current.manual" class="eco-manual-tag">含手工设定的数值</p>
 
-          <p class="eco-mini-title">天赋加成</p>
+          <p class="eco-mini-title">阶层结构</p>
+        <ul class="eco-classes">
+          <li v-for="k in currentClasses" :key="k.cls">
+            <span class="eco-cls-name">{{ k.cls }}<em>{{ (k.share * 100).toFixed(0) }}%</em></span>
+            <span class="eco-cls-goods">{{ k.top.join(' · ') }}</span>
+          </li>
+        </ul>
+
+        <p class="eco-mini-title">天赋加成</p>
         <ul class="eco-trait-mods">
           <li v-for="m in currentEffects" :key="m.key">
             <span>{{ m.label }}</span>
@@ -1794,6 +1819,40 @@ const resetCfg = () => {
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
+}
+
+.eco-classes {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+}
+
+.eco-classes li {
+  padding: 6px 9px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 8px;
+  background: var(--vp-c-bg-soft);
+}
+
+.eco-cls-name {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11.5px;
+  color: var(--vp-c-text-2);
+}
+
+.eco-cls-name em {
+  font-style: normal;
+  color: var(--vp-c-brand-1);
+}
+
+.eco-cls-goods {
+  display: block;
+  margin-top: 2px;
+  font-size: 10.5px;
+  color: var(--vp-c-text-3);
 }
 
 .eco-trait-mods {

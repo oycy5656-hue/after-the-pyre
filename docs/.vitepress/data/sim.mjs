@@ -3,6 +3,7 @@
 
 import { BUILD_COST, CATEGORY, deriveBuildings, slotCapacity, slotsUsed } from './buildings.mjs'
 import { OUTPUT_CATEGORY, RESOURCES, metalAccess } from './resources.mjs'
+import { CLASS_BASKETS, HOUSEHOLD_CRAFT, classShares } from './classes.mjs'
 
 const byId = new Map(RESOURCES.map((r) => [r.id, r]))
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v))
@@ -95,7 +96,7 @@ function pickResource(category, specIds, valueOf, allowProcessed = false, mode =
   return pool.sort((a, b) => valueOf(b) - valueOf(a))[0]
 }
 
-export function simulate({ specs, population, race, geo, area, levels = {}, priceOverrides = {}, autoAdjust = true, mods = {}, season = null }) {
+export function simulate({ specs, population, race, geo, area, levels = {}, priceOverrides = {}, autoAdjust = true, mods = {}, season = null, system = null }) {
   const specIds = new Set(specs.map((s) => s.id))
   const pop = Math.max(1, population || 1)
   const priceOf = (id) => (id ? priceOverrides[id] ?? byId.get(id)?.value ?? 1 : 1)
@@ -242,6 +243,22 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
 
   const { produced, consumed, add } = pass
 
+  // 家庭手工业：农户自家纺纱、烧陶，补上作坊产能不足
+  {
+    const shares = classShares(system)
+    for (const [outId, cfg] of Object.entries(HOUSEHOLD_CRAFT)) {
+      const src = produced.get(cfg.from) || 0
+      const srcDemand = consumed.get(cfg.from) || 0
+      const surplus = Math.max(0, src - srcDemand)
+      if (surplus <= 0) continue
+      const made = surplus * cfg.rate
+      if (made <= 0) continue
+      pass.produced.set(outId, (pass.produced.get(outId) || 0) + made)
+      pass.consumed.set(cfg.from, (pass.consumed.get(cfg.from) || 0) + made)
+    }
+  }
+
+
   // 口粮优先：先满足人口，再谈工业用粮
   const grainIds = CATEGORY.grain.filter((id) => (produced.get(id) || 0) > 0)
   const grainTotal = grainIds.reduce((n, id) => n + (produced.get(id) || 0), 0)
@@ -250,13 +267,36 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
     for (const id of grainIds) add(consumed, id, Math.round(foodNeed * ((produced.get(id) || 0) / grainTotal)))
   }
 
-  // 民生需求：布、陶、盐、皮革、酒、燃料、工具
-  for (const [id, per] of Object.entries(CIVIC_DEMAND)) {
-    if (!byId.has(id)) continue
-    // 本国完全产不出来的东西，不凭空产生需求
+  // 阶层消费：上层、祭司、武士、农户、贫民各有各的篮子
+  const shares = classShares(system)
+  for (const [cls, share] of Object.entries(shares)) {
+    const cp = pop * share
+    const basket = CLASS_BASKETS[cls] || {}
+    for (const [id, per] of Object.entries(basket)) {
+      if (!byId.has(id)) continue
+      // 产不出来的东西不凭空生成需求
+      if ((produced.get(id) || 0) <= 0 && (pass.produced.get(id) || 0) <= 0) continue
+      const need = Math.round(cp * per)
+      if (need > 0) add(consumed, id, need)
+    }
+  }
+
+  // 基础民生兜底：即便阶层篮子未覆盖，也保证盐、燃料有消耗
+  for (const [id, per] of [['salt', 0.02], ['charcoal', 0.012]]) {
     if ((produced.get(id) || 0) <= 0) continue
-    const need = Math.round(pop * per)
-    if (need > 0) add(consumed, id, need)
+    add(consumed, id, Math.round(pop * per))
+  }
+
+  // 影子经济：农户自纺、自酿、自烧的部分不进市场统计，但确实被消费掉了
+  {
+    const shadowGoods = ['cloth', 'linen', 'woolen', 'felt', 'leather', 'hornware', 'pottery', 'amphora', 'beer', 'mead', 'bread', 'flour', 'cheese', 'saltedfish', 'fishsauce', 'wicker', 'rope', 'stone_tool', 'bone_tool']
+    for (const id of shadowGoods) {
+      const supply = produced.get(id) || 0
+      const demand = consumed.get(id) || 0
+      if (demand > supply && demand > 0) {
+        produced.set(id, demand * 1.02)
+      }
+    }
   }
 
   const rows = []

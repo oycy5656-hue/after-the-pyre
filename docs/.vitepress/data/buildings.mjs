@@ -112,6 +112,8 @@ export function deriveBuildings(specs, population, race, metalAccess = 'none') {
       w = b.id === 'temple' ? 1.4 : 1.0
     } else if (b.output.category === 'ore') {
       w = 2.4
+    } else if (['textile', 'drink', 'ceramic'].includes(b.output.category)) {
+      w = 2.0
     } else if (b.output.category === 'metal' || b.output.category === 'bronze') {
       w = 1.6
     } else {
