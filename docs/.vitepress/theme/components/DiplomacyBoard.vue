@@ -228,33 +228,6 @@ const activeCountry = computed(() => (active.value?.recorded ? countryOf(active.
       </div>
     </section>
 
-    <section class="dp-section">
-      <h2>关系一览</h2>
-      <p class="dp-sub">「接壤」来自地块边界计算，「提及」来自各国档案正文。</p>
-      <table class="dp-table">
-        <thead>
-          <tr><th>国家</th><th>政体</th><th>地区</th><th>接壤</th><th>档案提及</th></tr>
-        </thead>
-        <tbody>
-          <tr v-for="c in countries" :key="c.name">
-            <td>
-              <a :href="withBase('/countries/' + c.slug + '.html')">{{ c.name }}</a>
-              <em v-if="!c.onMap" class="dp-offmap">{{ c.name === '维瑞亚帝国' ? '四家族共治' : '未上图' }}</em>
-            </td>
-            <td>{{ c.system || '—' }}</td>
-            <td>{{ c.region || '—' }}</td>
-            <td class="dp-cell-chips">
-              <span v-for="n in c.neighbors" :key="n">{{ n }}</span>
-              <i v-if="!c.neighbors.length">—</i>
-            </td>
-            <td class="dp-cell-chips">
-              <span v-for="m in c.mentions" :key="m">{{ m }}</span>
-              <i v-if="!c.mentions.length">—</i>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
   </div>
 </template>
 
@@ -651,32 +624,6 @@ const activeCountry = computed(() => (active.value?.recorded ? countryOf(active.
   color: var(--vp-c-text-3);
 }
 
-.dp-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 12px;
-}
-
-.dp-table th {
-  padding: 8px 10px;
-  font-size: 11px;
-  text-align: left;
-  color: var(--vp-c-text-3);
-  border-bottom: 1px solid var(--vp-c-divider);
-}
-
-.dp-table td {
-  padding: 7px 10px;
-  vertical-align: top;
-  border-bottom: 1px solid var(--vp-c-divider);
-  color: var(--vp-c-text-2);
-}
-
-.dp-table a {
-  color: var(--vp-c-text-1);
-  font-weight: 600;
-}
-
 .dp-offmap {
   margin-left: 6px;
   padding: 0 5px;
@@ -687,23 +634,6 @@ const activeCountry = computed(() => (active.value?.recorded ? countryOf(active.
   border-radius: 3px;
 }
 
-.dp-cell-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
-.dp-cell-chips span {
-  padding: 1px 7px;
-  font-size: 10.5px;
-  border: 1px solid var(--vp-c-divider);
-  border-radius: 999px;
-}
-
-.dp-cell-chips i {
-  font-style: normal;
-  color: var(--vp-c-text-3);
-}
 
 @media (max-width: 1000px) {
   .dp-body {
