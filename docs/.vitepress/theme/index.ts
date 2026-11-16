@@ -17,6 +17,8 @@ import DispatchBoard from './components/DispatchBoard.vue'
 import './style.css'
 import './ui-refresh.css'
 import './wide.css'
+import './premium.css'
+import { installPremiumUI, onRouteChanged } from './premium'
 
 const RIPPLE_TARGETS = 'button, .vp-button, .VPNavBarMenuLink, .VPSidebarItem .link, .dp-card, .tw-btn'
 
@@ -52,6 +54,7 @@ function installRouteTransition(router: any) {
     router.onAfterRouteChanged = (to: string) => {
       prev?.(to)
       animate()
+      window.setTimeout(() => onRouteChanged(), 80)
     }
   }
 }
@@ -62,6 +65,8 @@ export default {
     if (typeof window !== 'undefined') {
       installRipple()
       installRouteTransition(router)
+      installPremiumUI()
+      window.setTimeout(() => onRouteChanged(), 60)
     }
     app.component('CountryPage', CountryPage)
     app.component('CountryExplorer', CountryExplorer)
