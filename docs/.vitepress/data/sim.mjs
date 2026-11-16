@@ -267,6 +267,25 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
     for (const id of grainIds) add(consumed, id, Math.round(foodNeed * ((produced.get(id) || 0) / grainTotal)))
   }
 
+  // 营造需求：修城、铺路、开渠要吃掉石料与木材
+  {
+    const levels = buildings.reduce((n, b) => n + Math.max(0, b.level), 0)
+    const works = [
+      ['stone', levels * 700 + pop * 0.5],
+      ['timber', levels * 132 + pop * 0.15],
+      ['clay', levels * 40],
+      ['brick', levels * 30]
+    ]
+    for (const [id, amount] of works) {
+      if (!byId.has(id)) continue
+      const supply = produced.get(id) || 0
+      if (supply <= 0) continue
+      // 营造只能吃掉手头石木的 85%，材料不够就少修几段
+      const need = Math.min(Math.round(amount), Math.round(supply * 0.85))
+      if (need > 0) add(consumed, id, need)
+    }
+  }
+
   // 阶层消费：上层、祭司、武士、农户、贫民各有各的篮子
   const shares = classShares(system)
   for (const [cls, share] of Object.entries(shares)) {
