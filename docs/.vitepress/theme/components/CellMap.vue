@@ -165,15 +165,17 @@ const popSource = ref({ officialCells: 0, officialTotal: 0, mapTotal: 0 })
 // burgs(SVG 坐标) → cells(GeoJSON 坐标)：由 35 个首都质心拟合，平均误差 0.76
 const BURG_TRANSFORM = { sx: 0.18695, ox: -178.38, sy: -0.18751, oy: 89.56 }
 
-const capitals = (mapData.burgs || [])
-  .filter((b) => b.capital)
-  .map((b) => ({
-    name: b.name,
-    state: b.state,
-    x: b.geo ? b.x : BURG_TRANSFORM.sx * b.x + BURG_TRANSFORM.ox,
-    y: b.geo ? b.y : BURG_TRANSFORM.sy * b.y + BURG_TRANSFORM.oy,
-    color: mapData.states.find((st) => st.i === b.state)?.color || '#d8b878'
+const capitals = (mapData.states || [])
+  .filter((st) => st.capital && typeof st.capital.x === 'number' && typeof st.capital.y === 'number')
+  .map((st) => ({
+    name: st.capital.name,
+    state: st.i,
+    x: st.capital.x,
+    y: st.capital.y,
+    color: st.color || '#d8b878'
   }))
+
+if (typeof window !== "undefined") window.__caps = capitals
 
 const stateAgg = computed(() => {
   const sid = selected.value?.s
@@ -317,21 +319,34 @@ const draw = () => {
     for (const e of borderEdges) {
       const ca = cells.value[e.a]
       const cb = cells.value[e.b]
-      // 只画两国相接的边，荒野一侧不描边
-      if (!(ca.s > 0 && cb.s > 0)) continue
+      const caOwned = ca.s > 0
+      const cbOwned = cb.s > 0
+      if (!caOwned && !cbOwned) continue
+
       const dx = e.bx - e.ax
       const dy = e.by - e.ay
       const len = Math.hypot(dx, dy) || 1
       const nx = -dy / len
       const ny = dx / len
+
+      // 一方是荒野：只沿边画一条细线，居中不偏移（避免双线重影）
+      if (!caOwned || !cbOwned) {
+        const owned = caOwned ? ca : cb
+        ctx.strokeStyle = stateById.get(owned.s)?.color || '#d8b878'
+        ctx.lineWidth = band * 0.55
+        ctx.beginPath()
+        ctx.moveTo(e.ax, e.ay)
+        ctx.lineTo(e.bx, e.by)
+        ctx.stroke()
+        continue
+      }
+
+      // 两国相接：各画一条，彼此贴合
       const mx = (e.ax + e.bx) / 2
       const my = (e.ay + e.by) / 2
-
-      // 判断边向量哪一侧属于 A
       const va = (ca.cx - mx) * nx + (ca.cy - my) * ny
       const side = va >= 0 ? 1 : -1
 
-      // A 侧
       ctx.strokeStyle = stateById.get(ca.s)?.color || '#d8b878'
       ctx.lineWidth = band
       ctx.beginPath()
@@ -339,14 +354,67 @@ const draw = () => {
       ctx.lineTo(e.bx + nx * side * band * 0.5, e.by + ny * side * band * 0.5)
       ctx.stroke()
 
-      // B 侧：只有对面也是政权时才画第二色，荒野一侧留空
-      if (cb.s > 0) {
-        ctx.strokeStyle = stateById.get(cb.s)?.color || '#d8b878'
-        ctx.beginPath()
-        ctx.moveTo(e.ax - nx * side * band * 0.5, e.ay - ny * side * band * 0.5)
-        ctx.lineTo(e.bx - nx * side * band * 0.5, e.by - ny * side * band * 0.5)
-        ctx.stroke()
+      ctx.strokeStyle = stateById.get(cb.s)?.color || '#d8b878'
+      ctx.beginPath()
+      ctx.moveTo(e.ax - nx * side * band * 0.5, e.ay - ny * side * band * 0.5)
+      ctx.lineTo(e.bx - nx * side * band * 0.5, e.by - ny * side * band * 0.5)
+      ctx.stroke()
+    }
+  }
+
+  ctx.restore()
+
+  // 首都标记（屏幕坐标绘制，文字始终正向）
+  if (capitals.length) {
+    const flipCenter = bounds.y + bounds.h / 2
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    for (const cap of capitals) {
+      const my = flipped.value ? 2 * flipCenter - cap.y : cap.y
+      const px = view.tx + cap.x * view.scale
+      const py = view.ty + my * view.scale
+      if (px < -40 || py < -40 || px > w + 40 || py > h + 40) continue
+
+      ctx.beginPath()
+      ctx.arc(px, py, 4.2, 0, Math.PI * 2)
+      ctx.fillStyle = cap.color
+      ctx.fill()
+      ctx.lineWidth = 1.4
+      ctx.strokeStyle = 'rgba(240,230,210,0.9)'
+      ctx.stroke()
+      ctx.beginPath()
+      ctx.arc(px, py, 1.4, 0, Math.PI * 2)
+      ctx.fillStyle = '#0b1412'
+      ctx.fill()
+
+      if (view.scale > baseScale * 1.15) {
+        ctx.font = '11px system-ui, sans-serif'
+        ctx.lineWidth = 3
+        ctx.strokeStyle = 'rgba(6,9,8,0.85)'
+        ctx.strokeText(cap.name, px, py + 13)
+        ctx.fillStyle = '#f0e6d2'
+        ctx.fillText(cap.name, px, py + 13)
       }
+    }
+  }
+
+  // 选中格高亮
+  const sel = selected.value
+  if (sel) {
+    const idx = cells.value.indexOf(sel)
+    if (idx >= 0) {
+      ctx.save()
+      ctx.translate(view.tx, view.ty)
+      ctx.scale(view.scale, view.scale)
+      if (flipped.value) {
+        const c = bounds.y + bounds.h / 2
+        ctx.translate(0, 2 * c)
+        ctx.scale(1, -1)
+      }
+      ctx.strokeStyle = '#f3d9a4'
+      ctx.lineWidth = 2 / view.scale
+      ctx.stroke(paths[idx])
+      ctx.restore()
     }
   }
 }
