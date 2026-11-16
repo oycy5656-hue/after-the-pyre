@@ -79,13 +79,14 @@ export function slotCapacity(geo, area, population = 0) {
   if (!geo) return 12
   const byArea = Math.round(Math.sqrt(Math.max(1, area || 100)) * 4.2)
   const terrain = geo.h > 70 ? 4 : geo.h > 50 ? 8 : 14
-  const byPop = Math.min(22, Math.round(Math.sqrt(Math.max(0, population)) / 22))
+  const byPop = Math.min(34, Math.round(Math.sqrt(Math.max(0, population)) / 18))
   const water = (geo.river > 40 ? 3 : 0) + (geo.coast > 40 ? 3 : 0)
   return Math.max(14, Math.min(220, byArea + terrain + byPop + water))
 }
 
 export function slotsUsed(list) {
-  return list.reduce((n, b) => n + (b.level > 0 ? Math.ceil(b.level / 8) : 0), 0)
+  // 建筑一旦建成就占地，哪怕停工也占着（每级 1/8 格，最少 1 格）
+  return list.reduce((n, b) => n + Math.max(1, Math.ceil(Math.max(1, b.level) / 8)), 0)
 }
 
 /** 金属条件：'any' 任意矿；'bronze' 需铜/锡/铁；'iron' 需铁 */
@@ -109,8 +110,10 @@ export function deriveBuildings(specs, population, race, metalAccess = 'none') {
     let w = 0
     if (b.output.category === 'service') {
       w = b.id === 'temple' ? 1.4 : 1.0
+    } else if (b.output.category === 'ore') {
+      w = 2.4
     } else if (b.output.category === 'metal' || b.output.category === 'bronze') {
-      w = 1.2
+      w = 1.6
     } else {
       const cands = CATEGORY[b.output.category] || []
       w = cands.filter((r) => ids.has(r)).length * 1.5

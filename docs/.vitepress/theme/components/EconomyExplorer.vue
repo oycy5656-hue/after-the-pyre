@@ -7,6 +7,7 @@ import { currentUser, getOverride, initAuth, loadEdits, saveOverride } from '../
 import { geoOf } from '../../data/geography.mjs'
 import { CLIMATES, RESOURCES, RESOURCE_GROUPS, SEASON_HINT, SEASON_LABEL, deriveSectors, deriveSpecialties } from '../../data/resources.mjs'
 import { COUNTRY_TRAIT_NAMES, TRAIT_ECON_LIST, countryEffects } from '../../data/trait-economy.mjs'
+import { metalTechOf } from '../../data/country-metal.mjs'
 import { BUILDING_GROUPS, BUILDINGS } from '../../data/buildings.mjs'
 import { simulate } from '../../data/sim.mjs'
 import { DEFAULT_GROWTH, advanceTurn, emptyTurnState, undoTurn, worldSummary, START_YEAR, YEARS_PER_TURN } from '../../data/turn.mjs'
@@ -158,7 +159,7 @@ const fmt = (n) => {
   return String(Math.round(n))
 }
 
-const specsOf = (name) => deriveSpecialties(geoOf(name), 5)
+const specsOf = (name) => deriveSpecialties(geoOf(name), { tech: metalTechOf(name) })
 const currentSpecs = computed(() => (current.value ? specsOf(current.value.name) : []))
 const currentSectors = computed(() => deriveSectors(currentSpecs.value))
 const allSpecs = computed(() =>

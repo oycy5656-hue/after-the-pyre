@@ -206,6 +206,7 @@ export function scoreResource(res, geo) {
 export function deriveSpecialties(geo, opts = {}) {
   if (!geo) return []
   const max = opts.max || 16
+  const tech = opts.tech || 'stone'
   const ratio = opts.ratio ?? 0.5
 
   const byId = new Map(RAW_RESOURCES.map((r) => [r.id, r]))
@@ -231,14 +232,29 @@ export function deriveSpecialties(geo, opts = {}) {
   }
 
   // 3) 地理推导
+  // 矿石只保留科技允许的
+  const oreAllowed = tech === 'iron' ? ['iron', 'copper', 'tin'] : tech === 'bronze' ? ['copper', 'tin'] : []
   const scored = RAW_RESOURCES.map((r) => ({ r, score: Math.round(scoreResource(r, geo) * 100) / 100 }))
     .filter((x) => x.score > 0 && !seen.has(x.r.id))
+    .filter((x) => (ORE_IDS.includes(x.r.id) ? oreAllowed.includes(x.r.id) : true))
     .sort((a, b) => b.score - a.score)
+
+  // 青铜需铜锡兼有：有青铜科技就保证两种矿都能拿到
+  if (tech === 'bronze') {
+    for (const id of ['copper', 'tin']) {
+      if (seen.has(id)) continue
+      const r0 = byId.get(id)
+      if (r0) {
+        picked.push({ ...r0, score: 1, baseline: true })
+        seen.add(id)
+      }
+    }
+  }
 
   const top = scored[0]?.score || 1
 
   // 金属矿优先：地理条件达标即入选（有山就有矿）
-  for (const id of ORE_IDS) {
+  for (const id of oreAllowed) {
     const entry = scored.find((x) => x.r.id === id)
     if (entry && entry.score >= 2.0 && !seen.has(id)) {
       picked.push({ ...entry.r, score: entry.score })

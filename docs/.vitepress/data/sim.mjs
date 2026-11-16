@@ -8,6 +8,43 @@ const byId = new Map(RESOURCES.map((r) => [r.id, r]))
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v))
 
 export const FOOD_PER_CAPITA = 3
+// 民生需求（每人每年），参考 Vic3 的消费品概念
+export const CIVIC_DEMAND = {
+  // 基本民生：衣、食、器、盐、燃料
+  cloth: 0.02,
+  felt: 0.008,
+  pottery: 0.015,
+  salt: 0.02,
+  leather: 0.008,
+  beer: 0.012,
+  wine: 0.004,
+  cheese: 0.006,
+  bread: 0.01,
+  flour: 0.008,
+  saltedfish: 0.005,
+  charcoal: 0.01,
+  tar: 0.002,
+  rope: 0.004,
+  stone_tool: 0.004,
+  bone_tool: 0.002,
+  // 礼制与交换：香药、织物、金属器
+  herb: 0.004,
+  spice: 0.002,
+  pepper: 0.0015,
+  honey: 0.003,
+  wax: 0.002,
+  oliveoil: 0.003,
+  feather: 0.001,
+  ivory: 0.0004,
+  amber: 0.0003,
+  jade: 0.0004,
+  ochre: 0.002,
+  madder: 0.002,
+  woad: 0.002,
+  resin: 0.003,
+  wood_char: 0
+}
+
 const MIN_EFF = 0.12
 const AUTO_DOWNGRADE_BELOW = 0.55
 
@@ -89,16 +126,31 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
       add(produced, b.outRes, qtyPerLevel * b.level)
     }
 
+    // 口粮预留：谷物先扣人口口粮，余量才进工业
+    const grainSet = new Set(['wheat', 'barley', 'rye', 'oats', 'millet', 'rice', 'tuber', 'turnip', 'beans'])
+    const grainTotalRaw = [...grainSet].reduce((n, id) => n + (produced.get(id) || 0), 0)
+    const foodReserve = Math.min(grainTotalRaw, pop * FOOD_PER_CAPITA)
+    const pool = new Map(produced)
+    if (grainTotalRaw > 0) {
+      const ratio = Math.max(0, 1 - foodReserve / grainTotalRaw)
+      for (const id of grainSet) {
+        if (produced.has(id)) pool.set(id, (produced.get(id) || 0) * ratio)
+      }
+    }
+
     for (const b of buildings) {
       if (!b.input || b.level <= 0) continue
       const outQty = (b.budget * scale * yieldMod * laborFactor) / priceOf(b.outRes)
       const needPer = (b.budget * scale * yieldMod * (b.inputShare || 0.55)) / priceOf(b.inRes)
       const need = needPer * b.level
-      const have = b.inRes ? produced.get(b.inRes) || 0 : 0
+      const have = b.inRes ? (pool.get(b.inRes) || 0) * 0.88 : 0
       const eff = need > 0 ? clamp(have / need, MIN_EFF, 1) : 1
       b.eff = eff
       b.qtyPerLevel = outQty
-      if (b.inRes) add(consumed, b.inRes, need)
+      if (b.inRes) {
+        add(consumed, b.inRes, Math.min(need, have))
+        pool.set(b.inRes, Math.max(0, have - need))
+      }
       if (b.outRes) add(produced, b.outRes, outQty * b.level * eff)
     }
 
@@ -145,8 +197,7 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
     const need = pop * FOOD_PER_CAPITA
     let guard = 60
     while (grainProd() < need * 1.05 && guard-- > 0) {
-      const capNow = slotCapacity(geo, area, pop)
-      if (slotsUsed(buildings) >= capNow) break
+      // 粮食安全优先：允许略微超出地块容量开垦
       const farm = buildings.find((b) => b.id === 'farm' || b.id === 'human_manor')
       if (!farm) break
       farm.level += 2
@@ -156,12 +207,19 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
 
   const { produced, consumed, add } = pass
 
-  // 口粮：每人 5 石
+  // 口粮优先：先满足人口，再谈工业用粮
   const grainIds = CATEGORY.grain.filter((id) => (produced.get(id) || 0) > 0)
   const grainTotal = grainIds.reduce((n, id) => n + (produced.get(id) || 0), 0)
   const foodNeed = Math.round(pop * FOOD_PER_CAPITA)
   if (grainTotal > 0) {
     for (const id of grainIds) add(consumed, id, Math.round(foodNeed * ((produced.get(id) || 0) / grainTotal)))
+  }
+
+  // 民生需求：布、陶、盐、皮革、酒、燃料、工具
+  for (const [id, per] of Object.entries(CIVIC_DEMAND)) {
+    if (!byId.has(id)) continue
+    const need = Math.round(pop * per)
+    if (need > 0) add(consumed, id, need)
   }
 
   const rows = []

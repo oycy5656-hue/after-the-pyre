@@ -10,6 +10,7 @@ import { parsePopulation } from '../../data/economy-model.mjs'
 import mapData from '../../data/map.mjs'
 import { TRAITS_BY_COUNTRY } from '../../data/traits.mjs'
 import { countryEffects } from '../../data/trait-economy.mjs'
+import { metalTechOf } from '../../data/country-metal.mjs'
 import { toggleEditMode } from '../editmode'
 
 const props = defineProps({
@@ -95,7 +96,7 @@ const econMods = computed(() => {
 const econ = computed(() => {
   const c = country.value
   const geo = geoOf(c.name)
-  const specs = deriveSpecialties(geo, 6)
+  const specs = deriveSpecialties(geo, { max: 16, tech: metalTechOf(c.name) })
   const st = mapData.states.find((x) => x.name === c.capital || c.name.startsWith(x.name) || x.name.startsWith(c.name))
   const sim = simulate({
     specs,
