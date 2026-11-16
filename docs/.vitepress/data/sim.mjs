@@ -2,12 +2,12 @@
 // 标度：1 D = 一人日口粮（约 0.8 kg 谷物）；1 石 ≈ 30 D；每人每年 5 石
 
 import { BUILD_COST, CATEGORY, deriveBuildings, slotCapacity, slotsUsed } from './buildings.mjs'
-import { OUTPUT_CATEGORY, RESOURCES } from './resources.mjs'
+import { OUTPUT_CATEGORY, RESOURCES, metalAccess } from './resources.mjs'
 
 const byId = new Map(RESOURCES.map((r) => [r.id, r]))
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v))
 
-export const FOOD_PER_CAPITA = 5
+export const FOOD_PER_CAPITA = 3
 const MIN_EFF = 0.12
 const AUTO_DOWNGRADE_BELOW = 0.55
 
@@ -28,13 +28,15 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
   const pop = Math.max(1, population || 1)
   const priceOf = (id) => (id ? priceOverrides[id] ?? byId.get(id)?.value ?? 1 : 1)
   // 建筑规模随人口缩放：小国不会有和人口相称的产能
-  const scale = clamp(pop / 150000, 0.02, 2.2)
+  // 建筑规模由等级决定，不再按人口压缩（否则小国无法自给）
+  const scale = 1
   // 天赋修正：产出、抽取、交换
   const yieldMod = 1 + (mods.yield || 0)
   const exchangeMod = 1 + (mods.exchange || 0)
   const extractionMod = 1 + (mods.extraction || 0)
 
-  const buildings = deriveBuildings(specs, pop, race).map((b) => {
+  const access = metalAccess(new Set(specs.map((x) => x.id)))
+  const buildings = deriveBuildings(specs, pop, race, access).map((b) => {
     const level = levels[b.id] === undefined ? b.level : Number(levels[b.id]) || 0
     return {
       ...b,
@@ -70,6 +72,11 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
     }
   }
 
+  // 劳力约束：每级建筑需要 labor 人，人口不足时按比例减产
+  const totalLaborNeed = buildings.reduce((n, b) => n + (b.level > 0 ? (b.labor || 700) * b.level : 0), 0)
+  const laborPool = pop * 0.42
+  const laborFactor = totalLaborNeed > 0 ? clamp(laborPool / totalLaborNeed, 0.18, 1) : 1
+
   const runPass = () => {
     const produced = new Map()
     const consumed = new Map()
@@ -77,14 +84,14 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
 
     for (const b of buildings) {
       if (!b.outRes || b.level <= 0 || b.input) continue
-      const qtyPerLevel = (b.budget * scale * yieldMod) / priceOf(b.outRes)
+      const qtyPerLevel = (b.budget * scale * yieldMod * laborFactor) / priceOf(b.outRes)
       b.qtyPerLevel = qtyPerLevel
       add(produced, b.outRes, qtyPerLevel * b.level)
     }
 
     for (const b of buildings) {
       if (!b.input || b.level <= 0) continue
-      const outQty = (b.budget * scale * yieldMod) / priceOf(b.outRes)
+      const outQty = (b.budget * scale * yieldMod * laborFactor) / priceOf(b.outRes)
       const needPer = (b.budget * scale * yieldMod * (b.inputShare || 0.55)) / priceOf(b.inRes)
       const need = needPer * b.level
       const have = b.inRes ? produced.get(b.inRes) || 0 : 0
@@ -124,10 +131,33 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
     }
   }
 
+  // 自给调整：若口粮不足，优先补农田（不超容量）
+  {
+    const grainProd = () => {
+      let g = 0
+      for (const b of buildings) {
+        if (b.outRes && ['wheat', 'barley', 'rye', 'oats', 'millet', 'rice', 'tuber', 'turnip', 'beans'].includes(b.outRes) && !b.input) {
+          g += (b.qtyPerLevel || 0) * b.level
+        }
+      }
+      return g
+    }
+    const need = pop * FOOD_PER_CAPITA
+    let guard = 60
+    while (grainProd() < need * 1.05 && guard-- > 0) {
+      const capNow = slotCapacity(geo, area, pop)
+      if (slotsUsed(buildings) >= capNow) break
+      const farm = buildings.find((b) => b.id === 'farm' || b.id === 'human_manor')
+      if (!farm) break
+      farm.level += 2
+      pass = runPass()
+    }
+  }
+
   const { produced, consumed, add } = pass
 
   // 口粮：每人 5 石
-  const grainIds = ['rice', 'maize', 'wheat', 'tuber', 'beans'].filter((id) => (produced.get(id) || 0) > 0)
+  const grainIds = CATEGORY.grain.filter((id) => (produced.get(id) || 0) > 0)
   const grainTotal = grainIds.reduce((n, id) => n + (produced.get(id) || 0), 0)
   const foodNeed = Math.round(pop * FOOD_PER_CAPITA)
   if (grainTotal > 0) {
