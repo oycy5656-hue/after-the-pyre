@@ -247,3 +247,65 @@ export async function fetchAllClaims() {
   for (const r of rows) map[r.slug] = { display: r.display }
   return map
 }
+
+// ---------- 论坛 ----------
+
+export async function fetchPosts(limit = 60) {
+  const res = await fetch(
+    `${config.url}/rest/v1/posts?select=id,title,body,tag,author,author_name,created_at&order=created_at.desc&limit=${limit}`,
+    { headers: headers() }
+  )
+  if (!res.ok) return []
+  return res.json()
+}
+
+export async function createPost({ title, body, tag, authorName }) {
+  const res = await fetch(`${config.url}/rest/v1/posts`, {
+    method: 'POST',
+    headers: headers({ Prefer: 'return=representation' }),
+    body: JSON.stringify([{ title, body, tag, author: session?.user?.id, author_name: authorName }])
+  })
+  if (!res.ok) {
+    const text = await res.text().catch(() => '')
+    throw new Error(text || '发帖失败')
+  }
+  return res.json()
+}
+
+export async function deletePost(id) {
+  const res = await fetch(`${config.url}/rest/v1/posts?id=eq.${id}`, {
+    method: 'DELETE',
+    headers: headers()
+  })
+  if (!res.ok) throw new Error('删除失败（可能没有权限）')
+}
+
+export async function fetchReplies(postId) {
+  const res = await fetch(
+    `${config.url}/rest/v1/replies?select=id,post_id,body,author,author_name,created_at&post_id=eq.${postId}&order=created_at.asc`,
+    { headers: headers() }
+  )
+  if (!res.ok) return []
+  return res.json()
+}
+
+export async function createReply(postId, body, authorName) {
+  const res = await fetch(`${config.url}/rest/v1/replies`, {
+    method: 'POST',
+    headers: headers({ Prefer: 'return=representation' }),
+    body: JSON.stringify([{ post_id: postId, body, author: session?.user?.id, author_name: authorName }])
+  })
+  if (!res.ok) {
+    const text = await res.text().catch(() => '')
+    throw new Error(text || '回复失败')
+  }
+  return res.json()
+}
+
+export async function deleteReply(id) {
+  const res = await fetch(`${config.url}/rest/v1/replies?id=eq.${id}`, {
+    method: 'DELETE',
+    headers: headers()
+  })
+  if (!res.ok) throw new Error('删除失败（可能没有权限）')
+}
