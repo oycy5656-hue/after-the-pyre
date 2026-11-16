@@ -9,6 +9,7 @@ import { simulate } from '../../data/sim.mjs'
 import { parsePopulation } from '../../data/economy-model.mjs'
 import mapData from '../../data/map.mjs'
 import { TRAITS_BY_COUNTRY } from '../../data/traits.mjs'
+import { countryEffects } from '../../data/trait-economy.mjs'
 import { toggleEditMode } from '../editmode'
 
 const props = defineProps({
@@ -83,6 +84,14 @@ const saveAll = async () => {
 }
 
 
+const econMods = computed(() => {
+  const { mod } = countryEffects(country.value.name)
+  const labels = { yield: '产出', extraction: '抽取', exchange: '交换', stability: '稳定', military: '军事', ritual: '仪式', labor: '劳力' }
+  return Object.entries(labels)
+    .map(([key, label]) => ({ key, label, value: mod[key] || 0 }))
+    .filter((m) => Math.abs(m.value) > 0.001)
+})
+
 const econ = computed(() => {
   const c = country.value
   const geo = geoOf(c.name)
@@ -93,7 +102,8 @@ const econ = computed(() => {
     population: parsePopulation(c.population),
     race: c.race,
     geo,
-    area: st ? st.area : 120
+    area: st ? st.area : 120,
+    mods: countryEffects(c.name).mod
   })
   return { sim, specs }
 })
@@ -315,6 +325,10 @@ const toc = computed(() => [
             <span>贸易差额</span>
           </div>
         </div>
+
+        <ul class="wp-trait-mods">
+          <li v-for="m in econMods" :key="m.key">{{ m.label }} <em :class="{ pos: m.value > 0, neg: m.value < 0 }">{{ m.value > 0 ? '+' : '' }}{{ (m.value * 100).toFixed(0) }}%</em></li>
+        </ul>
 
         <h3 class="wp-sub">物产</h3>
         <ul class="wp-tags">
@@ -1572,4 +1586,34 @@ const toc = computed(() => [
   color: #9c4b4b;
 }
 
+.wp-trait-mods {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+}
+
+.wp-trait-mods li {
+  padding: 3px 10px;
+  font-size: 11.5px;
+  color: var(--vp-c-text-3);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 999px;
+}
+
+.wp-trait-mods em {
+  font-style: normal;
+  margin-left: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.wp-trait-mods em.pos {
+  color: var(--vp-c-brand-1);
+}
+
+.wp-trait-mods em.neg {
+  color: #b06a6a;
+}
 </style>

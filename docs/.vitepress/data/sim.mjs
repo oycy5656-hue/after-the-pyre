@@ -23,12 +23,16 @@ function pickResource(category, specIds, valueOf, allowProcessed = false, mode =
   return pool.sort((a, b) => valueOf(b) - valueOf(a))[0]
 }
 
-export function simulate({ specs, population, race, geo, area, levels = {}, priceOverrides = {}, autoAdjust = true }) {
+export function simulate({ specs, population, race, geo, area, levels = {}, priceOverrides = {}, autoAdjust = true, mods = {} }) {
   const specIds = new Set(specs.map((s) => s.id))
   const pop = Math.max(1, population || 1)
   const priceOf = (id) => (id ? priceOverrides[id] ?? byId.get(id)?.value ?? 1 : 1)
   // 建筑规模随人口缩放：小国不会有和人口相称的产能
   const scale = clamp(pop / 150000, 0.02, 2.2)
+  // 天赋修正：产出、抽取、交换
+  const yieldMod = 1 + (mods.yield || 0)
+  const exchangeMod = 1 + (mods.exchange || 0)
+  const extractionMod = 1 + (mods.extraction || 0)
 
   const buildings = deriveBuildings(specs, pop, race).map((b) => {
     const level = levels[b.id] === undefined ? b.level : Number(levels[b.id]) || 0
@@ -73,15 +77,15 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
 
     for (const b of buildings) {
       if (!b.outRes || b.level <= 0 || b.input) continue
-      const qtyPerLevel = (b.budget * scale) / priceOf(b.outRes)
+      const qtyPerLevel = (b.budget * scale * yieldMod) / priceOf(b.outRes)
       b.qtyPerLevel = qtyPerLevel
       add(produced, b.outRes, qtyPerLevel * b.level)
     }
 
     for (const b of buildings) {
       if (!b.input || b.level <= 0) continue
-      const outQty = (b.budget * scale) / priceOf(b.outRes)
-      const needPer = (b.budget * scale * (b.inputShare || 0.55)) / priceOf(b.inRes)
+      const outQty = (b.budget * scale * yieldMod) / priceOf(b.outRes)
+      const needPer = (b.budget * scale * yieldMod * (b.inputShare || 0.55)) / priceOf(b.inRes)
       const need = needPer * b.level
       const have = b.inRes ? produced.get(b.inRes) || 0 : 0
       const eff = need > 0 ? clamp(have / need, MIN_EFF, 1) : 1
@@ -153,8 +157,10 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
   }
   rows.sort((a, b) => b.value - a.value)
 
-  const exportsValue = rows.filter((r) => r.net > 0).reduce((n, r) => n + r.net * r.price, 0)
-  const importsValue = rows.filter((r) => r.net < 0).reduce((n, r) => n + -r.net * r.price, 0)
+  const exportsValue0 = rows.filter((r) => r.net > 0).reduce((n, r) => n + r.net * r.price, 0)
+  const importsValue0 = rows.filter((r) => r.net < 0).reduce((n, r) => n + -r.net * r.price, 0)
+  const exportsValue = exportsValue0 * exchangeMod
+  const importsValue = importsValue0 * exchangeMod
 
   for (const b of buildings) {
     if (b.level <= 0) {
@@ -162,7 +168,7 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
       continue
     }
     b.eff = b.input ? b.eff ?? 1 : 1
-    b.value = Math.round(b.budget * scale * b.level * (b.input ? b.eff : 1))
+    b.value = Math.round(b.budget * scale * b.level * yieldMod * (b.input ? b.eff : 1))
   }
 
   const gdp = buildings.reduce((n, b) => n + (b.value || 0), 0)

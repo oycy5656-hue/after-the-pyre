@@ -6,6 +6,7 @@ import { buildRows, DEFAULT_BASE, DEFAULT_COUNTRY_TRAITS, DEFAULT_GOODS, DEFAULT
 import { currentUser, getOverride, initAuth, loadEdits, saveOverride } from '../auth'
 import { geoOf } from '../../data/geography.mjs'
 import { CLIMATES, RESOURCES, RESOURCE_GROUPS, SEASON_HINT, SEASON_LABEL, deriveSectors, deriveSpecialties } from '../../data/resources.mjs'
+import { COUNTRY_TRAIT_NAMES, TRAIT_ECON_LIST, countryEffects } from '../../data/trait-economy.mjs'
 import { BUILDING_GROUPS, BUILDINGS } from '../../data/buildings.mjs'
 import { simulate } from '../../data/sim.mjs'
 import { DEFAULT_GROWTH, advanceTurn, emptyTurnState, undoTurn, worldSummary, START_YEAR, YEARS_PER_TURN } from '../../data/turn.mjs'
@@ -16,8 +17,8 @@ const clone = (v) => JSON.parse(JSON.stringify(v))
 const cfg = ref({
   base: clone(DEFAULT_BASE),
   goods: clone(DEFAULT_GOODS),
-  traits: clone(DEFAULT_TRAITS),
-  countryTraits: clone(DEFAULT_COUNTRY_TRAITS),
+  traits: clone([...DEFAULT_TRAITS, ...TRAIT_ECON_LIST]),
+  countryTraits: clone({ ...DEFAULT_COUNTRY_TRAITS, ...COUNTRY_TRAIT_NAMES }),
   populations: {},
   countryOverrides: {},
   resourceValues: {},
@@ -107,8 +108,8 @@ onMounted(async () => {
     cfg.value = {
       base: { ...DEFAULT_BASE, ...(ov.base || {}) },
       goods: clone(ov.goods || DEFAULT_GOODS),
-      traits: clone(ov.traits || DEFAULT_TRAITS),
-      countryTraits: clone(ov.countryTraits || DEFAULT_COUNTRY_TRAITS),
+      traits: clone(ov.traits || [...DEFAULT_TRAITS, ...TRAIT_ECON_LIST]),
+      countryTraits: clone(ov.countryTraits || { ...DEFAULT_COUNTRY_TRAITS, ...COUNTRY_TRAIT_NAMES }),
       populations: clone(ov.populations || {}),
       countryOverrides: clone(ov.countryOverrides || {}),
       resourceValues: clone(ov.resourceValues || {}),
@@ -253,7 +254,8 @@ const simOf = (name) => {
     geo: geoOf(name),
     area: t?.area || areaOf(name),
     levels: t?.levels || cfg.value.buildingLevels?.[name] || {},
-    priceOverrides: cfg.value.resourceValues || {}
+    priceOverrides: cfg.value.resourceValues || {},
+    mods: countryEffects(name).mod
   })
 }
 
@@ -312,6 +314,25 @@ const filteredResources = computed(() =>
     return true
   })
 )
+
+const currentEffects = computed(() => {
+  const name = current.value?.name
+  if (!name) return []
+  const { mod } = countryEffects(name)
+  const labels = {
+    yield: '产出',
+    extraction: '抽取',
+    exchange: '交换',
+    stability: '稳定',
+    military: '军事',
+    ritual: '仪式',
+    labor: '劳力'
+  }
+  return Object.entries(labels)
+    .map(([key, label]) => ({ key, label, value: mod[key] || 0 }))
+    .filter((m) => Math.abs(m.value) > 0.001)
+    .sort((a, b) => Math.abs(b.value) - Math.abs(a.value))
+})
 
 const groupedResources = computed(() => {
   const m = new Map()
@@ -389,8 +410,8 @@ const resetCfg = () => {
   cfg.value = {
     base: clone(DEFAULT_BASE),
     goods: clone(DEFAULT_GOODS),
-    traits: clone(DEFAULT_TRAITS),
-    countryTraits: clone(DEFAULT_COUNTRY_TRAITS),
+    traits: clone([...DEFAULT_TRAITS, ...TRAIT_ECON_LIST]),
+    countryTraits: clone({ ...DEFAULT_COUNTRY_TRAITS, ...COUNTRY_TRAIT_NAMES }),
     populations: {},
     countryOverrides: {},
     resourceValues: {},
@@ -540,7 +561,15 @@ const resetCfg = () => {
           </div>
           <p v-if="!editing && current.manual" class="eco-manual-tag">含手工设定的数值</p>
 
-          <p class="eco-mini-title">主要物产</p>
+          <p class="eco-mini-title">天赋加成</p>
+        <ul class="eco-trait-mods">
+          <li v-for="m in currentEffects" :key="m.key">
+            <span>{{ m.label }}</span>
+            <em :class="{ pos: m.value > 0, neg: m.value < 0 }">{{ m.value > 0 ? '+' : '' }}{{ (m.value * 100).toFixed(0) }}%</em>
+          </li>
+        </ul>
+
+        <p class="eco-mini-title">主要物产</p>
           <ul class="eco-spec-list">
             <li v-for="sp in currentSpecs" :key="sp.id">
               <i :style="{ background: RESOURCE_GROUPS[sp.group] }"></i>
@@ -1775,6 +1804,34 @@ const resetCfg = () => {
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
+}
+
+.eco-trait-mods {
+  display: grid;
+  gap: 3px;
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+}
+
+.eco-trait-mods li {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11.5px;
+  color: var(--vp-c-text-3);
+}
+
+.eco-trait-mods em {
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+}
+
+.eco-trait-mods em.pos {
+  color: var(--vp-c-brand-1);
+}
+
+.eco-trait-mods em.neg {
+  color: #b06a6a;
 }
 
 .eco-res-filter {
