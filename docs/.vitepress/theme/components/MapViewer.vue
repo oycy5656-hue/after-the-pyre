@@ -247,7 +247,7 @@ onMounted(() => {
   const labelLayer = document.createElementNS(SVG_NS, 'g')
   labelLayer.setAttribute('id', 'mv-labels')
   for (const state of mapData.states) {
-    if (!state.capital) continue
+    if (!state.capital || state.capital.x == null) continue
     const text = document.createElementNS(SVG_NS, 'text')
     text.setAttribute('x', String(state.capital.x))
     text.setAttribute('y', String(state.capital.y - 7))

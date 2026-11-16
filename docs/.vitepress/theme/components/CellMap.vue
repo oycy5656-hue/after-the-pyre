@@ -166,12 +166,12 @@ const popSource = ref({ officialCells: 0, officialTotal: 0, mapTotal: 0 })
 const BURG_TRANSFORM = { sx: 0.18695, ox: -178.38, sy: -0.18751, oy: 89.56 }
 
 const capitals = (mapData.states || [])
-  .filter((st) => st.capital && typeof st.capital.x === 'number' && typeof st.capital.y === 'number')
+  .filter((st) => st.capital && typeof st.capital.geoX === 'number')
   .map((st) => ({
     name: st.capital.name,
     state: st.i,
-    x: st.capital.x,
-    y: st.capital.y,
+    x: st.capital.geoX,
+    y: st.capital.geoY,
     color: st.color || '#d8b878'
   }))
 
