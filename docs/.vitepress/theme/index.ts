@@ -13,6 +13,7 @@ import ForumBoard from './components/ForumBoard.vue'
 import ProductionView from './components/ProductionView.vue'
 import CellMap from './components/CellMap.vue'
 import DiplomacyBoard from './components/DiplomacyBoard.vue'
+import DispatchBoard from './components/DispatchBoard.vue'
 import './style.css'
 
 export default {
@@ -30,5 +31,6 @@ export default {
   app.component('ProductionView', ProductionView)
   app.component('CellMap', CellMap)
   app.component('DiplomacyBoard', DiplomacyBoard)
+  app.component('DispatchBoard', DispatchBoard)
   }
 } satisfies Theme

@@ -309,3 +309,66 @@ export async function deleteReply(id) {
   })
   if (!res.ok) throw new Error('删除失败（可能没有权限）')
 }
+
+// ---------- 推文（纪事） ----------
+
+export async function fetchTweets(limit = 80) {
+  const res = await fetch(
+    `${config.url}/rest/v1/tweets?select=id,author_id,author_name,turn,era_year,era_time,body,image_url,created_at&order=created_at.desc&limit=${limit}`,
+    { headers: headers() }
+  )
+  if (!res.ok) return []
+  return res.json()
+}
+
+export async function createTweet({ turn, eraYear, eraTime, body, imageUrl, authorName }) {
+  const res = await fetch(`${config.url}/rest/v1/tweets`, {
+    method: 'POST',
+    headers: headers({ Prefer: 'return=representation' }),
+    body: JSON.stringify([
+      {
+        author_id: session?.user?.id,
+        author_name: authorName || '',
+        turn,
+        era_year: eraYear,
+        era_time: eraTime || '',
+        body,
+        image_url: imageUrl || ''
+      }
+    ])
+  })
+  if (!res.ok) {
+    const text = await res.text().catch(() => '')
+    throw new Error(text || '发布失败')
+  }
+  return res.json()
+}
+
+export async function deleteTweet(id) {
+  const res = await fetch(`${config.url}/rest/v1/tweets?id=eq.${id}`, {
+    method: 'DELETE',
+    headers: headers()
+  })
+  if (!res.ok) throw new Error('删除失败（可能没有权限）')
+}
+
+/** 上传图片到 storage 的 tweets 桶，返回公开 URL */
+export async function uploadTweetImage(file) {
+  const ext = (file.name.split('.').pop() || 'png').toLowerCase().replace(/[^a-z0-9]/g, '') || 'png'
+  const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
+  const res = await fetch(`${config.url}/storage/v1/object/tweets/${path}`, {
+    method: 'POST',
+    headers: {
+      apikey: config.anonKey,
+      Authorization: `Bearer ${session?.access_token}`,
+      'Content-Type': file.type || 'application/octet-stream',
+      'x-upsert': 'false'
+    },
+    body: file
+  })
+  if (!res.ok) {
+    const text = await res.text().catch(() => '')
+    throw new Error(text || '图片上传失败')
+  }
+  return `${config.url}/storage/v1/object/public/tweets/${path}`
+}
