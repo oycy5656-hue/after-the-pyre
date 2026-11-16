@@ -535,6 +535,37 @@ onMounted(async () => {
 
     loading.value = false
     fit()
+
+    // 延迟聚焦：等画布完成首次布局
+    setTimeout(() => {
+    const focus = Number(new URLSearchParams(window.location.search).get('state') || 0)
+    if (focus > 0) {
+      const own = list.filter((c) => c.s === focus)
+      if (own.length) {
+        selected.value = own[0]
+      }
+      if (own.length) {
+        let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity
+        for (const c of own) {
+          x0 = Math.min(x0, c.bbox[0]); y0 = Math.min(y0, c.bbox[1])
+          x1 = Math.max(x1, c.bbox[2]); y1 = Math.max(y1, c.bbox[3])
+        }
+        const pad = Math.max(20, (x1 - x0) * 0.15)
+        const w = x1 - x0 + pad * 2
+        const h = y1 - y0 + pad * 2
+        const cv2 = canvas.value
+        const dpr = window.devicePixelRatio || 1
+        const cw = cv2.width / dpr
+        const ch = cv2.height / dpr
+        const sc = Math.min(cw / w, ch / h)
+        view.scale = sc
+        view.tx = cw / 2 - (x0 + x1) / 2 * sc
+        view.ty = ch / 2 - (y0 + y1) / 2 * sc
+        baseScale = sc
+        requestDraw()
+      }
+    }
+    }, 700)
   } catch (e) {
     progress.value = '加载失败：' + e.message
     loading.value = false
