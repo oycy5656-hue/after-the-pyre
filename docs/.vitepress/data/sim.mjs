@@ -74,7 +74,19 @@ export const CIVIC_DEMAND = {
   fishhook: 0.001
 }
 
+const AUX_TABLE = {
+  farm: ['flax', 'barley'],
+  pasture: ['wool', 'hide'],
+  quarry: ['clay', 'flint'],
+  logging: ['bark', 'resin'],
+  fishery: ['shellfish', 'seaweed'],
+  saltern: ['natron'],
+  human_manor: ['flax', 'barley']
+}
+
 const MIN_EFF = 0.12
+/** 阶层消费强度：整体放大，避免大量货物堆在仓里 */
+export const CLASS_DEMAND_MULT = 1.6
 const AUTO_DOWNGRADE_BELOW = 0.55
 
 function pickResource(category, specIds, valueOf, allowProcessed = false, mode = 'output', explicit = null) {
@@ -115,6 +127,12 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
       ...b,
       level,
       outRes: b.output.category === 'service' ? null : pickResource(b.output.category, specIds, priceOf, !!b.input, 'output', b.outputs),
+      auxRes: (() => {
+        const list = AUX_TABLE[b.id]
+        if (!list) return null
+        const owned = list.filter((id) => byId.has(id) && specIds.has(id))
+        return owned.length ? owned : null
+      })(),
       inRes: b.input ? pickResource(b.input.category, specIds, priceOf, false, 'input', b.inputs) : null,
       downgraded: 0
     }
@@ -160,6 +178,13 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
       const qtyPerLevel = (b.budget * scale * yieldMod * laborFactor) / priceOf(b.outRes)
       b.qtyPerLevel = qtyPerLevel
       add(produced, b.outRes, qtyPerLevel * b.level)
+      if (Array.isArray(b.auxRes)) {
+        const each = 0.35 / b.auxRes.length
+        for (const id of b.auxRes) {
+          const auxQty = (b.budget * scale * yieldMod * laborFactor * each) / priceOf(id)
+          add(produced, id, auxQty * b.level)
+        }
+      }
     }
 
     // 口粮预留：谷物先扣人口口粮，余量才进工业
@@ -168,7 +193,7 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
     const foodReserve = Math.min(grainTotalRaw, pop * FOOD_PER_CAPITA)
     const pool = new Map(produced)
     if (grainTotalRaw > 0) {
-      const ratio = Math.max(0, 1 - foodReserve / grainTotalRaw)
+      const ratio = Math.max(0, 1 - (foodReserve * 0.92) / grainTotalRaw)
       for (const id of grainSet) {
         if (produced.has(id)) pool.set(id, (produced.get(id) || 0) * ratio)
       }
@@ -179,9 +204,18 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
       const outQty = (b.budget * scale * yieldMod * laborFactor) / priceOf(b.outRes)
       const needPer = (b.budget * scale * yieldMod * (b.inputShare || 0.55)) / priceOf(b.inRes)
       const need = needPer * b.level
-      const have = b.inRes ? (pool.get(b.inRes) || 0) * 0.88 : 0
-      const eff = need > 0 ? clamp(have / need, MIN_EFF, 1) : 1
+      const raw = b.inRes ? pool.get(b.inRes) || 0 : 0
+      const have = raw * 0.88
+      // 原料不足一成即视为无料可加工，直接关厂
+      if (need > 0 && have < need * 0.1) {
+        b.eff = 0
+        b.closed = true
+        b.level = 0
+        continue
+      }
+      const eff = need > 0 ? clamp(have / need, 0.1, 1) : 1
       b.eff = eff
+      b.closed = false
       b.qtyPerLevel = outQty
       if (b.inRes) {
         add(consumed, b.inRes, Math.min(need, have))
@@ -200,6 +234,7 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
       let changed = false
       for (const b of buildings) {
         if (!b.input || b.level <= 0) continue
+        if (b.closed) continue
         if ((b.eff ?? 1) < AUTO_DOWNGRADE_BELOW) {
           const from = b.level
           b.level -= 1
@@ -295,7 +330,7 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
       if (!byId.has(id)) continue
       // 产不出来的东西不凭空生成需求
       if ((produced.get(id) || 0) <= 0 && (pass.produced.get(id) || 0) <= 0) continue
-      const need = Math.round(cp * per)
+      const need = Math.round(cp * per * CLASS_DEMAND_MULT)
       if (need > 0) add(consumed, id, need)
     }
   }

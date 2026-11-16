@@ -414,6 +414,25 @@ const currentClasses = computed(() => {
   })
 })
 
+const classRows = computed(() => {
+  const name = current.value?.name
+  if (!name) return []
+  const c = countries.find((x) => x.name === name)
+  const pop = current.value?.population || 0
+  const shares = classShares(c?.politics?.system)
+  return Object.entries(shares).map(([cls, share]) => {
+    const basket = CLASS_BASKETS[cls] || {}
+    const items = Object.entries(basket)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 6)
+      .map(([id, per]) => {
+        const r = RESOURCES.find((x) => x.id === id)
+        return { name: r?.name || id, per, unit: r?.unit || '', total: Math.round(pop * share * per * 1.6) }
+      })
+    return { cls, share, people: Math.round(pop * share), items }
+  })
+})
+
 const groupedResources = computed(() => {
   const m = new Map()
   for (const r of filteredResources.value) {
@@ -941,6 +960,29 @@ const resetCfg = () => {
           <p class="eco-b-card-note">{{ b.note }}</p>
         </div>
       </div>
+    </section>
+
+    <section class="eco-block">
+      <h2>阶层与消费</h2>
+      <p class="eco-lead">
+        每个阶层有自己的消费篮子：上层要葡萄酒与香料，武士要皮革与兵器，农户要木材、石料与陶器。
+        这是国内市场最大的需求来源，也是积压货物被吃掉的地方。
+      </p>
+      <table class="eco-class-table">
+        <thead>
+          <tr><th>阶层</th><th>占比</th><th>人数</th><th>主要消费（每年）</th></tr>
+        </thead>
+        <tbody>
+          <tr v-for="row in classRows" :key="row.cls">
+            <td class="eco-b-name">{{ row.cls }}</td>
+            <td class="num">{{ (row.share * 100).toFixed(0) }}%</td>
+            <td class="num">{{ fmt(row.people) }}</td>
+            <td class="eco-class-items">
+              <span v-for="it in row.items" :key="it.name">{{ it.name }} {{ fmt(it.total) }}{{ it.unit }}</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </section>
 
     <section class="eco-block">
@@ -1935,6 +1977,41 @@ const resetCfg = () => {
 
 .eco-trait-mods em.neg {
   color: #b06a6a;
+}
+
+.eco-class-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.eco-class-table th {
+  padding: 8px 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  text-align: left;
+  color: var(--vp-c-text-3);
+  border-bottom: 1px solid var(--vp-c-divider);
+}
+
+.eco-class-table td {
+  padding: 9px 10px;
+  vertical-align: top;
+  border-bottom: 1px solid var(--vp-c-divider);
+}
+
+.eco-class-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.eco-class-items span {
+  padding: 2px 8px;
+  font-size: 11.5px;
+  color: var(--vp-c-text-2);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 999px;
 }
 
 .eco-res-filter {
