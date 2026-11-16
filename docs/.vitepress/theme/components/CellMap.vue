@@ -7,6 +7,7 @@ import { RESOURCES, deriveSpecialties } from '../../data/resources.mjs'
 import { geoOf } from '../../data/geography.mjs'
 import { metalTechOf } from '../../data/country-metal.mjs'
 import { BUILDINGS } from '../../data/buildings.mjs'
+import { simulate } from '../../data/sim.mjs'
 
 // FMG 生物群系 id → 名称/配色（0–12 为标准集，13 为该图自定义）
 const BIOMES = {
@@ -190,27 +191,87 @@ const stateAgg = computed(() => {
   }
 })
 
+// 地形 → 物产大类偏好
+const BIOME_PREFER = {
+  热荒漠: ['grain', 'salt', 'spice', 'mineral'],
+  高寒荒漠: ['stone', 'fur', 'peat'],
+  稀树草原: ['livestock', 'grain', 'textile'],
+  草原: ['grain', 'livestock', 'textile'],
+  热带季雨林: ['grain', 'wood', 'spice', 'dye'],
+  温带落叶阔叶林: ['grain', 'wood', 'textile', 'sweet'],
+  热带雨林: ['wood', 'spice', 'herb'],
+  温带雨林: ['wood', 'resin', 'fish'],
+  亚寒带针叶林: ['wood', 'fur', 'resin', 'fish'],
+  苔原: ['fur', 'peat', 'grain'],
+  冰川: ['stone'],
+  湿地: ['grain', 'clay', 'fish', 'herb'],
+  温带草原: ['grain', 'livestock', 'hide'],
+  湖泊: ['fish', 'herb']
+}
+
+const simCache = new Map()
+const simOfState = (sid) => {
+  if (simCache.has(sid)) return simCache.get(sid)
+  const st = stateById.get(sid)
+  const country = countryByState.get(sid)
+  if (!st || !country) {
+    simCache.set(sid, null)
+    return null
+  }
+  const geo = geoOf(country.name)
+  const specs = deriveSpecialties(geo, { tech: metalTechOf(country.name) })
+  const own = cells.value.filter((c) => c.s === sid)
+  const pop = own.reduce((n, c) => n + c.p, 0) || 1
+  const sim = simulate({
+    specs,
+    population: pop,
+    race: country.race,
+    geo,
+    area: st.area || 120,
+    system: country.politics?.system
+  })
+  const out = { specs, sim, running: new Set(sim.buildings.filter((b) => b.level > 0).map((b) => b.id)) }
+  simCache.set(sid, out)
+  return out
+}
+
 const cellResources = computed(() => {
   const c = selected.value
   if (!c) return []
-  const ids = BIOME_RES[c.biome] || []
-  const country = c.s > 0 ? countryByState.get(c.s) : null
-  const local = country
-    ? new Set(deriveSpecialties(geoOf(country.name), { tech: metalTechOf(country.name) }).map((r) => r.id))
-    : null
-  const cands = ids
+  const pack = c.s > 0 ? simOfState(c.s) : null
+  if (pack) {
+    const prefer = BIOME_PREFER[c.biome] || []
+    const scored = pack.specs
+      .map((sp) => {
+        const r = RESOURCES.find((x) => x.id === sp.id)
+        if (!r) return null
+        const cat = r.category || sp.group || ''
+        const bias = prefer.some((k) => String(cat).includes(k) || String(sp.group || '').includes(k)) ? 2 : 0
+        const biomeBias = (BIOME_RES[c.biome] || []).includes(sp.id) ? 3 : 0
+        return { id: r.id, name: r.name, icon: r.icon, score: bias + biomeBias }
+      })
+      .filter(Boolean)
+      .sort((a, b) => b.score - a.score)
+    return scored.slice(0, 3)
+  }
+  // 未收录政权：只能按地形给采集物
+  return (BIOME_RES[c.biome] || [])
     .map((id) => RESOURCES.find((r) => r.id === id))
     .filter(Boolean)
+    .slice(0, 3)
     .map((r) => ({ id: r.id, name: r.name, icon: r.icon }))
-  if (!local) return cands.slice(0, 4)
-  const hit = cands.filter((r) => local.has(r.id))
-  return (hit.length ? hit : cands).slice(0, 4)
 })
 
 const cellBuildings = computed(() => {
+  const c = selected.value
   const ids = new Set(cellResources.value.map((r) => r.id))
-  if (!ids.size) return []
-  return BUILDINGS.filter((b) => b.outputs && b.outputs.some((o) => ids.has(o))).slice(0, 3)
+  if (!c || !ids.size) return []
+  const pack = c.s > 0 ? simOfState(c.s) : null
+  const pool = pack
+    ? BUILDINGS.filter((b) => pack.running.has(b.id))
+    : BUILDINGS
+  const hit = pool.filter((b) => b.outputs && b.outputs.some((o) => ids.has(o)))
+  return (hit.length ? hit : pool.slice(0, 2)).slice(0, 3)
 })
 
 // ---------- 渲染 ----------
@@ -514,7 +575,7 @@ onMounted(async () => {
         if (d > 6) { cap.x = cx; cap.y = cy2 }
       }
     }
-    snapCapitals()
+    // 首都坐标已由数据端校准，不再吸附到质心
 
     bounds = { x: minX, y: minY, w: maxX - minX, h: maxY - minY }
     maxPop.value = Math.max(1, ...list.map((c) => c.p))
