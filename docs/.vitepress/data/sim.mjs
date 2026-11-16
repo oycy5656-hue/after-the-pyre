@@ -378,7 +378,7 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
 
   // 影子经济：农户自纺、自酿、自烧的部分不进市场统计，但确实被消费掉了
   {
-    const shadowGoods = ['cloth', 'linen', 'woolen', 'felt', 'leather', 'hornware', 'pottery', 'amphora', 'beer', 'mead', 'bread', 'flour', 'cheese', 'saltedfish', 'fishsauce', 'wicker', 'rope', 'stone_tool', 'bone_tool', 'clay', 'wheat', 'barley', 'rye', 'oats', 'millet', 'rice', 'tuber', 'turnip', 'beans']
+    const shadowGoods = ['hide', 'wool', 'sinew', 'antler', 'cloth', 'linen', 'woolen', 'felt', 'leather', 'hornware', 'pottery', 'amphora', 'beer', 'mead', 'bread', 'flour', 'cheese', 'saltedfish', 'fishsauce', 'wicker', 'rope', 'stone_tool', 'bone_tool', 'clay', 'wheat', 'barley', 'rye', 'oats', 'millet', 'rice', 'tuber', 'turnip', 'beans']
     for (const id of shadowGoods) {
       const supply = produced.get(id) || 0
       const demand = consumed.get(id) || 0

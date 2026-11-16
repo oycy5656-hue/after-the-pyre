@@ -193,14 +193,17 @@ const turnOf = (name) => turn.value?.countries?.[name] || null
 const rows = computed(() =>
   baseRows.value.map((r) => {
     const t = turn.value?.countries?.[r.name]
-    if (!t) return r
+    const sim = simOf(r.name)
+    const pop = t?.pop || r.population || 1
+    const gdp = sim.totals.gdp || t?.gdp || r.gross
+    const perCapita = Math.round(gdp / Math.max(1, pop))
     return {
       ...r,
-      population: t.pop,
-      populationText: t.pop >= 1e6 ? (t.pop / 1e6).toFixed(2) + 'M' : (t.pop / 1e3).toFixed(1) + 'K',
-      gross: t.gdp,
-      perCapita: Math.round(t.gdp / Math.max(1, t.pop)),
-      perCapitaSurplus: Math.round((t.gdp / Math.max(1, t.pop)) * (r.surplusRate || 0.3))
+      population: pop,
+      populationText: pop >= 1e6 ? (pop / 1e6).toFixed(2) + 'M' : (pop / 1e3).toFixed(1) + 'K',
+      gross: gdp,
+      perCapita,
+      perCapitaSurplus: Math.round(perCapita * (r.surplusRate || 0.3))
     }
   })
 )
