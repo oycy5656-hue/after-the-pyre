@@ -14,6 +14,7 @@ const errorMsg = ref('')
 const showBurgs = ref(true)
 const showPanel = ref(true)
 const zoom = ref(1)
+const flipped = ref(false)
 const offset = ref({ x: 0, y: 0 })
 const activeState = ref(null)
 const view = ref('terrain')
@@ -45,7 +46,7 @@ const stats = computed(() => ({
 }))
 
 const stageStyle = computed(() => ({
-  transform: `translate(${offset.value.x}px, ${offset.value.y}px) scale(${zoom.value})`
+  transform: `scale(${zoom.value}) scaleY(${flipped.value ? -1 : 1}) translate(${offset.value.x}px, ${offset.value.y}px)`
 }))
 
 function resetView() {
@@ -301,6 +302,7 @@ onBeforeUnmount(() => {
         <button type="button" title="放大" @click="zoomBy(1.3)">＋</button>
         <button type="button" title="缩小" @click="zoomBy(1 / 1.3)">－</button>
         <button type="button" title="重置视图" @click="resetView">还原</button>
+        <button type="button" :class="{ on: flipped }" title="上下翻转地图" @click="flipped = !flipped">翻转</button>
         <button type="button" :class="{ on: showBurgs }" @click="showBurgs = !showBurgs">城市</button>
         <button type="button" :class="{ on: showPanel }" @click="showPanel = !showPanel">列表</button>
       </div>
@@ -450,7 +452,7 @@ onBeforeUnmount(() => {
 
 .mv-stage {
   position: relative;
-  transform-origin: 0 0;
+  transform-origin: center center;
   transition: transform 0.08s linear;
   will-change: transform;
 }

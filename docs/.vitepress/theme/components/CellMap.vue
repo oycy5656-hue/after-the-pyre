@@ -59,6 +59,8 @@ const stateById = new Map(mapData.states.map((s) => [s.i, s]))
 const countryByState = new Map()
 for (const [id, st] of stateById) {
   const c =
+    (st.country && countries.find((x) => x.name === st.country)) ||
+    (st.slug && countries.find((x) => x.slug === st.slug)) ||
     countries.find((x) => x.name === st.name) ||
     countries.find((x) => st.name.includes(x.name) || x.name.includes(st.name))
   if (c) countryByState.set(id, c)
@@ -89,6 +91,74 @@ const colorOf = (c) => {
 }
 
 const fmtPop = (n) => (n >= 1e4 ? (n / 1e4).toFixed(1) + ' 万' : String(n))
+
+// 各政权官方总人口（资料集）
+const parsePop = (raw) => {
+  const m = /^([\d.]+)\s*([KM]?)$/i.exec(String(raw || '').trim())
+  if (!m) return 0
+  const n = Number(m[1])
+  const u = m[2].toUpperCase()
+  return u === 'K' ? n * 1e3 : u === 'M' ? n * 1e6 : n
+}
+
+const BIOME_WEIGHT = {
+  湖泊: 0.2,
+  热荒漠: 0.15,
+  高寒荒漠: 0.1,
+  稀树草原: 0.9,
+  草原: 1.1,
+  热带季雨林: 0.8,
+  温带落叶阔叶林: 1.3,
+  热带雨林: 0.6,
+  温带雨林: 0.8,
+  亚寒带针叶林: 0.7,
+  苔原: 0.2,
+  冰川: 0.03,
+  湿地: 0.9,
+  温带草原: 1.0
+}
+
+const officialPop = new Map()
+for (const c of countries) officialPop.set(c.name, parsePop(c.population))
+
+/** 把官方人口摊到该政权的每个地块；无档案政权与无主之地保留地图原值 */
+const redistributePopulation = (list) => {
+  const byState = new Map()
+  for (const c of list) {
+    if (c.s <= 0) continue
+    if (!byState.has(c.s)) byState.set(c.s, [])
+    byState.get(c.s).push(c)
+  }
+
+  let officialCells = 0
+  let officialTotal = 0
+  for (const [sid, cellsOfState] of byState) {
+    const country = countryByState.get(sid)
+    const total = country ? officialPop.get(country.name) || 0 : 0
+    if (!total) continue
+
+    const weights = cellsOfState.map((c) => (BIOME_WEIGHT[c.biome] || 0.5) * (0.35 + Math.min(1, c.p / 6000)))
+    const sum = weights.reduce((n, w) => n + w, 0) || 1
+
+    let assigned = 0
+    cellsOfState.forEach((c, i) => {
+      const v = Math.round((total * weights[i]) / sum)
+      c.p = v
+      c.src = 'official'
+      assigned += v
+    })
+    // 四舍五入误差补到权重最大的地块
+    if (assigned !== Math.round(total)) {
+      const idx = weights.indexOf(Math.max(...weights))
+      cellsOfState[idx].p += Math.round(total) - assigned
+    }
+    officialCells += cellsOfState.length
+    officialTotal += Math.round(total)
+  }
+  return { officialCells, officialTotal }
+}
+
+const popSource = ref({ officialCells: 0, officialTotal: 0, mapTotal: 0 })
 
 const stateAgg = computed(() => {
   const sid = selected.value?.s
@@ -161,14 +231,29 @@ const draw = () => {
     ctx.fillStyle = colorOf(c)
     ctx.globalAlpha = mode.value === 'pop' ? 1 : c.s > 0 ? 0.92 : 0.74
     ctx.fill(p)
-    if (c.s > 0 && mode.value === 'biome') {
-      ctx.globalAlpha = 0.5
-      ctx.strokeStyle = '#0b1412'
-      ctx.lineWidth = 0.6 / view.scale
-      ctx.stroke(p)
-    }
   }
   ctx.globalAlpha = 1
+
+  // 国界线（Vic3 风格）：粗描边后用同色填充覆盖内部，只在国境外侧留下线条
+  if (mode.value !== 'pop') {
+    ctx.lineJoin = 'round'
+    ctx.globalAlpha = 0.95
+    for (let i = 0; i < cells.value.length; i++) {
+      const c = cells.value[i]
+      if (c.s <= 0) continue
+      ctx.strokeStyle = stateById.get(c.s)?.color || '#d8b878'
+      ctx.lineWidth = 3.6 / view.scale
+      ctx.stroke(paths[i])
+    }
+    for (let i = 0; i < cells.value.length; i++) {
+      const c = cells.value[i]
+      if (c.s <= 0) continue
+      ctx.globalAlpha = 0.95
+      ctx.fillStyle = colorOf(c)
+      ctx.fill(paths[i])
+    }
+    ctx.globalAlpha = 1
+  }
 
   // 选中格高亮
   const sel = selected.value
@@ -354,6 +439,10 @@ onMounted(async () => {
         bbox: [x0, y0, x1, y1]
       })
     }
+
+    const mapTotal = list.reduce((n, c) => n + c.p, 0)
+    const info = redistributePopulation(list)
+    popSource.value = { ...info, mapTotal }
 
     bounds = { x: minX, y: minY, w: maxX - minX, h: maxY - minY }
     maxPop.value = Math.max(1, ...list.map((c) => c.p))
