@@ -87,7 +87,7 @@ const AUX_TABLE = {
 
 const MIN_EFF = 0.12
 /** 阶层消费强度：整体放大，避免大量货物堆在仓里 */
-export const CLASS_DEMAND_MULT = 1.25
+export const CLASS_DEMAND_MULT = 1.6
 const AUTO_DOWNGRADE_BELOW = 0.55
 
 function pickResource(category, specIds, valueOf, allowProcessed = false, mode = 'output', explicit = null) {
