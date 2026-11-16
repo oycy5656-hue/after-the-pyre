@@ -10,6 +10,7 @@ import AccountPage from './components/AccountPage.vue'
 import AdminPage from './components/AdminPage.vue'
 import PolicyBoard from './components/PolicyBoard.vue'
 import ForumBoard from './components/ForumBoard.vue'
+import ProductionView from './components/ProductionView.vue'
 import './style.css'
 
 export default {
@@ -24,5 +25,6 @@ export default {
   app.component('AdminPage', AdminPage)
   app.component('PolicyBoard', PolicyBoard)
   app.component('ForumBoard', ForumBoard)
+  app.component('ProductionView', ProductionView)
   }
 } satisfies Theme

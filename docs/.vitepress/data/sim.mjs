@@ -309,7 +309,8 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
       ['stone', levels * 700 + pop * 0.5],
       ['timber', levels * 132 + pop * 0.15],
       ['clay', levels * 40],
-      ['brick', levels * 30]
+      ['brick', levels * 30],
+      ['iron', levels * 6 + pop * 0.01]
     ]
     for (const [id, amount] of works) {
       if (!byId.has(id)) continue

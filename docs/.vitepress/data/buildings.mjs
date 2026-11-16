@@ -43,6 +43,8 @@ export const BUILDINGS = [
   { id: 'stoneworks', name: '石器作坊', group: '加工制造', budget: 560000, slots: 1, labor: 460, input: { category: 'stone', qty: 80 }, inputs: ['flint','stone','bone'], inputShare: 0.5, outputs: ["stone_tool","bone_tool","millstone","fishhook"], output: { category: 'stone' }, note: '燧石与骨料 → 石器、骨器' },
   { id: 'brewery', name: '酿造坊', group: '加工制造', budget: 700000, slots: 1, labor: 560, input: { category: 'grain', qty: 110 }, inputs: ['barley','wheat','grape','honey'], inputShare: 0.5, outputs: ["beer","wine","mead"], output: { category: 'drink' }, note: '谷物与果木 → 啤酒、果酒' },
   { id: 'smelter', name: '冶炼坊', group: '加工制造', budget: 900000, slots: 1, labor: 980, input: { category: 'ore', qty: 120 }, inputs: ['copper','tin','iron'], inputShare: 0.55, outputs: ["bronze"], output: { category: 'metal' }, note: '矿石 → 金属锭', metal: 'bronze' },
+  { id: 'ironworks', name: '炼铁炉', group: '加工制造', budget: 940000, slots: 1, labor: 960, inputs: ['copper', 'tin'], input: { category: 'ore', qty: 120 }, inputShare: 0.55, outputs: ['iron'], output: { category: 'ore' }, note: '铁矿石 → 铁锭', metal: 'iron' },
+  { id: 'iron_forge', name: '铁匠炉', group: '加工制造', budget: 960000, slots: 1, labor: 880, inputs: ['iron'], input: { category: 'metal', qty: 100 }, inputShare: 0.62, outputs: ['iron_tool', 'weapon'], output: { category: 'iron' }, note: '铁锭 → 铁器与兵器', metal: 'iron' },
   { id: 'forge', name: '锻造坊', group: '加工制造', budget: 880000, slots: 1, labor: 900, input: { category: 'metal', qty: 100 }, inputs: ['bronze'], inputShare: 0.6, outputs: ["bronze_tool","bronze_ware","weapon"], output: { category: 'bronze' }, note: '金属 → 青铜器与兵器', metal: 'bronze' },
 
   // —— 流通服务 ——

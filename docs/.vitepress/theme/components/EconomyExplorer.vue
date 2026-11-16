@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { withBase } from 'vitepress'
 import countries from '../../data/countries.mjs'
 import map from '../../data/map.mjs'
 import { buildRows, DEFAULT_BASE, DEFAULT_COUNTRY_TRAITS, DEFAULT_GOODS, DEFAULT_TRAITS } from '../../data/economy-model.mjs'
@@ -432,6 +433,8 @@ const classRows = computed(() => {
   })
 })
 
+const activeBuildings = computed(() => (currentSim.value?.buildings || []).filter((b) => b.level > 0))
+
 const groupedResources = computed(() => {
   const m = new Map()
   for (const r of filteredResources.value) {
@@ -721,6 +724,8 @@ const resetCfg = () => {
 
       <!-- 右栏 -->
       <div class="eco-main">
+        <p class="eco-jump">物产清单、生产建筑与各国特产已移至 <a :href="withBase('/production/')">生产与物产</a> 栏目。</p>
+
         <section class="eco-block">
           <h2>全境经济对照</h2>
           <p class="eco-lead">
@@ -769,197 +774,6 @@ const resetCfg = () => {
         </section>
       </div>
     </div>
-
-    <!-- 物产 -->
-    <section class="eco-block eco-res-section">
-      <h2>物产与当量</h2>
-      <p class="eco-lead">
-        这片大陆没有铸币，也没有信用票据。全境以 <strong>D（当量）</strong> 记账——一名成年人维持一天基本生活所需的商品与劳务。
-        下列 {{ RESOURCES.length }} 种基础物产各有定价，商品与劳役先折算成 D，再进入统计。编辑模式下可直接改写单价。
-      </p>
-
-      <div class="eco-labor">
-        <span v-for="l in [
-          { n: '普通劳役', v: 1.0, u: '人·日' },
-          { n: '工匠劳役', v: 2.4, u: '人·日' },
-          { n: '祭司劳役', v: 3.0, u: '人·日' }
-        ]" :key="l.n" class="eco-labor-chip">
-          {{ l.n }} <b>{{ l.v }}</b> D/{{ l.u }}
-        </span>
-      </div>
-
-      <div class="eco-res-filter">
-        <div class="eco-filter-row">
-          <span class="eco-filter-label">气候</span>
-          <button
-            v-for="c in climateOptions"
-            :key="c"
-            type="button"
-            class="eco-chip"
-            :class="{ on: resClimate === c }"
-            @click="resClimate = c"
-          >
-            <i v-if="c !== '全部'" :style="{ background: CLIMATES[c] }" />
-            {{ c }}
-          </button>
-        </div>
-        <div class="eco-filter-row">
-          <span class="eco-filter-label">季节</span>
-          <button
-            v-for="k in seasonOptions"
-            :key="k"
-            type="button"
-            class="eco-chip"
-            :class="{ on: resSeason === k }"
-            @click="resSeason = k"
-          >
-            {{ k === '全部' ? '全部' : SEASON_LABEL[k] }}
-          </button>
-          <span class="eco-filter-count">{{ filteredResources.length }} / {{ RESOURCES.length }} 种</span>
-        </div>
-      </div>
-
-      <div class="eco-res-groups">
-        <div v-for="[group, items] in groupedResources" :key="group" class="eco-res-group">
-          <h4><i :style="{ background: RESOURCE_GROUPS[group] }"></i>{{ group }}<em>{{ items.length }}</em></h4>
-          <div class="eco-res-chips">
-            <span v-for="r in items" :key="r.id" class="eco-res-chip" :title="r.group + ' · ' + r.value + ' D/' + r.unit + ' · ' + r.climate + ' · ' + SEASON_HINT[r.season]">
-              <b class="eco-res-icon">{{ r.icon }}</b>{{ r.name }}<em class="eco-res-season">{{ SEASON_LABEL[r.season] }}</em>
-              <input
-                v-if="editing"
-                class="eco-res-input"
-                type="number"
-                step="0.1"
-                :value="resValue(r)"
-                @input="setResValue(r.id, $event.target.value)"
-              />
-              <em v-else>{{ resValue(r) }}</em>
-            </span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="eco-block">
-      <h2>各国物产</h2>
-      <p class="eco-lead">
-        按地形与气候推导：湿地多稻米与淡水鱼，针叶林带出木材与树脂，高海拔出金属矿与玉石，热带雨林出香料、硬木与羽毛。
-        同一片区域的国家往往共享物产。
-      </p>
-      <table class="eco-spec-table">
-        <thead>
-          <tr><th>国家</th><th>主要物产</th><th>环节重心</th></tr>
-        </thead>
-        <tbody>
-          <tr v-for="row in allSpecs" :key="row.name" :class="{ on: row.name === selected }" @click="pick(row.name)">
-            <td class="eco-spec-country">{{ row.name }}</td>
-            <td>
-              <span v-for="sp in row.specs" :key="sp.id" class="eco-spec-chip" :style="{ borderColor: RESOURCE_GROUPS[sp.group] }">
-                <i :style="{ background: RESOURCE_GROUPS[sp.group] }"></i>{{ sp.name }}
-              </span>
-            </td>
-            <td class="eco-spec-sector">{{ sectorLabel(row.specs) }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
-
-    <section class="eco-block">
-      <h2>生产建筑</h2>
-      <p class="eco-lead">
-        每级占一格地、吃一份劳力。带投入的建筑若原料不足会降效——效率 = 实得原料 ÷ 所需原料。
-        种族专属建筑只有对应种族才能建造。
-      </p>
-
-      <div class="eco-b-summary">
-        <div><dt>{{ simTotals ? simTotals.slotsUsed + ' / ' + simTotals.slotsCap : '—' }}</dt><dd>已用地块 / 容量</dd></div>
-        <div><dt>{{ simTotals ? fmt(simTotals.gdp) : '—' }}</dt><dd>建筑产值</dd></div>
-        <div><dt>{{ simTotals ? Math.round(simTotals.efficiency * 100) + '%' : '—' }}</dt><dd>加工环节平均效率</dd></div>
-        <div>
-          <dt :class="simTotals && simTotals.balance >= 0 ? 'good' : 'low'">
-            {{ simTotals ? (simTotals.balance >= 0 ? '顺差 ' : '逆差 ') + fmt(Math.abs(simTotals.balance)) : '—' }}
-          </dt>
-          <dd>贸易差额（D）</dd>
-        </div>
-        <div><dt>{{ simTotals ? Math.round((simTotals.foodSupply / Math.max(1, simTotals.foodNeed)) * 100) + '%' : '—' }}</dt><dd>口粮自给率</dd></div>
-        <div><dt>{{ simTotals ? simTotals.timber + ' / ' + simTotals.stone : '—' }}</dt><dd>木材 / 石料结余</dd></div>
-        <div><dt>{{ simTotals ? simTotals.buildable : '—' }}</dt><dd>可扩建等级</dd></div>
-      </div>
-
-      <table class="eco-b-table">
-        <thead>
-          <tr><th>建筑</th><th>产出</th><th>等级</th><th>用工</th><th>效率</th><th>产值</th></tr>
-        </thead>
-        <tbody>
-          <tr v-for="b in currentBuildings" :key="b.id" :class="{ off: b.level === 0 }">
-            <td class="eco-b-name">
-              <i :style="{ background: BUILDING_GROUPS[b.group] }"></i>{{ b.name }}
-              <em v-if="b.race" class="eco-b-race">{{ b.race }}</em>
-            </td>
-            <td class="eco-b-group">
-              {{ b.outRes ? resName(b.outRes) : '服务' }}
-              <span v-if="b.inRes" class="eco-b-in">← {{ resName(b.inRes) }}</span>
-            </td>
-            <td class="num">
-              <input
-                v-if="editing"
-                class="eco-b-input"
-                type="number"
-                min="0"
-                :value="b.level"
-                @input="setBuildingLevel(current.name, b.id, $event.target.value)"
-              />
-              <b v-else>{{ b.level }}</b>
-            </td>
-            <td class="num">{{ fmt(b.level * b.labor) }}</td>
-            <td class="num">
-              <span v-if="b.input" :class="b.eff >= 0.95 ? 'good' : b.eff >= 0.6 ? 'mid' : 'low'">
-                {{ Math.round((b.eff || 0) * 100) }}%
-              </span>
-              <span v-else class="dim">—</span>
-            </td>
-            <td class="num">{{ b.value ? fmt(b.value) : '—' }}</td>
-          </tr>
-        </tbody>
-      </table>
-      <button v-if="editing" type="button" class="eco-btn small" @click="clearBuildings(current.name)">建筑等级恢复推导值</button>
-
-      <div class="eco-build-panel">
-        <div class="eco-build-stock">
-          <span>木材库存 <b>{{ stockOf(current.name).timber }}</b></span>
-          <span>石料库存 <b>{{ stockOf(current.name).stone }}</b></span>
-          <span>可支配储备 <b>{{ stockOf(current.name).reserve }}</b> D</span>
-          <span>扩建由国策调控，不再手动建造</span>
-        </div>
-
-        <div v-if="currentSim && currentSim.totals.downgrades.length" class="eco-log">
-          <p class="eco-log-title">本轮自动降级（效率低于 55%）</p>
-          <ul>
-            <li v-for="d in currentSim.totals.downgrades" :key="d.id">
-              {{ d.name }} 降 {{ d.times }} 级 → 现 {{ d.to }} 级（效率 {{ d.eff }}%）
-            </li>
-          </ul>
-        </div>
-
-        <div v-if="logOf(current.name).length" class="eco-log">
-          <p class="eco-log-title">建造记录</p>
-          <ul>
-            <li v-for="(l, i) in logOf(current.name)" :key="i">{{ l.at }} · {{ l.text }}</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="eco-b-catalog">
-        <div v-for="b in BUILDINGS" :key="b.id" class="eco-b-card">
-          <p class="eco-b-card-name">
-            <i :style="{ background: BUILDING_GROUPS[b.group] }"></i>{{ b.name }}
-            <em v-if="b.race" class="eco-b-race">{{ b.race }}</em>
-          </p>
-          <p class="eco-b-card-meta">{{ b.labor }} 人/级 · {{ b.slots }} 格</p>
-          <p class="eco-b-card-note">{{ b.note }}</p>
-        </div>
-      </div>
-    </section>
 
     <section class="eco-block">
       <h2>阶层与消费</h2>
@@ -2510,6 +2324,21 @@ const resetCfg = () => {
   margin: 3px 0;
 }
 
+
+.eco-jump {
+  margin: 0 0 18px;
+  padding: 10px 14px;
+  font-size: 12.5px;
+  color: var(--vp-c-text-3);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 9px;
+  background: var(--vp-c-bg-soft);
+}
+
+.eco-jump a {
+  font-weight: 600;
+  color: var(--vp-c-brand-1);
+}
 
 .eco-turn {
   display: flex;

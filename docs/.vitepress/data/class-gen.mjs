@@ -18,14 +18,14 @@ export const ROLE_BASKETS = {
     cheese: 0.02, fishsauce: 0.012, amphora: 0.025, incense: 0.004
   },
   武士: {
-    leather: 0.03, weapon: 0.003, bronze_tool: 0.005, cloth: 0.025, beer: 0.04,
+    leather: 0.03, weapon: 0.012, bronze_tool: 0.008, iron_tool: 0.02, cloth: 0.025, beer: 0.04,
     saltedfish: 0.035, cheese: 0.025, salt: 0.04, rope: 0.006, hornware: 0.005,
     iron_tool: 0.004
   },
   农户: {
     bread: 0.06, flour: 0.04, beer: 0.05, cheese: 0.025, saltedfish: 0.025,
     cloth: 0.03, felt: 0.02, pottery: 0.04, amphora: 0.015, wicker: 0.02,
-    stone_tool: 0.02, salt: 0.05, charcoal: 0.03, stone: 0.05, timber: 0.07,
+    stone_tool: 0.02, iron_tool: 0.01, bronze_tool: 0.004, salt: 0.05, charcoal: 0.03, stone: 0.05, timber: 0.07,
     clay: 0.015, tallow: 0.01, olive: 0.015, grape: 0.015, date: 0.02,
     fishsauce: 0.015, tuber: 0.02, turnip: 0.02
   },
