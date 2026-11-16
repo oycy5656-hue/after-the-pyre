@@ -199,8 +199,9 @@ const grouped = computed(() => {
 <style scoped>
 .tw {
   padding-top: 48px;
-  width: min(880px, calc(100vw - 96px));
-  margin-left: calc(50% - min(880px, 100vw - 96px) / 2);
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
 }
 
 .tw-lead {

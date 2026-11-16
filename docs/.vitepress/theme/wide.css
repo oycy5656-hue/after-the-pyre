@@ -1,0 +1,13 @@
+/* ---------- 宽屏页面：解除正文宽度限制 ---------- */
+.VPDoc:not(.has-aside) .content,
+.VPDoc:not(.has-sidebar) .content {
+  max-width: 100% !important;
+}
+
+.VPDoc:not(.has-aside) .content-container {
+  max-width: 1360px !important;
+}
+
+.VPDoc:not(.has-aside) .container {
+  max-width: 1440px !important;
+}

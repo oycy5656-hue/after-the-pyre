@@ -1,6 +1,8 @@
 ---
 title: 经济台账
 description: 无货币社会的统一口径、天赋系数与各国经济账
+aside: false
+sidebar: false
 ---
 
 # 经济台账

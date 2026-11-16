@@ -15,10 +15,54 @@ import CellMap from './components/CellMap.vue'
 import DiplomacyBoard from './components/DiplomacyBoard.vue'
 import DispatchBoard from './components/DispatchBoard.vue'
 import './style.css'
+import './ui-refresh.css'
+import './wide.css'
+
+const RIPPLE_TARGETS = 'button, .vp-button, .VPNavBarMenuLink, .VPSidebarItem .link, .dp-card, .tw-btn'
+
+function installRipple() {
+  document.addEventListener(
+    'pointerdown',
+    (e) => {
+      const el = (e.target as HTMLElement)?.closest?.(RIPPLE_TARGETS) as HTMLElement | null
+      if (!el) return
+      const rect = el.getBoundingClientRect()
+      const size = Math.max(rect.width, rect.height)
+      const span = document.createElement('span')
+      span.className = 'ui-ripple'
+      span.style.width = span.style.height = size + 'px'
+      span.style.left = e.clientX - rect.left - size / 2 + 'px'
+      span.style.top = e.clientY - rect.top - size / 2 + 'px'
+      el.appendChild(span)
+      window.setTimeout(() => span.remove(), 650)
+    },
+    { passive: true }
+  )
+}
+
+function installRouteTransition(router: any) {
+  const animate = () => {
+    document.body.classList.remove('route-enter')
+    void document.body.offsetWidth
+    document.body.classList.add('route-enter')
+    window.setTimeout(() => document.body.classList.remove('route-enter'), 700)
+  }
+  if (router?.onAfterRouteChanged !== undefined) {
+    const prev = router.onAfterRouteChanged
+    router.onAfterRouteChanged = (to: string) => {
+      prev?.(to)
+      animate()
+    }
+  }
+}
 
 export default {
   extends: DefaultTheme,
-  enhanceApp({ app }: { app: App }) {
+  enhanceApp({ app, router }: { app: App; router?: any }) {
+    if (typeof window !== 'undefined') {
+      installRipple()
+      installRouteTransition(router)
+    }
     app.component('CountryPage', CountryPage)
     app.component('CountryExplorer', CountryExplorer)
     app.component('MapViewer', MapViewer)

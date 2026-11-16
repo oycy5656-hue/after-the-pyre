@@ -1,0 +1,232 @@
+/**
+ * 全局视觉升级：居中布局 / 页面转场 / 点击反馈 / 卡片与导航打磨
+ */
+
+:root {
+  --ui-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ui-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ui-glow: 0 0 0 1px rgba(111, 208, 171, 0.24), 0 18px 42px rgba(0, 0, 0, 0.42);
+  --ui-radius: 16px;
+  --ui-radius-sm: 10px;
+  --vp-layout-max-width: 1520px;
+}
+
+/* ---------- 背景与正文居中 ---------- */
+body {
+  background-image:
+    radial-gradient(1200px 600px at 50% -10%, rgba(47, 125, 99, 0.16), transparent 70%),
+    radial-gradient(900px 500px at 100% 100%, rgba(200, 162, 74, 0.07), transparent 70%);
+  background-attachment: fixed;
+}
+
+.VPDoc .container {
+  max-width: 1360px;
+  margin: 0 auto;
+}
+
+.VPDoc:not(.has-aside) .content-container,
+.VPDoc:not(.has-sidebar) .content-container {
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.VPDoc .content {
+  padding-bottom: 72px;
+}
+
+.vp-doc > div > * {
+  margin-inline: auto;
+}
+
+/* ---------- 页面转场 ---------- */
+@keyframes ui-page-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.995);
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+body.route-enter .VPContent .container {
+  animation: ui-page-in 0.42s var(--ui-ease-out) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.route-enter .VPContent .container {
+    animation: none;
+  }
+}
+
+/* ---------- 点击涟漪 ---------- */
+.ui-ripple {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  transform: scale(0);
+  opacity: 0.55;
+  background: radial-gradient(circle, rgba(111, 208, 171, 0.85), rgba(111, 208, 171, 0));
+  animation: ui-ripple 0.6s var(--ui-ease-out) forwards;
+  z-index: 3;
+}
+
+@keyframes ui-ripple {
+  to {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+button,
+.vp-button,
+.VPNavBarMenuLink,
+.VPSidebarItem .link,
+.vp-doc a,
+[role='button'] {
+  position: relative;
+  overflow: hidden;
+  transition: color 0.18s var(--ui-ease), background-color 0.18s var(--ui-ease),
+    border-color 0.18s var(--ui-ease), transform 0.14s var(--ui-ease);
+}
+
+button:active,
+.vp-button:active {
+  transform: scale(0.97);
+}
+
+/* ---------- 链接 ---------- */
+.vp-doc a {
+  text-decoration: none;
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 0% 1px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  transition: background-size 0.25s var(--ui-ease), color 0.18s var(--ui-ease);
+}
+
+.vp-doc a:hover {
+  background-size: 100% 1px;
+}
+
+/* ---------- 卡片 ---------- */
+.vp-doc table,
+.eco-block,
+.cm-stage,
+.dp-card,
+.dp-side,
+.dp-bloc,
+.tw-item,
+.tw-compose,
+.pv-group,
+.pv-bcard,
+.mv-stage-wrap,
+.wp-section {
+  border-radius: var(--ui-radius);
+}
+
+.dp-card,
+.pv-bcard,
+.tw-item,
+.pv-group,
+.eco-block {
+  transition: transform 0.22s var(--ui-ease), box-shadow 0.22s var(--ui-ease),
+    border-color 0.22s var(--ui-ease), background-color 0.22s var(--ui-ease);
+}
+
+.dp-card:hover,
+.pv-bcard:hover,
+.tw-item:hover {
+  transform: translateY(-2px);
+  border-color: rgba(111, 208, 171, 0.4);
+  box-shadow: var(--ui-glow);
+}
+
+/* ---------- 导航 ---------- */
+.VPNavBar {
+  backdrop-filter: blur(14px) saturate(140%);
+  border-bottom: 1px solid rgba(238, 243, 240, 0.08);
+}
+
+.VPNavBar .container {
+  max-width: 1520px !important;
+}
+
+.VPNavBarMenuLink {
+  border-radius: 999px;
+  padding: 4px 12px !important;
+}
+
+.VPNavBarMenuLink:hover {
+  background: rgba(111, 208, 171, 0.1);
+}
+
+.VPNavBarMenuLink.active {
+  background: rgba(111, 208, 171, 0.16);
+  color: var(--vp-c-brand-1) !important;
+}
+
+/* ---------- 表格 ---------- */
+.vp-doc table {
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  border: 1px solid var(--vp-c-divider);
+}
+
+.vp-doc th {
+  background: rgba(238, 243, 240, 0.04);
+  letter-spacing: 0.04em;
+}
+
+.vp-doc tbody tr {
+  transition: background-color 0.16s var(--ui-ease);
+}
+
+.vp-doc tbody tr:hover {
+  background: rgba(111, 208, 171, 0.06);
+}
+
+/* ---------- 滚动条与选区 ---------- */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(111, 208, 171, 0.35) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(111, 208, 171, 0.28);
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(111, 208, 171, 0.45);
+}
+
+::selection {
+  background: rgba(111, 208, 171, 0.28);
+}
+
+/* ---------- 标题字重与间距 ---------- */
+.vp-doc h1 {
+  letter-spacing: -0.02em;
+}
+
+.vp-doc h2 {
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(238, 243, 240, 0.08);
+}
+
+/* ---------- 焦点可见性 ---------- */
+:focus-visible {
+  outline: 2px solid rgba(111, 208, 171, 0.7);
+  outline-offset: 2px;
+  border-radius: 6px;
+}

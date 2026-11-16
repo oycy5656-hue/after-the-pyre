@@ -803,8 +803,9 @@ onMounted(async () => {
 
 <style scoped>
 .cm {
-  width: min(1500px, calc(100vw - 96px));
-  margin-left: calc(50% - min(1500px, 100vw - 96px) / 2);
+  width: 100%;
+  max-width: 1560px;
+  margin: 0 auto;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 300px;
   gap: 16px;

@@ -234,8 +234,9 @@ const activeCountry = computed(() => (active.value?.recorded ? countryOf(active.
 <style scoped>
 .dp {
   padding-top: 64px;
-  width: min(1400px, calc(100vw - 96px));
-  margin-left: calc(50% - min(1400px, 100vw - 96px) / 2);
+  width: 100%;
+  max-width: 1360px;
+  margin: 0 auto;
 }
 
 .dp-lead {
