@@ -337,58 +337,13 @@ const draw = () => {
       ctx.lineTo(e.bx + nx * side * band * 0.5, e.by + ny * side * band * 0.5)
       ctx.stroke()
 
-      // B 侧（无主则深色）
-      ctx.strokeStyle = cb.s > 0 ? stateById.get(cb.s)?.color || '#d8b878' : '#243430'
-      ctx.beginPath()
-      ctx.moveTo(e.ax - nx * side * band * 0.5, e.ay - ny * side * band * 0.5)
-      ctx.lineTo(e.bx - nx * side * band * 0.5, e.by - ny * side * band * 0.5)
-      ctx.stroke()
-    }
-    ctx.globalAlpha = 1
-  }
-
-  // 选中格高亮
-  const sel = selected.value
-  if (sel) {
-    const idx = cells.value.indexOf(sel)
-    if (idx >= 0) {
-      ctx.strokeStyle = '#f3d9a4'
-      ctx.lineWidth = 2 / view.scale
-      ctx.stroke(paths[idx])
-    }
-  }
-  ctx.restore()
-
-  // 首都标记（屏幕坐标绘制，文字始终正向）
-  if (capitals.length) {
-    const cy = bounds.y + bounds.h / 2
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-    for (const cap of capitals) {
-      const my = flipped.value ? 2 * cy - cap.y : cap.y
-      const px = view.tx + cap.x * view.scale
-      const py = view.ty + my * view.scale
-      if (px < -40 || py < -40 || px > w + 40 || py > h + 40) continue
-
-      ctx.beginPath()
-      ctx.arc(px, py, 4.6, 0, Math.PI * 2)
-      ctx.fillStyle = cap.color
-      ctx.fill()
-      ctx.lineWidth = 1.4
-      ctx.strokeStyle = 'rgba(240,230,210,0.9)'
-      ctx.stroke()
-      ctx.beginPath()
-      ctx.arc(px, py, 1.6, 0, Math.PI * 2)
-      ctx.fillStyle = '#0b1412'
-      ctx.fill()
-
-      if (view.scale > baseScale * 1.15) {
-        ctx.font = '11px system-ui, sans-serif'
-        ctx.lineWidth = 3
-        ctx.strokeStyle = 'rgba(6,9,8,0.85)'
-        ctx.strokeText(cap.name, px, py + 13)
-        ctx.fillStyle = '#f0e6d2'
-        ctx.fillText(cap.name, px, py + 13)
+      // B 侧：只有对面也是政权时才画第二色，荒野一侧留空
+      if (cb.s > 0) {
+        ctx.strokeStyle = stateById.get(cb.s)?.color || '#d8b878'
+        ctx.beginPath()
+        ctx.moveTo(e.ax - nx * side * band * 0.5, e.ay - ny * side * band * 0.5)
+        ctx.lineTo(e.bx - nx * side * band * 0.5, e.by - ny * side * band * 0.5)
+        ctx.stroke()
       }
     }
   }
