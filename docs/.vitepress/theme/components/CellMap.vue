@@ -160,6 +160,19 @@ const redistributePopulation = (list) => {
 
 const popSource = ref({ officialCells: 0, officialTotal: 0, mapTotal: 0 })
 
+// burgs(SVG 坐标) → cells(GeoJSON 坐标)：由 35 个首都质心拟合，平均误差 0.76
+const BURG_TRANSFORM = { sx: 0.18695, ox: -178.38, sy: -0.18751, oy: 89.56 }
+
+const capitals = (mapData.burgs || [])
+  .filter((b) => b.capital)
+  .map((b) => ({
+    name: b.name,
+    state: b.state,
+    x: BURG_TRANSFORM.sx * b.x + BURG_TRANSFORM.ox,
+    y: BURG_TRANSFORM.sy * b.y + BURG_TRANSFORM.oy,
+    color: mapData.states.find((st) => st.i === b.state)?.color || '#d8b878'
+  }))
+
 const stateAgg = computed(() => {
   const sid = selected.value?.s
   if (!sid) return null
@@ -266,6 +279,40 @@ const draw = () => {
     }
   }
   ctx.restore()
+
+  // 首都标记（屏幕坐标绘制，文字始终正向）
+  if (capitals.length) {
+    const cy = bounds.y + bounds.h / 2
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    for (const cap of capitals) {
+      const my = flipped.value ? 2 * cy - cap.y : cap.y
+      const px = view.tx + cap.x * view.scale
+      const py = view.ty + my * view.scale
+      if (px < -40 || py < -40 || px > w + 40 || py > h + 40) continue
+
+      ctx.beginPath()
+      ctx.arc(px, py, 4.6, 0, Math.PI * 2)
+      ctx.fillStyle = cap.color
+      ctx.fill()
+      ctx.lineWidth = 1.4
+      ctx.strokeStyle = 'rgba(240,230,210,0.9)'
+      ctx.stroke()
+      ctx.beginPath()
+      ctx.arc(px, py, 1.6, 0, Math.PI * 2)
+      ctx.fillStyle = '#0b1412'
+      ctx.fill()
+
+      if (view.scale > baseScale * 1.15) {
+        ctx.font = '11px system-ui, sans-serif'
+        ctx.lineWidth = 3
+        ctx.strokeStyle = 'rgba(6,9,8,0.85)'
+        ctx.strokeText(cap.name, px, py + 13)
+        ctx.fillStyle = '#f0e6d2'
+        ctx.fillText(cap.name, px, py + 13)
+      }
+    }
+  }
 }
 
 const requestDraw = () => {
@@ -443,6 +490,31 @@ onMounted(async () => {
     const mapTotal = list.reduce((n, c) => n + c.p, 0)
     const info = redistributePopulation(list)
     popSource.value = { ...info, mapTotal }
+
+    // 首都吸附：偏离本州地块质心过远时拉回质心
+    const centers = new Map()
+    for (const c of list) {
+      if (!c.s) continue
+      const cur = centers.get(c.s) || { n: 0, x: 0, y: 0 }
+      const rings = c.rings
+      let n = 0
+      let sx = 0
+      let sy = 0
+      for (const ring of rings) for (const [x, y] of ring) { sx += x; sy += y; n++ }
+      cur.n += n; cur.x += sx; cur.y += sy
+      centers.set(c.s, cur)
+    }
+    const snapCapitals = () => {
+      for (const cap of capitals) {
+        const c = centers.get(cap.state)
+        if (!c) continue
+        const cx = c.x / c.n
+        const cy2 = c.y / c.n
+        const d = Math.hypot(cap.x - cx, cap.y - cy2)
+        if (d > 6) { cap.x = cx; cap.y = cy2 }
+      }
+    }
+    snapCapitals()
 
     bounds = { x: minX, y: minY, w: maxX - minX, h: maxY - minY }
     maxPop.value = Math.max(1, ...list.map((c) => c.p))
