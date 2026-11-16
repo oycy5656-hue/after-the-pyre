@@ -343,6 +343,18 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
     add(consumed, id, Math.round(pop * per))
   }
 
+  // 以需定产：多出来的产能不会真的转化为库存，产出向需求收敛
+  {
+    for (const id of [...produced.keys()]) {
+      const supply = produced.get(id) || 0
+      const demand = consumed.get(id) || 0
+      if (supply <= 0) continue
+      // 有需求的：最多留 12% 余量；无需求的：只保留极小的贸易量
+      const cap = demand > 0 ? demand * 1.12 : Math.max(1, Math.round(pop * 0.002))
+      if (supply > cap) produced.set(id, cap)
+    }
+  }
+
   // 影子经济：农户自纺、自酿、自烧的部分不进市场统计，但确实被消费掉了
   {
     const shadowGoods = ['cloth', 'linen', 'woolen', 'felt', 'leather', 'hornware', 'pottery', 'amphora', 'beer', 'mead', 'bread', 'flour', 'cheese', 'saltedfish', 'fishsauce', 'wicker', 'rope', 'stone_tool', 'bone_tool', 'clay', 'wheat', 'barley', 'rye', 'oats', 'millet', 'rice', 'tuber', 'turnip', 'beans']
