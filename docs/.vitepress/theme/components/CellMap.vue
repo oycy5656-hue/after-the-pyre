@@ -52,6 +52,7 @@ const selected = ref(null)
 const hover = ref(null)
 const zoom = ref(1)
 const mode = ref('biome')
+const flipped = ref(false)
 
 const cells = shallowRef([])
 const stateById = new Map(mapData.states.map((s) => [s.i, s]))
@@ -147,6 +148,11 @@ const draw = () => {
   ctx.save()
   ctx.translate(view.tx, view.ty)
   ctx.scale(view.scale, view.scale)
+  if (flipped.value) {
+    const cy = bounds.y + bounds.h / 2
+    ctx.translate(0, 2 * cy)
+    ctx.scale(1, -1)
+  }
 
   const sidSel = selected.value?.s || 0
   for (let i = 0; i < cells.value.length; i++) {
@@ -262,7 +268,8 @@ const pick = (e) => {
   const mx = e.clientX - rect.left
   const my = e.clientY - rect.top
   const x = (mx - view.tx) / view.scale
-  const y = (my - view.ty) / view.scale
+  let y = (my - view.ty) / view.scale
+  if (flipped.value) y = 2 * (bounds.y + bounds.h / 2) - y
 
   for (let i = 0; i < cells.value.length; i++) {
     const c = cells.value[i]
@@ -392,6 +399,13 @@ onMounted(async () => {
         <span>{{ zoom.toFixed(1) }}×</span>
         <button type="button" @click="view.scale = Math.min(baseScale * 12, view.scale * 1.3); requestDraw()">+</button>
         <button type="button" class="cm-fit" @click="fit">复位</button>
+        <button
+          type="button"
+          class="cm-fit"
+          :class="{ on: flipped }"
+          title="上下翻转地图"
+          @click="flipped = !flipped; requestDraw()"
+        >翻转</button>
       </div>
 
       <div v-if="loading" class="cm-loading">{{ progress || '载入地块…' }}</div>
@@ -525,6 +539,12 @@ onMounted(async () => {
   width: auto !important;
   padding: 0 9px;
   border-radius: 999px !important;
+}
+
+.cm-tools .cm-fit.on {
+  color: #0b1412;
+  background: var(--vp-c-brand-1);
+  border-color: var(--vp-c-brand-1);
 }
 
 .cm-loading {
