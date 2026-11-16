@@ -170,6 +170,64 @@ export const RESOURCES = [
   { id: 'sailcloth', name: '帆布', group: '加工品', kind: 'processed', unit: '匹', value: 300, icon: '⛵', recipe: { 大麻: 1.4 } }
 ]
 
+
+export const SEASON_LABEL = {
+  spring: '春',
+  summer: '夏',
+  autumn: '秋',
+  winter: '冬',
+  year: '常年'
+}
+
+export const SEASON_HINT = {
+  spring: '春季一收',
+  summer: '夏季一收',
+  autumn: '秋季一收',
+  winter: '冬季采收',
+  year: '全年可得'
+}
+
+/** 各物产的采收季（未列出的按类别默认） */
+const SEASON_BY_ID = {
+  // 春
+  saffron: 'autumn', hop: 'autumn', olive: 'autumn', grape: 'autumn',
+  // 夏
+  wheat: 'summer', barley: 'summer', oats: 'summer', rye: 'summer',
+  flax: 'summer', hemp: 'summer', cherry: 'summer',
+  // 秋
+  maize: 'autumn', rice: 'autumn', millet: 'autumn', tuber: 'autumn',
+  beans: 'autumn', apple: 'autumn', pear: 'autumn', fig: 'autumn',
+  citrus: 'winter', date: 'autumn', banana: 'year', coconut: 'year',
+  cocoa: 'autumn', coffee: 'autumn', pepper: 'autumn', cinnamon: 'autumn',
+  clove: 'autumn', ginger: 'autumn', cotton: 'autumn', sugarcane: 'winter',
+  // 林业
+  timber: 'winter', hardwood: 'winter', birch: 'winter', bamboo: 'winter',
+  cork: 'summer', pine: 'spring', lacquer: 'summer', herb: 'spring',
+  resin: 'spring',
+  // 渔汛
+  seafish: 'spring', riverfish: 'spring', salmon: 'autumn', shellfish: 'winter',
+  seaweed: 'spring', whaleoil: 'summer', blubber: 'summer', whalebone: 'summer',
+  coral: 'summer', pearl: 'summer', sponge: 'summer',
+  // 畜牧
+  wool: 'spring', honey: 'autumn', wax: 'autumn',
+  // 矿产与加工
+  salt: 'summer', peat: 'summer'
+}
+
+const DEFAULT_SEASON = {
+  农业: 'autumn',
+  畜牧: 'year',
+  渔猎: 'year',
+  林业: 'winter',
+  矿产: 'year',
+  特产: 'autumn',
+  加工品: 'year'
+}
+
+for (const r of RESOURCES) {
+  if (!r.season) r.season = SEASON_BY_ID[r.id] || DEFAULT_SEASON[r.group] || 'year'
+}
+
 export const RAW_RESOURCES = RESOURCES.filter((r) => r.kind === 'raw')
 export const PROCESSED_RESOURCES = RESOURCES.filter((r) => r.kind === 'processed')
 
@@ -205,15 +263,51 @@ export function scoreResource(res, geo) {
   return score
 }
 
-export function deriveSpecialties(geo, count = 8) {
+export function deriveSpecialties(geo, opts = {}) {
   if (!geo) return []
+  const min = opts.min || 3
+  const max = opts.max || 14
+  const ratio = opts.ratio ?? 0.55
+  const perGroup = opts.perGroup || 3
+
   const scored = RAW_RESOURCES.map((r) => ({ r, score: Math.round(scoreResource(r, geo) * 100) / 100 }))
-    .filter((x) => x.score > 0.9)
+    .filter((x) => x.score > 0)
     .sort((a, b) => b.score - a.score)
-  const picked = scored.slice(0, count).map((x) => ({ ...x.r, score: x.score }))
-  if (picked.length >= 5) return picked
-  const extra = RAW_RESOURCES.filter((r) => !picked.some((p) => p.id === r.id)).slice(0, 5 - picked.length)
-  return [...picked, ...extra.map((r) => ({ ...r, score: 0.5 }))]
+
+  if (!scored.length) return []
+  const best = scored[0].score
+  const cut = best * ratio
+
+  const picked = []
+  const groupCount = {}
+  for (const x of scored) {
+    if (picked.length >= max) break
+    if (x.score < cut) break
+    const g = x.r.group
+    if ((groupCount[g] || 0) >= perGroup) continue
+    groupCount[g] = (groupCount[g] || 0) + 1
+    picked.push(x)
+  }
+
+  // 不足下限则按分数补齐
+  for (const x of scored) {
+    if (picked.length >= min) break
+    if (picked.includes(x)) continue
+    picked.push(x)
+  }
+
+  return picked.map((x) => ({ ...x.r, score: x.score }))
+}
+
+/** 当季产出系数：非当季的原料只能靠库存 */
+export function seasonFactor(res, season) {
+  if (!res || !season) return 1
+  if (res.season === 'year') return 1
+  if (res.season === season) return 1
+  const order = ['spring', 'summer', 'autumn', 'winter']
+  const d = Math.abs(order.indexOf(res.season) - order.indexOf(season))
+  const dist = Math.min(d, 4 - d)
+  return dist === 1 ? 0.55 : 0.3
 }
 
 export function deriveSectors(specs) {

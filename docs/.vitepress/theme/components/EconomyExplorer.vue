@@ -5,7 +5,7 @@ import map from '../../data/map.mjs'
 import { buildRows, DEFAULT_BASE, DEFAULT_COUNTRY_TRAITS, DEFAULT_GOODS, DEFAULT_TRAITS } from '../../data/economy-model.mjs'
 import { currentUser, getOverride, initAuth, loadEdits, saveOverride } from '../auth'
 import { geoOf } from '../../data/geography.mjs'
-import { RESOURCES, RESOURCE_GROUPS, deriveSectors, deriveSpecialties } from '../../data/resources.mjs'
+import { CLIMATES, RESOURCES, RESOURCE_GROUPS, SEASON_HINT, SEASON_LABEL, deriveSectors, deriveSpecialties } from '../../data/resources.mjs'
 import { BUILDING_GROUPS, BUILDINGS } from '../../data/buildings.mjs'
 import { simulate } from '../../data/sim.mjs'
 import { DEFAULT_GROWTH, advanceTurn, emptyTurnState, undoTurn, worldSummary, START_YEAR, YEARS_PER_TURN } from '../../data/turn.mjs'
@@ -299,9 +299,23 @@ const clearBuildings = (name) => {
   delete cfg.value.buildingLevels[name]
 }
 
+const resClimate = ref('全部')
+const resSeason = ref('全部')
+
+const climateOptions = computed(() => ['全部', ...Object.keys(CLIMATES)])
+const seasonOptions = computed(() => ['全部', 'spring', 'summer', 'autumn', 'winter', 'year'])
+
+const filteredResources = computed(() =>
+  RESOURCES.filter((r) => {
+    if (resClimate.value !== '全部' && r.climate !== resClimate.value) return false
+    if (resSeason.value !== '全部' && r.season !== resSeason.value) return false
+    return true
+  })
+)
+
 const groupedResources = computed(() => {
   const m = new Map()
-  for (const r of RESOURCES) {
+  for (const r of filteredResources.value) {
     if (!m.has(r.group)) m.set(r.group, [])
     m.get(r.group).push(r)
   }
@@ -647,12 +661,43 @@ const resetCfg = () => {
         </span>
       </div>
 
+      <div class="eco-res-filter">
+        <div class="eco-filter-row">
+          <span class="eco-filter-label">气候</span>
+          <button
+            v-for="c in climateOptions"
+            :key="c"
+            type="button"
+            class="eco-chip"
+            :class="{ on: resClimate === c }"
+            @click="resClimate = c"
+          >
+            <i v-if="c !== '全部'" :style="{ background: CLIMATES[c] }" />
+            {{ c }}
+          </button>
+        </div>
+        <div class="eco-filter-row">
+          <span class="eco-filter-label">季节</span>
+          <button
+            v-for="k in seasonOptions"
+            :key="k"
+            type="button"
+            class="eco-chip"
+            :class="{ on: resSeason === k }"
+            @click="resSeason = k"
+          >
+            {{ k === '全部' ? '全部' : SEASON_LABEL[k] }}
+          </button>
+          <span class="eco-filter-count">{{ filteredResources.length }} / {{ RESOURCES.length }} 种</span>
+        </div>
+      </div>
+
       <div class="eco-res-groups">
         <div v-for="[group, items] in groupedResources" :key="group" class="eco-res-group">
           <h4><i :style="{ background: RESOURCE_GROUPS[group] }"></i>{{ group }}<em>{{ items.length }}</em></h4>
           <div class="eco-res-chips">
-            <span v-for="r in items" :key="r.id" class="eco-res-chip" :title="r.group + ' · ' + r.value + ' D/' + r.unit">
-              <b class="eco-res-icon">{{ r.icon }}</b>{{ r.name }}
+            <span v-for="r in items" :key="r.id" class="eco-res-chip" :title="r.group + ' · ' + r.value + ' D/' + r.unit + ' · ' + r.climate + ' · ' + SEASON_HINT[r.season]">
+              <b class="eco-res-icon">{{ r.icon }}</b>{{ r.name }}<em class="eco-res-season">{{ SEASON_LABEL[r.season] }}</em>
               <input
                 v-if="editing"
                 class="eco-res-input"
@@ -1730,6 +1775,79 @@ const resetCfg = () => {
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
+}
+
+.eco-res-filter {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0 18px;
+  padding: 12px 14px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 10px;
+  background: var(--vp-c-bg-soft);
+}
+
+.eco-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.eco-filter-label {
+  margin-right: 4px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--vp-c-text-3);
+}
+
+.eco-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  font-size: 11.5px;
+  color: var(--vp-c-text-2);
+  background: transparent;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.eco-chip i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.eco-chip:hover {
+  color: var(--vp-c-text-1);
+  border-color: color-mix(in srgb, var(--vp-c-brand-1) 45%, var(--vp-c-divider));
+}
+
+.eco-chip.on {
+  color: var(--vp-c-text-1);
+  border-color: var(--vp-c-brand-1);
+  background: color-mix(in srgb, var(--vp-c-brand-1) 14%, transparent);
+}
+
+.eco-filter-count {
+  margin-left: auto;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--vp-c-text-3);
+}
+
+.eco-res-season {
+  margin-left: 4px;
+  padding: 0 4px;
+  font-style: normal;
+  font-size: 9.5px;
+  line-height: 1.5;
+  color: var(--vp-c-text-3);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 3px;
 }
 
 .eco-res-icon {
