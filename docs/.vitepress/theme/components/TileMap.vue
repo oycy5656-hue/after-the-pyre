@@ -2,234 +2,207 @@
 import { computed, ref } from 'vue'
 import map from '../../data/map.mjs'
 import countries from '../../data/countries.mjs'
+import { CELLS, CELL_VIEW } from '../../data/cells.mjs'
 import { RESOURCES, deriveSpecialties } from '../../data/resources.mjs'
 import { geoOf } from '../../data/geography.mjs'
 import { metalTechOf } from '../../data/country-metal.mjs'
 import { BUILDINGS } from '../../data/buildings.mjs'
-import { simulate } from '../../data/sim.mjs'
 
-const selectedState = ref(null)
-const selectedTile = ref(null)
+const zoom = ref(1)
+const offset = ref({ x: 0, y: 0 })
+const dragging = ref(false)
+const dragStart = ref({ x: 0, y: 0 })
+const selectedId = ref(null)
+const hoverId = ref(null)
 
 const RES_NAME = new Map(RESOURCES.map((r) => [r.id, r.name]))
-const BUILD_NAME = new Map(BUILDINGS.map((b) => [b.id, b.name]))
+const stateById = new Map(map.states.map((s) => [s.i, s]))
+const countryByState = new Map()
+for (const [id, st] of stateById) {
+  const c = countries.find((x) => x.name === st.name) || countries.find((x) => st.name.includes(x.name) || x.name.includes(st.name))
+  if (c) countryByState.set(id, c)
+}
 
-/** 州 → 国家档案 */
-const stateNameToCountry = computed(() => {
+const popOf = (c) => {
+  const m = /^([\d.]+)\s*([KM]?)$/i.exec(String(c?.population || '10K').trim())
+  return m ? Number(m[1]) * (m[2].toUpperCase() === 'K' ? 1e3 : m[2].toUpperCase() === 'M' ? 1e6 : 1) : 20000
+}
+
+const BIOME_WEIGHT = {
+  热带雨林: 0.6,
+  热带季雨林: 0.8,
+  热带草原: 0.9,
+  热带沙漠: 0.15,
+  亚热带常绿阔叶林带: 1.2,
+  温带落叶阔叶林: 1.3,
+  草原: 1.1,
+  寒漠: 0.15,
+  苔原: 0.2,
+  亚寒带针叶林: 0.7,
+  湿地: 0.9,
+  高山: 0.3,
+  冰川: 0.05
+}
+
+const BIOME_RES = {
+  热带雨林: ['hardwood', 'spice', 'pepper', 'herb', 'feather'],
+  热带季雨林: ['rice', 'dye', 'spice', 'bamboo', 'hardwood'],
+  热带草原: ['cattle', 'goat', 'millet', 'cotton'],
+  热带沙漠: ['date', 'natron', 'sulphur', 'salt', 'camel'],
+  亚热带常绿阔叶林带: ['olive', 'grape', 'fig', 'cork', 'bay', 'timber'],
+  温带落叶阔叶林: ['wheat', 'barley', 'apple', 'timber', 'flax', 'honey'],
+  草原: ['wheat', 'barley', 'sheep', 'horse', 'wool'],
+  寒漠: ['fur', 'peat', 'stone'],
+  苔原: ['fur', 'peat', 'rye'],
+  亚寒带针叶林: ['timber', 'birch', 'resin', 'rye', 'salmon'],
+  湿地: ['rice', 'clay', 'riverfish', 'herb'],
+  高山: ['stone', 'iron', 'copper', 'jade', 'obsidian'],
+  冰川: ['stone']
+}
+
+const weightOfState = computed(() => {
+  const w = new Map()
+  for (const c of CELLS) w.set(c[2], (w.get(c[2]) || 0) + (BIOME_WEIGHT[c[3]] || 0.5))
+  return w
+})
+
+const statePopulation = computed(() => {
   const m = new Map()
-  for (const c of countries) m.set(c.name, c)
+  for (const [sid, c] of countryByState) m.set(sid, popOf(c))
   return m
 })
 
-const countryOfState = (state) => {
-  if (!state) return null
-  const direct = stateNameToCountry.value.get(state.name)
-  if (direct) return direct
-  for (const [name, c] of stateNameToCountry.value) {
-    if (state.name.includes(name) || name.includes(state.name)) return c
-  }
-  return null
+const cells = computed(() =>
+  CELLS.map(([x, y, sid, biome], idx) => {
+    const state = stateById.get(sid)
+    const country = countryByState.get(sid)
+    const totalW = weightOfState.value.get(sid) || 1
+    const myW = BIOME_WEIGHT[biome] || 0.5
+    const pop = country ? Math.round(((statePopulation.value.get(sid) || 0) * myW) / totalW) : 0
+    return { idx, x, y, sid, biome, stateName: state?.name || '无主之地', color: state?.color || '#3c9a7a', country, pop }
+  })
+)
+
+const selected = computed(() => (selectedId.value == null ? null : cells.value[selectedId.value]))
+
+const detail = computed(() => {
+  const c = selected.value
+  if (!c) return null
+  const ids = BIOME_RES[c.biome] || []
+  const resIds = new Set(
+    c.country ? deriveSpecialties(geoOf(c.country.name), { tech: metalTechOf(c.country.name) }).map((r) => r.id) : []
+  )
+  const candidates = ids.filter((id) => RES_NAME.has(id)).map((id) => ({ id, name: RES_NAME.get(id) }))
+  const local = candidates.filter((r) => resIds.has(r.id))
+  const use = local.length ? local : candidates
+  const buildings = BUILDINGS.filter((b) => b.outputs && b.outputs.some((o) => use.some((u) => u.id === o)))
+  return { ...c, resources: use, buildings: buildings.slice(0, 4) }
+})
+
+const onWheel = (e) => {
+  e.preventDefault()
+  const factor = e.deltaY < 0 ? 1.18 : 1 / 1.18
+  zoom.value = Math.min(6, Math.max(1, zoom.value * factor))
 }
 
-/** 每个城邑 → 地块 */
-const statePath = (id) => map.stateShapes?.[id]?.d || ''
+const onDown = (e) => {
+  dragging.value = true
+  dragStart.value = { x: e.clientX - offset.value.x, y: e.clientY - offset.value.y }
+}
+const onMove = (e) => {
+  if (!dragging.value) return
+  offset.value = { x: e.clientX - dragStart.value.x, y: e.clientY - dragStart.value.y }
+}
+const onUp = () => {
+  dragging.value = false
+}
 
-const bboxCache = new Map()
-const bboxOf = (id) => {
-  if (bboxCache.has(id)) return bboxCache.get(id)
-  const d = statePath(id)
-  const nums = (d.match(/-?\d+(\.\d+)?/g) || []).map(Number)
+const zoomIn = () => { zoom.value = Math.min(6, zoom.value * 1.25) }
+const zoomOut = () => { zoom.value = Math.max(1, zoom.value / 1.25) }
+const reset = () => {
+  zoom.value = 1
+  offset.value = { x: 0, y: 0 }
+}
+
+const bounds = (() => {
   let minX = Infinity
   let minY = Infinity
   let maxX = -Infinity
   let maxY = -Infinity
-  for (let i = 0; i + 1 < nums.length; i += 2) {
-    minX = Math.min(minX, nums[i])
-    maxX = Math.max(maxX, nums[i])
-    minY = Math.min(minY, nums[i + 1])
-    maxY = Math.max(maxY, nums[i + 1])
+  for (const c of CELLS) {
+    minX = Math.min(minX, c[0])
+    maxX = Math.max(maxX, c[0])
+    minY = Math.min(minY, c[1])
+    maxY = Math.max(maxY, c[1])
   }
-  const box = Number.isFinite(minX) ? { minX, minY, maxX, maxY } : null
-  bboxCache.set(id, box)
-  return box
-}
+  const pad = 24
+  return { x: minX - pad, y: minY - pad, w: maxX - minX + pad * 2, h: maxY - minY + pad * 2 }
+})()
 
-const tilesOfState = computed(() => {
-  const state = map.states.find((x) => x.i === selectedState.value)
-  if (!state) return []
-  const country = countryOfState(state)
-  const geo = country ? geoOf(country.name) : null
-  const tech = country ? metalTechOf(country.name) : 'stone'
-  const specs = country ? deriveSpecialties(geo, { tech }) : []
-  const biomeList = geo && geo.biomes && geo.biomes.length ? geo.biomes : [['温带落叶阔叶林', 1]]
-
-  const burgs = (map.burgs || []).filter((b) => b.state === state.i)
-  const box = bboxOf(state.i)
-  const want = Math.max(3, Math.min(9, Math.round((state.area || 60) / 28)))
-  const extra = []
-  if (box && burgs.length < want) {
-    const cx = (box.minX + box.maxX) / 2
-    const cy = (box.minY + box.maxY) / 2
-    const rx = Math.max(8, (box.maxX - box.minX) * 0.3)
-    const ry = Math.max(8, (box.maxY - box.minY) * 0.3)
-    const need = want - burgs.length
-    for (let k = 0; k < need; k++) {
-      const ang = (Math.PI * 2 * k) / need + (state.i % 7) * 0.4
-      extra.push({
-        i: 900000 + state.i * 100 + k,
-        name: (state.name || '无名') + ' 聚落 ' + (k + 1),
-        x: cx + Math.cos(ang) * rx * (0.55 + (k % 3) * 0.15),
-        y: cy + Math.sin(ang) * ry * (0.55 + (k % 2) * 0.2),
-        state: state.i,
-        capital: false,
-        port: false,
-        population: 0
-      })
-    }
-  }
-
-  const allTiles = [...burgs, ...extra]
-  const buildPool = BUILDINGS.filter((b) => !b.race || b.race === country?.race)
-
-  return allTiles.map((burg, idx) => {
-    const resources = []
-    for (let k = 0; k < 2; k++) {
-      const sp = specs[(idx * 2 + k) % Math.max(1, specs.length)]
-      if (sp && !resources.some((r) => r.id === sp.id)) resources.push(sp)
-    }
-
-    const buildings = []
-    for (let k = 0; k < 3; k++) {
-      const b = buildPool[(idx * 3 + k + state.i) % Math.max(1, buildPool.length)]
-      if (b && !buildings.some((x) => x.id === b.id)) {
-        buildings.push({ id: b.id, name: b.name, level: 1 + ((idx + k) % 5), out: b.outputs ? b.outputs[0] : null })
-      }
-    }
-
-    const biome = biomeList[(idx + (burg.i % 5)) % biomeList.length]
-    return {
-      id: burg.i,
-      name: burg.name,
-      burg,
-      capital: !!burg.capital,
-      port: !!burg.port,
-      population: burg.population,
-      terrain: biome ? biome[0] : '平原',
-      resources,
-      buildings
-    }
-  })
-})
-
-const states = computed(() => map.states)
-
-const scale = computed(() => ({ w: map.width, h: map.height }))
-
-const selectStateById = (id) => {
-  selectedState.value = id
-  selectedTile.value = null
-}
-
-const fillOf = (id) => {
-  const s = map.states.find((x) => x.i === id)
-  const base = s?.color || '#3c9a7a'
-  return id === selectedState.value ? 'rgba(201,162,74,0.42)' : base + '55'
-}
-
-const burgsOfSelected = computed(() => tilesOfState.value)
-
-const pickTile = (t) => {
-  selectedTile.value = t
-}
+const cellSize = 15
 </script>
 
 <template>
   <div class="tm">
-    <div class="tm-map">
-      <svg :viewBox="`0 0 ${scale.w} ${scale.h}`" preserveAspectRatio="xMidYMid meet">
-        <g>
-          <path
-            v-for="s in states"
-            :key="s.i"
-            :d="statePath(s.i)"
-            :data-name="s.name"
-            :fill="fillOf(s.i)"
-            stroke="rgba(238,243,240,0.22)"
-            stroke-width="1"
-            class="tm-state"
-            @click="selectStateById(s.i)"
+    <div class="tm-stage">
+      <div class="tm-tools">
+        <button type="button" @click="zoomOut">−</button>
+        <span>{{ zoom.toFixed(2) }}×</span>
+        <button type="button" @click="zoomIn">+</button>
+        <button type="button" class="tm-reset" @click="reset">复位</button>
+      </div>
+
+      <svg
+        class="tm-svg"
+        :viewBox="`${bounds.x} ${bounds.y} ${bounds.w} ${bounds.h}`"
+        preserveAspectRatio="xMidYMid meet"
+        @wheel="onWheel"
+        @mousedown="onDown"
+        @mousemove="onMove"
+        @mouseup="onUp"
+        @mouseleave="onUp"
+      >
+        <g :transform="`translate(${offset.x / zoom} ${offset.y / zoom}) scale(${1 / zoom})`">
+          <rect
+            v-for="c in cells"
+            :key="c.idx"
+            :x="c.x - cellSize / 2"
+            :y="c.y - cellSize / 2"
+            :width="cellSize"
+            :height="cellSize"
+            :fill="c.color"
+            :fill-opacity="selectedId === c.idx ? 0.95 : hoverId === c.idx ? 0.75 : 0.45"
+            class="tm-cell"
+            @mouseenter="hoverId = c.idx"
+            @mouseleave="hoverId = null"
+            @click="selectedId = c.idx"
           />
-        </g>
-        <g v-for="t in burgsOfSelected" :key="t.id">
-          <circle
-            :cx="t.burg.x"
-            :cy="t.burg.y"
-            :r="t.capital ? 7 : 4.5"
-            :fill="selectedTile?.id === t.id ? '#f3d9a4' : t.capital ? '#d8b878' : '#8fd6bb'"
-            stroke="rgba(6,9,8,0.75)"
-            stroke-width="1.5"
-            class="tm-burg"
-            @click="pickTile(t)"
-          />
-          <text
-            v-if="t.capital"
-            :x="t.burg.x + 10"
-            :y="t.burg.y + 4"
-            class="tm-label"
-          >{{ t.name }}</text>
         </g>
       </svg>
     </div>
 
     <aside class="tm-side">
-      <template v-if="!selectedState">
-        <p class="tm-hint">点击地图上的国家，查看它的地块与建筑。</p>
+      <template v-if="!detail">
+        <p class="tm-hint">滚轮缩放、拖动平移；点击任意地块查看人口、原料与建筑。</p>
+        <p class="tm-total">共 {{ cells.length }} 个地块 · {{ stateById.size }} 个政权</p>
       </template>
-
       <template v-else>
-        <h3>{{ map.states.find((s) => s.i === selectedState)?.name }}</h3>
-        <p class="tm-sub">
-          {{ countryOfState(map.states.find((s) => s.i === selectedState))?.race || '未知种族' }}
-          · {{ burgsOfSelected.length }} 个地块
-        </p>
+        <h3>{{ detail.stateName }}</h3>
+        <p class="tm-sub">{{ detail.biome }} · 人口约 {{ detail.pop.toLocaleString() }}</p>
 
-        <div class="tm-tiles">
-          <button
-            v-for="t in burgsOfSelected"
-            :key="t.id"
-            type="button"
-            class="tm-tile"
-            :class="{ on: selectedTile?.id === t.id }"
-            @click="pickTile(t)"
-          >
-            <span class="tm-tile-name">{{ t.name }}<em v-if="t.capital">都城</em><em v-else-if="t.port">港</em></span>
-            <span class="tm-tile-sub">{{ t.terrain }} · {{ t.buildings.length }} 座建筑</span>
-          </button>
-        </div>
+        <p class="tm-label">本地原料</p>
+        <ul class="tm-chips">
+          <li v-for="r in detail.resources" :key="r.id">{{ r.name }}</li>
+        </ul>
 
-        <template v-if="selectedTile">
-          <div class="tm-detail">
-            <h4>{{ selectedTile.name }}</h4>
-            <p class="tm-detail-meta">
-              {{ selectedTile.terrain }}
-              <span v-if="selectedTile.population">· 人口 {{ selectedTile.population.toLocaleString() }}</span>
-            </p>
-
-            <p class="tm-detail-title">本地原料</p>
-            <ul class="tm-chips">
-              <li v-for="r in selectedTile.resources" :key="r.id">{{ r.icon }} {{ r.name }}</li>
-            </ul>
-
-            <p class="tm-detail-title">地块建筑</p>
-            <ul class="tm-list">
-              <li v-for="b in selectedTile.buildings" :key="b.id">
-                <span>{{ b.name }}</span>
-                <em>{{ b.here }} 级<span v-if="b.out"> · {{ RES_NAME.get(b.out) || b.out }}</span></em>
-              </li>
-            </ul>
-          </div>
-        </template>
-        <p v-else class="tm-hint">点一个地块查看原料与建筑。</p>
+        <p class="tm-label">可用建筑</p>
+        <ul class="tm-list">
+          <li v-for="b in detail.buildings" :key="b.id">
+            <span>{{ b.name }}</span>
+            <em>{{ b.labor }} 人/级</em>
+          </li>
+        </ul>
+        <p v-if="!detail.buildings.length" class="tm-hint">此地只有采集，没有加工设施。</p>
       </template>
     </aside>
   </div>
@@ -239,43 +212,67 @@ const pickTile = (t) => {
 .tm {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 300px;
-  gap: 18px;
-  max-width: 1400px;
+  gap: 16px;
+  max-width: 1500px;
   margin: 0 auto;
   align-items: start;
 }
 
-.tm-map {
+.tm-stage {
+  position: relative;
   border: 1px solid var(--vp-c-divider);
   border-radius: 14px;
-  background: radial-gradient(120% 100% at 50% 30%, #0a1210, #060908);
+  background: #060908;
   overflow: hidden;
 }
 
-.tm-map svg {
+.tm-svg {
   display: block;
   width: 100%;
-  height: auto;
-  min-height: 480px;
+  min-height: 560px;
+  cursor: grab;
+  user-select: none;
 }
 
-.tm-state {
-  cursor: pointer;
-  transition: fill 0.18s ease;
+.tm-svg:active {
+  cursor: grabbing;
 }
 
-.tm-state:hover {
-  fill: rgba(216, 184, 120, 0.3);
-}
-
-.tm-burg {
+.tm-cell {
   cursor: pointer;
 }
 
-.tm-label {
-  font-size: 11px;
-  fill: rgba(238, 243, 240, 0.8);
-  pointer-events: none;
+.tm-tools {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  font-size: 11.5px;
+  color: var(--vp-c-text-2);
+  background: rgba(6, 9, 8, 0.72);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 999px;
+}
+
+.tm-tools button {
+  width: 22px;
+  height: 22px;
+  font-size: 13px;
+  color: var(--vp-c-text-1);
+  background: var(--vp-c-bg-soft);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.tm-reset {
+  width: auto !important;
+  padding: 0 8px;
+  border-radius: 999px !important;
 }
 
 .tm-side {
@@ -290,80 +287,16 @@ const pickTile = (t) => {
   font-size: 16px;
 }
 
-.tm-sub {
-  margin: 0 0 12px;
+.tm-sub,
+.tm-hint,
+.tm-total {
+  margin: 0 0 10px;
   font-size: 11.5px;
   color: var(--vp-c-text-3);
 }
 
-.tm-hint {
-  margin: 0;
-  font-size: 12px;
-  color: var(--vp-c-text-3);
-}
-
-.tm-tiles {
-  display: grid;
-  gap: 4px;
-  max-height: 300px;
-  overflow: auto;
-  margin-bottom: 12px;
-}
-
-.tm-tile {
-  display: grid;
-  gap: 2px;
-  padding: 7px 10px;
-  text-align: left;
-  background: var(--vp-c-bg);
-  border: 1px solid var(--vp-c-divider);
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.tm-tile.on {
-  border-color: var(--vp-c-brand-1);
-  background: color-mix(in srgb, var(--vp-c-brand-1) 12%, transparent);
-}
-
-.tm-tile-name {
-  font-size: 12.5px;
-  color: var(--vp-c-text-1);
-}
-
-.tm-tile-name em {
-  margin-left: 6px;
-  padding: 0 5px;
-  font-style: normal;
-  font-size: 10px;
-  color: #8a6a1f;
-  background: rgba(192, 138, 46, 0.16);
-  border-radius: 3px;
-}
-
-.tm-tile-sub {
-  font-size: 10.5px;
-  color: var(--vp-c-text-3);
-}
-
-.tm-detail {
-  padding-top: 10px;
-  border-top: 1px solid var(--vp-c-divider);
-}
-
-.tm-detail h4 {
-  margin: 0 0 2px;
-  font-size: 14px;
-}
-
-.tm-detail-meta {
-  margin: 0 0 10px;
-  font-size: 11px;
-  color: var(--vp-c-text-3);
-}
-
-.tm-detail-title {
-  margin: 10px 0 6px;
+.tm-label {
+  margin: 12px 0 6px;
   font-size: 11px;
   letter-spacing: 0.08em;
   color: var(--vp-c-text-3);
