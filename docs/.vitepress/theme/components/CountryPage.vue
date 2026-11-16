@@ -8,6 +8,7 @@ import { deriveSpecialties } from '../../data/resources.mjs'
 import { simulate } from '../../data/sim.mjs'
 import { parsePopulation } from '../../data/economy-model.mjs'
 import mapData from '../../data/map.mjs'
+import { TRAITS_BY_COUNTRY } from '../../data/traits.mjs'
 import { toggleEditMode } from '../editmode'
 
 const props = defineProps({
@@ -97,6 +98,26 @@ const econ = computed(() => {
   return { sim, specs }
 })
 
+const traitCard = computed(() => {
+  const c = country.value
+  return TRAITS_BY_COUNTRY[c.name] || TRAITS_BY_COUNTRY[c.slug] || null
+})
+
+const traitGroups = computed(() => {
+  const card = traitCard.value
+  if (!card) return []
+  const order = ['统帅', '文明', '军事', '地理']
+  const map = new Map()
+  for (const t of card.traits || []) {
+    const k = t.section || '文明'
+    if (!map.has(k)) map.set(k, [])
+    map.get(k).push(t)
+  }
+  return [...map.entries()].sort((a, b) => order.indexOf(a[0]) - order.indexOf(b[0]))
+})
+
+const traitTotal = computed(() => (traitCard.value?.traits || []).reduce((n, t) => n + (Number(t.points) || 0), 0))
+
 const statLabels = {
   diplomacy: '外交',
   stewardship: '管理',
@@ -163,6 +184,7 @@ const toc = computed(() => [
   ['overview', '概览'],
   ['region', '风土'],
   ['economy', '经济'],
+  ['traits', '天赋'],
   ['ruler', '统治者'],
   ...(factions.value.length ? [['factions', '势力格局']] : []),
   ['military', '军事'],
@@ -309,6 +331,43 @@ const toc = computed(() => [
         <p class="wp-econ-note">
           按地理与人口推导；详细账目见 <a :href="withBase('/economy/')">经济台账</a>。
         </p>
+      </section>
+
+      <section id="traits" class="wp-section">
+        <h2>天赋</h2>
+
+        <template v-if="traitCard">
+          <div class="wp-trait-head">
+            <div>
+              <p class="wp-trait-civ">{{ traitCard.civilization }}<span v-if="traitCard.race">· {{ traitCard.race }}</span></p>
+              <p v-if="traitCard.leader?.name" class="wp-trait-leader">
+                {{ traitCard.leader.title || '领袖' }}：{{ traitCard.leader.name }}
+              </p>
+            </div>
+            <div class="wp-trait-points">
+              <strong>{{ traitTotal > 0 ? '+' + traitTotal : traitTotal }}</strong>
+              <span>特质净变化</span>
+            </div>
+          </div>
+
+          <p v-if="traitCard.leader?.background" class="wp-trait-bg">{{ traitCard.leader.background }}</p>
+
+          <div v-for="[sec, items] in traitGroups" :key="sec" class="wp-trait-group">
+            <h3 class="wp-sub">{{ sec }}</h3>
+            <ul class="wp-trait-list">
+              <li v-for="t in items" :key="sec + t.name" class="wp-trait-item" :class="{ neg: Number(t.points) < 0, pos: Number(t.points) > 0 }">
+                <div class="wp-trait-main">
+                  <span v-if="t.category" class="wp-trait-cat">{{ t.category }}</span>
+                  <strong>{{ t.name }}</strong>
+                  <p>{{ t.desc }}</p>
+                </div>
+                <em class="wp-trait-pt">{{ t.points }}</em>
+              </li>
+            </ul>
+          </div>
+        </template>
+
+        <p v-else class="wp-econ-note">该政权尚未录入登记档案的天赋数据。</p>
       </section>
 
       <section id="ruler" class="wp-section">
@@ -1379,6 +1438,137 @@ const toc = computed(() => [
 }
 
 .wp-bad {
+  color: #9c4b4b;
+}
+
+
+.wp-trait-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.wp-trait-civ {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--vp-c-text-1);
+}
+
+.wp-trait-civ span {
+  font-weight: 400;
+  font-size: 12.5px;
+  color: var(--vp-c-text-3);
+}
+
+.wp-trait-leader {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  color: var(--vp-c-text-3);
+}
+
+.wp-trait-points {
+  display: grid;
+  justify-items: end;
+  padding: 8px 14px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 10px;
+  background: var(--vp-c-bg-soft);
+}
+
+.wp-trait-points strong {
+  font-size: 20px;
+  font-variant-numeric: tabular-nums;
+  color: var(--vp-c-brand-1);
+}
+
+.wp-trait-points span {
+  font-size: 10.5px;
+  color: var(--vp-c-text-3);
+}
+
+.wp-trait-bg {
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  font-size: 12.5px;
+  line-height: 1.8;
+  color: var(--vp-c-text-3);
+  border-left: 2px solid var(--vp-c-divider);
+}
+
+.wp-trait-group {
+  margin-top: 14px;
+}
+
+.wp-trait-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wp-trait-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 12px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 9px;
+  background: var(--vp-c-bg-soft);
+}
+
+.wp-trait-item.pos {
+  border-color: rgba(47, 125, 99, 0.35);
+}
+
+.wp-trait-item.neg {
+  border-color: rgba(156, 75, 75, 0.35);
+}
+
+.wp-trait-main {
+  flex: 1;
+}
+
+.wp-trait-main strong {
+  font-size: 13px;
+  color: var(--vp-c-text-1);
+}
+
+.wp-trait-main p {
+  margin: 3px 0 0;
+  font-size: 11.5px;
+  line-height: 1.7;
+  color: var(--vp-c-text-3);
+}
+
+.wp-trait-cat {
+  margin-right: 6px;
+  padding: 0 5px;
+  font-size: 10px;
+  color: var(--vp-c-text-3);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 3px;
+}
+
+.wp-trait-pt {
+  flex: 0 0 auto;
+  font-style: normal;
+  font-size: 12.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--vp-c-text-3);
+}
+
+.wp-trait-item.pos .wp-trait-pt {
+  color: var(--vp-c-brand-1);
+}
+
+.wp-trait-item.neg .wp-trait-pt {
   color: #9c4b4b;
 }
 
