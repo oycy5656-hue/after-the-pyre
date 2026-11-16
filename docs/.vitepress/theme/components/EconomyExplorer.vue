@@ -469,16 +469,6 @@ const resetCfg = () => {
     </div>
   </div>
 
-  <details v-if="turn.log.length" class="eco-turn-log">
-    <summary>回合史（{{ turn.log.length }} 条）</summary>
-    <div v-for="entry in turn.log.slice(0, 6)" :key="entry.turn + '-' + entry.at" class="eco-turn-entry">
-      <p class="eco-turn-entry-head">第 {{ entry.turn }} 回合 · {{ entry.year }} 年 · {{ entry.at }}</p>
-      <ul>
-        <li v-for="(line, i) in entry.entries.slice(0, 12)" :key="i">{{ line }}</li>
-      </ul>
-    </div>
-  </details>
-
     <div v-if="isAdminUser" class="eco-toolbar">
       <button v-if="!editing" type="button" class="eco-btn" @click="editing = true">编辑经济参数</button>
       <template v-else>
@@ -2435,40 +2425,6 @@ const resetCfg = () => {
   color: #1f6f4f;
 }
 
-.eco-turn-log {
-  margin: 0 0 18px;
-  padding: 10px 14px;
-  font-size: 12px;
-  border: 1px solid var(--vp-c-divider);
-  border-radius: 8px;
-  background: var(--vp-c-bg-soft);
-}
-
-.eco-turn-log summary {
-  cursor: pointer;
-  font-weight: 600;
-  color: var(--vp-c-text-2);
-}
-
-.eco-turn-entry {
-  margin-top: 10px;
-}
-
-.eco-turn-entry-head {
-  margin: 0 0 4px;
-  font-size: 11.5px;
-  color: var(--vp-c-text-3);
-}
-
-.eco-turn-entry ul {
-  margin: 0;
-  padding-left: 16px;
-  color: var(--vp-c-text-2);
-}
-
-.eco-turn-entry li {
-  margin: 2px 0;
-}
 
 
 .eco-edit-note {
