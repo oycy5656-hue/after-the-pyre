@@ -65,6 +65,9 @@ const currentSim = computed(() => {
 
 const activeRows = computed(() => (currentSim.value?.buildings || []).filter((b) => b.level > 0))
 
+const RES_NAME = new Map(RESOURCES.map((r) => [r.id, r.name]))
+const resName = (id) => (id ? RES_NAME.get(id) || id : '服务')
+
 const fmt = (n) => (n >= 1e4 ? (n / 1e4).toFixed(1) + ' 万' : String(n))
 </script>
 
@@ -163,7 +166,7 @@ const fmt = (n) => (n >= 1e4 ? (n / 1e4).toFixed(1) + ' 万' : String(n))
         <tbody>
           <tr v-for="b in activeRows" :key="b.id">
             <td>{{ b.name }}</td>
-            <td>{{ b.outRes || '服务' }}<em v-if="b.inRes" class="pv-in"> ← {{ b.inRes }}</em></td>
+            <td>{{ resName(b.outRes) }}<em v-if="b.inRes" class="pv-in"> ← {{ resName(b.inRes) }}</em></td>
             <td>{{ b.level }}</td>
             <td>{{ fmt((b.labor || 0) * b.level) }}</td>
             <td>{{ b.input ? Math.round((b.eff || 0) * 100) + '%' : '—' }}</td>
