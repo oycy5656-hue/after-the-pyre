@@ -1,5 +1,83 @@
 // 由 .tools/build-diplomacy.mjs 生成：政治实体名录与关系
 const DIPLOMACY = {
+ "blocs": [
+  {
+   "id": "bloc:viria",
+   "name": "维瑞亚帝国",
+   "alias": [
+    "维瑞亚"
+   ],
+   "type": "家族帝国",
+   "leader": "基尼格",
+   "player": "基尼格",
+   "members": [
+    "基尼格",
+    "蒙格王朝",
+    "哈巴哲",
+    "斯皮格"
+   ],
+   "note": "名义上是一个帝国，实际由四个家族共治；玩家扮演基尼格家族。",
+   "color": "#6f8ba8"
+  },
+  {
+   "id": "bloc:iseran",
+   "name": "伊瑟兰世界",
+   "alias": [
+    "伊瑟兰议邦",
+    "白枝联邦"
+   ],
+   "type": "议邦联邦",
+   "leader": "伊瑟兰",
+   "player": "",
+   "members": [
+    "伊瑟兰",
+    "尤维尔",
+    "菲尔汀",
+    "希洛亚",
+    "缇洛伦"
+   ],
+   "note": "又称伊瑟兰议邦，由白枝议长主持的精灵诸邦联盟。",
+   "color": "#7fb8a0"
+  },
+  {
+   "id": "bloc:paraxia",
+   "name": "帕拉夏教团",
+   "alias": [
+    "图兰精灵"
+   ],
+   "type": "政教一体",
+   "leader": "帕拉夏教团",
+   "player": "",
+   "members": [
+    "帕拉夏教团",
+    "林普斯",
+    "罗金吉亚"
+   ],
+   "note": "以阿纳亚图拉为第一先知的图兰精灵教团，下辖两处附庸。",
+   "color": "#4fae8c"
+  },
+  {
+   "id": "bloc:iris",
+   "name": "鸢尾花（分裂）",
+   "alias": [
+    "鸢尾花帝国",
+    "鸾尾花帝国"
+   ],
+   "type": "分裂中的帝国",
+   "leader": "—",
+   "player": "",
+   "members": [
+    "鸾尾花",
+    "安茹"
+   ],
+   "memberLabels": {
+    "鸾尾花": "鸢尾花王朝",
+    "安茹": "安茄王朝"
+   },
+   "note": "旧鸢尾花帝国已分裂：安茄王朝据有新土，鸢尾花王朝保有旧统，两方皆自称正统。",
+   "color": "#b36e67"
+  }
+ ],
  "generatedAt": "2026-11-16",
  "entities": [
   {
@@ -304,7 +382,10 @@ const DIPLOMACY = {
    "cells": 11,
    "color": "#f79d31",
    "area": 143,
-   "region": "昉土"
+   "region": "昉土",
+   "blocName": "鸢尾花（分裂）",
+   "blocLeader": "—",
+   "isPlayerHouse": ""
   },
   {
    "id": "state:23",
@@ -320,7 +401,10 @@ const DIPLOMACY = {
    "cells": 10,
    "color": "#ecab2e",
    "area": 130,
-   "region": ""
+   "region": "",
+   "blocName": "鸢尾花（分裂）",
+   "blocLeader": "—",
+   "isPlayerHouse": ""
   },
   {
    "id": "state:24",
@@ -352,7 +436,10 @@ const DIPLOMACY = {
    "cells": 17,
    "color": "#5069d9",
    "area": 221,
-   "region": ""
+   "region": "",
+   "blocName": "维瑞亚帝国",
+   "blocLeader": "基尼格",
+   "isPlayerHouse": true
   },
   {
    "id": "state:26",
@@ -368,7 +455,10 @@ const DIPLOMACY = {
    "cells": 20,
    "color": "#1ac8c2",
    "area": 260,
-   "region": ""
+   "region": "",
+   "blocName": "维瑞亚帝国",
+   "blocLeader": "基尼格",
+   "isPlayerHouse": false
   },
   {
    "id": "state:27",
@@ -400,7 +490,10 @@ const DIPLOMACY = {
    "cells": 10,
    "color": "#a43cb3",
    "area": 130,
-   "region": ""
+   "region": "",
+   "blocName": "维瑞亚帝国",
+   "blocLeader": "基尼格",
+   "isPlayerHouse": false
   },
   {
    "id": "state:29",
@@ -416,7 +509,10 @@ const DIPLOMACY = {
    "cells": 10,
    "color": "#ff744a",
    "area": 130,
-   "region": ""
+   "region": "",
+   "blocName": "维瑞亚帝国",
+   "blocLeader": "基尼格",
+   "isPlayerHouse": false
   },
   {
    "id": "state:30",
@@ -464,7 +560,10 @@ const DIPLOMACY = {
    "cells": 6,
    "color": "#3988e1",
    "area": 78,
-   "region": "昉土"
+   "region": "昉土",
+   "blocName": "伊瑟兰世界",
+   "blocLeader": "伊瑟兰",
+   "isPlayerHouse": ""
   },
   {
    "id": "state:34",
@@ -496,7 +595,10 @@ const DIPLOMACY = {
    "cells": 3,
    "color": "#f0a62f",
    "area": 39,
-   "region": ""
+   "region": "",
+   "blocName": "伊瑟兰世界",
+   "blocLeader": "伊瑟兰",
+   "isPlayerHouse": ""
   },
   {
    "id": "state:36",
@@ -512,7 +614,10 @@ const DIPLOMACY = {
    "cells": 5,
    "color": "#ff5e64",
    "area": 65,
-   "region": ""
+   "region": "",
+   "blocName": "伊瑟兰世界",
+   "blocLeader": "伊瑟兰",
+   "isPlayerHouse": ""
   },
   {
    "id": "state:37",
@@ -528,7 +633,10 @@ const DIPLOMACY = {
    "cells": 3,
    "color": "#ff645c",
    "area": 39,
-   "region": ""
+   "region": "",
+   "blocName": "伊瑟兰世界",
+   "blocLeader": "伊瑟兰",
+   "isPlayerHouse": ""
   },
   {
    "id": "state:38",
@@ -544,7 +652,10 @@ const DIPLOMACY = {
    "cells": 4,
    "color": "#2eed85",
    "area": 52,
-   "region": ""
+   "region": "",
+   "blocName": "伊瑟兰世界",
+   "blocLeader": "伊瑟兰",
+   "isPlayerHouse": ""
   },
   {
    "id": "state:39",
@@ -624,7 +735,10 @@ const DIPLOMACY = {
    "cells": 3,
    "color": "#4fae8c",
    "area": 39,
-   "region": "昉土"
+   "region": "昉土",
+   "blocName": "帕拉夏教团",
+   "blocLeader": "帕拉夏教团",
+   "isPlayerHouse": ""
   },
   {
    "id": "state:44",
@@ -640,7 +754,10 @@ const DIPLOMACY = {
    "cells": 12,
    "color": "#d07a3c",
    "area": 156,
-   "region": ""
+   "region": "",
+   "blocName": "帕拉夏教团",
+   "blocLeader": "帕拉夏教团",
+   "isPlayerHouse": ""
   },
   {
    "id": "state:45",
@@ -656,45 +773,115 @@ const DIPLOMACY = {
    "cells": 6,
    "color": "#5b7fc7",
    "area": 78,
-   "region": ""
+   "region": "",
+   "blocName": "帕拉夏教团",
+   "blocLeader": "帕拉夏教团",
+   "isPlayerHouse": ""
   },
   {
-   "id": "country:维瑞亚帝国",
+   "id": "bloc:viria",
    "stateId": 0,
    "name": "维瑞亚帝国",
-   "recorded": true,
-   "countryName": "维瑞亚帝国",
-   "race": "人类",
-   "faith": "原始崇拜",
-   "system": "封建君主制",
-   "capital": "基尼格",
-   "population": "228K",
-   "cells": 0,
-   "color": "#5489a2",
+   "recorded": false,
+   "countryName": "",
+   "race": "",
+   "faith": "",
+   "system": "家族帝国",
+   "capital": "",
+   "population": "",
+   "cells": 57,
+   "color": "#6f8ba8",
    "area": 0,
-   "region": "央土",
-   "offMap": true
+   "region": "",
+   "bloc": true,
+   "leader": "基尼格",
+   "player": "基尼格",
+   "members": [
+    "基尼格",
+    "蒙格王朝",
+    "哈巴哲",
+    "斯皮格"
+   ],
+   "note": "名义上是一个帝国，实际由四个家族共治；玩家扮演基尼格家族。"
   },
   {
-   "id": "sphere:iseran",
+   "id": "bloc:iseran",
    "stateId": 0,
    "name": "伊瑟兰世界",
    "recorded": false,
    "countryName": "",
-   "race": "精灵",
-   "faith": "白枝传统",
-   "system": "文化圈",
+   "race": "",
+   "faith": "",
+   "system": "议邦联邦",
    "capital": "",
    "population": "",
-   "cells": 0,
+   "cells": 21,
    "color": "#7fb8a0",
    "area": 0,
    "region": "",
-   "sphere": true,
+   "bloc": true,
+   "leader": "伊瑟兰",
+   "player": "",
    "members": [
-    "伊瑟兰议邦",
-    "帕拉夏教团"
-   ]
+    "伊瑟兰",
+    "尤维尔",
+    "菲尔汀",
+    "希洛亚",
+    "缇洛伦"
+   ],
+   "note": "又称伊瑟兰议邦，由白枝议长主持的精灵诸邦联盟。"
+  },
+  {
+   "id": "bloc:paraxia",
+   "stateId": 0,
+   "name": "帕拉夏教团",
+   "recorded": false,
+   "countryName": "",
+   "race": "",
+   "faith": "",
+   "system": "政教一体",
+   "capital": "",
+   "population": "",
+   "cells": 21,
+   "color": "#4fae8c",
+   "area": 0,
+   "region": "",
+   "bloc": true,
+   "leader": "帕拉夏教团",
+   "player": "",
+   "members": [
+    "帕拉夏教团",
+    "林普斯",
+    "罗金吉亚"
+   ],
+   "note": "以阿纳亚图拉为第一先知的图兰精灵教团，下辖两处附庸。",
+   "blocName": "帕拉夏教团",
+   "blocLeader": "帕拉夏教团",
+   "isPlayerHouse": ""
+  },
+  {
+   "id": "bloc:iris",
+   "stateId": 0,
+   "name": "鸢尾花（分裂）",
+   "recorded": false,
+   "countryName": "",
+   "race": "",
+   "faith": "",
+   "system": "分裂中的帝国",
+   "capital": "",
+   "population": "",
+   "cells": 21,
+   "color": "#b36e67",
+   "area": 0,
+   "region": "",
+   "bloc": true,
+   "leader": "—",
+   "player": "",
+   "members": [
+    "鸾尾花",
+    "安茹"
+   ],
+   "note": "旧鸢尾花帝国已分裂：安茄王朝据有新土，鸢尾花王朝保有旧统，两方皆自称正统。"
   }
  ],
  "countries": [
@@ -1569,8 +1756,8 @@ const DIPLOMACY = {
      "color": "#b36e67"
     }
    ],
-   "onMap": true,
-   "stateName": "维瑞亚帝国",
+   "onMap": false,
+   "stateName": "",
    "cells": 0,
    "neighbors": [],
    "mentions": [
@@ -1980,4 +2167,4 @@ const DIPLOMACY = {
 }
 
 export default DIPLOMACY
-export const { entities, countries: DIPLO_COUNTRIES, regions, faiths, adjacency } = DIPLOMACY
+export const { entities, blocs, countries: DIPLO_COUNTRIES, regions, faiths, adjacency } = DIPLOMACY

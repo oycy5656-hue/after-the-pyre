@@ -3,13 +3,14 @@ import { computed, ref } from 'vue'
 import { withBase } from 'vitepress'
 import DIPLOMACY from '../../data/diplomacy.mjs'
 
-const { entities, countries, regions, faiths } = DIPLOMACY
+const { entities, blocs, countries, regions, faiths } = DIPLOMACY
 
 const filter = ref('all')
 const keyword = ref('')
 const active = ref(null)
 
 const TYPE_BADGE = (name, entity) => {
+  if (entity?.bloc) return { label: '集团', cls: 'bloc' }
   if (entity?.sphere) return { label: '文化圈', cls: 'world' }
   if (entity?.offMap) return { label: '未上图', cls: 'off' }
   if (entity?.recorded && entity?.countryName) name = entity.countryName
@@ -47,6 +48,8 @@ const stats = computed(() => ({
 const countryOf = (name) => countries.find((c) => c.name === name)
 
 const neighborsOf = (e) => (e.recorded ? countryOf(e.countryName)?.neighbors || [] : [])
+
+const memberLabel = (bloc, name) => (bloc?.memberLabels && bloc.memberLabels[name]) || name
 
 const select = (e) => {
   active.value = active.value?.id === e.id ? null : e
@@ -94,8 +97,9 @@ const activeCountry = computed(() => (active.value?.recorded ? countryOf(active.
           <span class="dp-name">{{ e.name }}</span>
           <em class="dp-type" :class="TYPE_BADGE(e.name, e).cls">{{ TYPE_BADGE(e.name, e).label }}</em>
           <span class="dp-meta">
-            {{ e.sphere ? (e.members || []).join(' · ') : e.offMap ? '未上图' : e.cells + ' 格' }}
+            {{ e.bloc || e.sphere ? (e.members || []).join(' · ') : e.offMap ? '未上图' : e.cells + ' 格' }}
             <template v-if="e.capital"> · {{ e.capital }}</template>
+            <template v-else-if="e.blocName && !e.bloc"> · 属{{ e.blocName }}</template>
           </span>
         </button>
       </div>
@@ -121,11 +125,30 @@ const activeCountry = computed(() => (active.value?.recorded ? countryOf(active.
             <div><dt>地块</dt><dd>{{ active.cells }}</dd></div>
           </dl>
 
-          <template v-if="active.members && active.members.length">
+          <template v-if="active.bloc">
+            <p class="dp-label">成员</p>
+            <ul class="dp-chips">
+              <li v-for="m in active.members" :key="m">{{ memberLabel(active, m) }}</li>
+            </ul>
+            <p v-if="active.leader" class="dp-label">主导</p>
+            <p class="dp-note">{{ active.leader }}<span v-if="active.player"> · 玩家扮演 {{ active.player }}</span></p>
+            <p class="dp-note">{{ active.note }}</p>
+          </template>
+
+          <template v-else-if="active.members && active.members.length">
             <p class="dp-label">成员</p>
             <ul class="dp-chips">
               <li v-for="m in active.members" :key="m">{{ m }}</li>
             </ul>
+          </template>
+
+          <template v-if="active.blocName && !active.bloc">
+            <p class="dp-label">所属集团</p>
+            <p class="dp-note">{{ active.blocName }}<span v-if="active.isPlayerHouse"> · 玩家家族</span></p>
+          </template>
+
+          <template v-if="active.note && !active.bloc">
+            <p class="dp-note">{{ active.note }}</p>
           </template>
 
           <template v-if="neighborsOf(active).length">
@@ -158,6 +181,27 @@ const activeCountry = computed(() => (active.value?.recorded ? countryOf(active.
         </template>
       </aside>
     </div>
+
+    <section class="dp-section">
+      <h2>政治集团</h2>
+      <p class="dp-sub">同一个集团下的成员在名义上共主，实际往往各怀心思。</p>
+      <div class="dp-blocs">
+        <article v-for="b in blocs" :key="b.id" class="dp-bloc">
+          <header>
+            <span class="dp-dot" :style="{ background: b.color }" />
+            <h3>{{ b.name }}</h3>
+            <em>{{ b.type }}</em>
+          </header>
+          <p class="dp-bloc-leader">
+            主导：{{ b.leader || '—' }}<span v-if="b.player"> · 玩家扮演 {{ b.player }}</span>
+          </p>
+          <ul class="dp-chips">
+            <li v-for="m in b.members" :key="m">{{ memberLabel(b, m) }}</li>
+          </ul>
+          <p class="dp-bloc-note">{{ b.note }}</p>
+        </article>
+      </div>
+    </section>
 
     <section class="dp-section">
       <h2>地区与信仰</h2>
@@ -195,7 +239,7 @@ const activeCountry = computed(() => (active.value?.recorded ? countryOf(active.
           <tr v-for="c in countries" :key="c.name">
             <td>
               <a :href="withBase('/countries/' + c.slug + '.html')">{{ c.name }}</a>
-              <em v-if="!c.onMap" class="dp-offmap">未上图</em>
+              <em v-if="!c.onMap" class="dp-offmap">{{ c.name === '维瑞亚帝国' ? '四家族共治' : '未上图' }}</em>
             </td>
             <td>{{ c.system || '—' }}</td>
             <td>{{ c.region || '—' }}</td>
@@ -489,6 +533,63 @@ const activeCountry = computed(() => (active.value?.recorded ? countryOf(active.
   font-weight: 600;
   color: var(--vp-c-brand-1);
 }
+
+.dp-blocs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.dp-bloc {
+  padding: 14px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 12px;
+  background: var(--vp-c-bg-soft);
+}
+
+.dp-bloc header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 6px;
+}
+
+.dp-bloc h3 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.dp-bloc em {
+  margin-left: auto;
+  padding: 1px 7px;
+  font-style: normal;
+  font-size: 10px;
+  color: var(--vp-c-text-3);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 999px;
+}
+
+.dp-bloc-leader {
+  margin: 0 0 8px;
+  font-size: 11.5px;
+  color: var(--vp-c-text-2);
+}
+
+.dp-bloc-note {
+  margin: 10px 0 0;
+  font-size: 11.5px;
+  line-height: 1.8;
+  color: var(--vp-c-text-3);
+}
+
+.dp-note {
+  margin: 4px 0 0;
+  font-size: 11.5px;
+  line-height: 1.8;
+  color: var(--vp-c-text-3);
+}
+
+.dp-type.bloc { color: #dfd3b0; background: rgba(201, 162, 74, 0.22); }
 
 .dp-section {
   margin-top: 36px;
