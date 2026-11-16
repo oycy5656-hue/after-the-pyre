@@ -790,7 +790,7 @@ const resetCfg = () => {
 
       <table class="eco-b-table">
         <thead>
-          <tr><th>建筑</th><th>产出</th><th>等级</th><th>用工</th><th>效率</th><th>产值</th><th>建造</th></tr>
+          <tr><th>建筑</th><th>产出</th><th>等级</th><th>用工</th><th>效率</th><th>产值</th></tr>
         </thead>
         <tbody>
           <tr v-for="b in currentBuildings" :key="b.id" :class="{ off: b.level === 0 }">
@@ -821,17 +821,6 @@ const resetCfg = () => {
               <span v-else class="dim">—</span>
             </td>
             <td class="num">{{ b.value ? fmt(b.value) : '—' }}</td>
-            <td class="num">
-              <button
-                type="button"
-                class="eco-build-btn"
-                :disabled="!canBuild(current.name, b)"
-                :title="canBuild(current.name, b) ? '耗木材 ' + BUILD_COST.timber + '、石料 ' + BUILD_COST.stone : '建材或地块不足'"
-                @click="buildLevel(current.name, b)"
-              >
-                +1
-              </button>
-            </td>
           </tr>
         </tbody>
       </table>
@@ -842,7 +831,7 @@ const resetCfg = () => {
           <span>木材库存 <b>{{ stockOf(current.name).timber }}</b></span>
           <span>石料库存 <b>{{ stockOf(current.name).stone }}</b></span>
           <span>可支配储备 <b>{{ stockOf(current.name).reserve }}</b> D</span>
-          <span>每级耗 <b>{{ BUILD_COST.timber }}</b> 木材 · <b>{{ BUILD_COST.stone }}</b> 石料（缺料按市价补，约 <b>{{ purchaseCost(current.name).price }}</b> D）</span>
+          <span>扩建由国策调控，不再手动建造</span>
         </div>
 
         <div v-if="currentSim && currentSim.totals.downgrades.length" class="eco-log">
