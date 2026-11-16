@@ -168,8 +168,8 @@ const capitals = (mapData.burgs || [])
   .map((b) => ({
     name: b.name,
     state: b.state,
-    x: BURG_TRANSFORM.sx * b.x + BURG_TRANSFORM.ox,
-    y: BURG_TRANSFORM.sy * b.y + BURG_TRANSFORM.oy,
+    x: b.geo ? b.x : BURG_TRANSFORM.sx * b.x + BURG_TRANSFORM.ox,
+    y: b.geo ? b.y : BURG_TRANSFORM.sy * b.y + BURG_TRANSFORM.oy,
     color: mapData.states.find((st) => st.i === b.state)?.color || '#d8b878'
   }))
 
