@@ -11,6 +11,7 @@ import AdminPage from './components/AdminPage.vue'
 import PolicyBoard from './components/PolicyBoard.vue'
 import ForumBoard from './components/ForumBoard.vue'
 import ProductionView from './components/ProductionView.vue'
+import TileMap from './components/TileMap.vue'
 import './style.css'
 
 export default {
@@ -26,5 +27,6 @@ export default {
   app.component('PolicyBoard', PolicyBoard)
   app.component('ForumBoard', ForumBoard)
   app.component('ProductionView', ProductionView)
+  app.component('TileMap', TileMap)
   }
 } satisfies Theme
