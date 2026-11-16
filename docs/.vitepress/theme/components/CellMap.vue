@@ -317,6 +317,8 @@ const draw = () => {
     for (const e of borderEdges) {
       const ca = cells.value[e.a]
       const cb = cells.value[e.b]
+      // 只画两国相接的边，荒野一侧不描边
+      if (!(ca.s > 0 && cb.s > 0)) continue
       const dx = e.bx - e.ax
       const dy = e.by - e.ay
       const len = Math.hypot(dx, dy) || 1
