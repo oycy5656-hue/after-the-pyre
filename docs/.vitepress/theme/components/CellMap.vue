@@ -348,15 +348,6 @@ onMounted(async () => {
       })
     }
 
-    // 地理坐标 y 轴朝北，画布 y 轴朝下：统一镜像一次
-    const flipY = (y) => minY + maxY - y
-    for (const c of list) {
-      for (const ring of c.rings) {
-        for (let k = 0; k < ring.length; k++) ring[k][1] = flipY(ring[k][1])
-      }
-      c.bbox = [c.bbox[0], flipY(c.bbox[3]), c.bbox[2], flipY(c.bbox[1])]
-    }
-
     bounds = { x: minX, y: minY, w: maxX - minX, h: maxY - minY }
     maxPop.value = Math.max(1, ...list.map((c) => c.p))
     cells.value = list
