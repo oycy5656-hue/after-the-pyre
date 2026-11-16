@@ -3,7 +3,8 @@
 
 import { BUILD_COST, CATEGORY, deriveBuildings, slotCapacity, slotsUsed } from './buildings.mjs'
 import { OUTPUT_CATEGORY, RESOURCES, metalAccess } from './resources.mjs'
-import { CLASS_BASKETS, HOUSEHOLD_CRAFT, classShares } from './classes.mjs'
+import { HOUSEHOLD_CRAFT } from './classes.mjs'
+import { classesFor } from './class-gen.mjs'
 
 const byId = new Map(RESOURCES.map((r) => [r.id, r]))
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v))
@@ -280,7 +281,6 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
 
   // 家庭手工业：农户自家纺纱、烧陶，补上作坊产能不足
   {
-    const shares = classShares(system)
     for (const [outId, cfg] of Object.entries(HOUSEHOLD_CRAFT)) {
       const src = produced.get(cfg.from) || 0
       const srcDemand = consumed.get(cfg.from) || 0
@@ -321,14 +321,15 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
     }
   }
 
-  // 阶层消费：上层、祭司、武士、农户、贫民各有各的篮子
-  const shares = classShares(system)
-  for (const [cls, share] of Object.entries(shares)) {
-    const cp = pop * share
-    const basket = CLASS_BASKETS[cls] || {}
-    for (const [id, per] of Object.entries(basket)) {
+  // 阶层消费：阶层由该国背景生成，篮子只取本地可得的物产
+  const classList = classesFor(
+    { race, politics: { system } },
+    new Set(specs.map((x) => x.id))
+  )
+  for (const cls of classList) {
+    const cp = pop * cls.share
+    for (const [id, per] of Object.entries(cls.basket)) {
       if (!byId.has(id)) continue
-      // 产不出来的东西不凭空生成需求
       if ((produced.get(id) || 0) <= 0 && (pass.produced.get(id) || 0) <= 0) continue
       const need = Math.round(cp * per * CLASS_DEMAND_MULT)
       if (need > 0) add(consumed, id, need)

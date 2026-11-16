@@ -8,7 +8,7 @@ import { geoOf } from '../../data/geography.mjs'
 import { CLIMATES, RESOURCES, RESOURCE_GROUPS, SEASON_HINT, SEASON_LABEL, deriveSectors, deriveSpecialties } from '../../data/resources.mjs'
 import { COUNTRY_TRAIT_NAMES, TRAIT_ECON_LIST, countryEffects } from '../../data/trait-economy.mjs'
 import { metalTechOf } from '../../data/country-metal.mjs'
-import { CLASS_BASKETS, classShares } from '../../data/classes.mjs'
+import { classesFor } from '../../data/class-gen.mjs'
 import { BUILDING_GROUPS, BUILDINGS } from '../../data/buildings.mjs'
 import { simulate } from '../../data/sim.mjs'
 import { DEFAULT_GROWTH, advanceTurn, emptyTurnState, undoTurn, worldSummary, START_YEAR, YEARS_PER_TURN } from '../../data/turn.mjs'
@@ -403,15 +403,15 @@ const currentClasses = computed(() => {
   const name = current.value?.name
   if (!name) return []
   const c = countries.find((x) => x.name === name)
-  const shares = classShares(c?.politics?.system)
-  return Object.entries(shares).map(([cls, share]) => {
-    const basket = CLASS_BASKETS[cls] || {}
-    const top = Object.entries(basket)
+  const cls = classesFor({ race: c?.race, politics: c?.politics }, new Set(specsOf(name).map((x) => x.id)))
+  return cls.map((k) => ({
+    cls: k.name,
+    share: k.share,
+    top: Object.entries(k.basket)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 3)
       .map(([id]) => RESOURCES.find((r) => r.id === id)?.name || id)
-    return { cls, share, top }
-  })
+  }))
 })
 
 const classRows = computed(() => {
@@ -419,17 +419,16 @@ const classRows = computed(() => {
   if (!name) return []
   const c = countries.find((x) => x.name === name)
   const pop = current.value?.population || 0
-  const shares = classShares(c?.politics?.system)
-  return Object.entries(shares).map(([cls, share]) => {
-    const basket = CLASS_BASKETS[cls] || {}
-    const items = Object.entries(basket)
+  const cls = classesFor({ race: c?.race, politics: c?.politics }, new Set(specsOf(name).map((x) => x.id)))
+  return cls.map((k) => {
+    const items = Object.entries(k.basket)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 6)
       .map(([id, per]) => {
         const r = RESOURCES.find((x) => x.id === id)
-        return { name: r?.name || id, per, unit: r?.unit || '', total: Math.round(pop * share * per * 1.6) }
+        return { name: r?.name || id, per, unit: r?.unit || '', total: Math.round(pop * k.share * per * 1.25) }
       })
-    return { cls, share, people: Math.round(pop * share), items }
+    return { cls: k.name, share: k.share, people: Math.round(pop * k.share), items }
   })
 })
 
