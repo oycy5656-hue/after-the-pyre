@@ -74,7 +74,51 @@ const marquee = computed(() => countries.map((c) => c.name))
     <section class="hm-hero">
       <div class="hm-grid" aria-hidden="true" />
       <div class="hm-glow" aria-hidden="true" />
-      <div class="hm-orb" aria-hidden="true" />
+      <div class="hm-orbit-field" aria-hidden="true">
+        <svg class="hm-orbits" viewBox="-450 -450 900 900" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <radialGradient id="sat-glow">
+              <stop offset="0%" stop-color="#fff8ec" />
+              <stop offset="55%" stop-color="#f0c48a" />
+              <stop offset="100%" stop-color="rgba(224,138,78,0)" />
+            </radialGradient>
+            <path id="orbit-a" d="M -338,0 a 338,118 0 1,1 676,0 a 338,118 0 1,1 -676,0" />
+            <path id="orbit-b" d="M -430,0 a 430,168 0 1,1 860,0 a 430,168 0 1,1 -860,0" />
+            <path id="orbit-c" d="M -252,0 a 252,88 0 1,1 504,0 a 252,88 0 1,1 -504,0" />
+          </defs>
+
+          <g class="hm-ring-group">
+            <g transform="rotate(-18)">
+              <use class="hm-ring r1" href="#orbit-a" />
+              <circle class="hm-sat" r="4.5">
+                <animateMotion dur="22s" repeatCount="indefinite" rotate="auto">
+                  <mpath href="#orbit-a" />
+                </animateMotion>
+              </circle>
+            </g>
+
+            <g transform="rotate(26)">
+              <use class="hm-ring r2" href="#orbit-b" />
+              <circle class="hm-sat warm" r="3.2">
+                <animateMotion dur="34s" repeatCount="indefinite" begin="-8s" rotate="auto">
+                  <mpath href="#orbit-b" />
+                </animateMotion>
+              </circle>
+            </g>
+
+            <g transform="rotate(-42)">
+              <use class="hm-ring r3" href="#orbit-c" />
+              <circle class="hm-sat dim" r="2.6">
+                <animateMotion dur="15s" repeatCount="indefinite" begin="-3s" rotate="auto">
+                  <mpath href="#orbit-c" />
+                </animateMotion>
+              </circle>
+            </g>
+          </g>
+        </svg>
+
+        <div class="hm-orb" />
+      </div>
 
       <div class="hm-hero-inner">
         <p class="hm-kicker"><span class="hm-dash" />THE PYRE · 世界设定集</p>
@@ -247,7 +291,7 @@ const marquee = computed(() => countries.map((c) => c.name))
 .hm-orb {
   position: absolute;
   left: 50%;
-  top: 40%;
+  top: 50%;
   width: 34px;
   height: 34px;
   transform: translate(-50%, -50%);
@@ -255,6 +299,67 @@ const marquee = computed(() => countries.map((c) => c.name))
   background: radial-gradient(circle at 40% 35%, #fff 0%, #ffe9c9 40%, rgba(224, 138, 78, 0) 72%);
   box-shadow: 0 0 60px 24px rgba(224, 138, 78, 0.32), 0 0 160px 70px rgba(224, 138, 78, 0.14);
   pointer-events: none;
+}
+
+/* ---------- 轨道 ---------- */
+.hm-orbit-field {
+  position: absolute;
+  left: 50%;
+  top: 41%;
+  width: 900px;
+  height: 900px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.hm-orbits {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  animation: hm-orbit-drift 90s linear infinite;
+}
+
+.hm-ring {
+  fill: none;
+  stroke: rgba(238, 243, 240, 0.16);
+  stroke-width: 1;
+}
+
+.hm-ring.r1 {
+  stroke: rgba(238, 243, 240, 0.22);
+}
+
+.hm-ring.r2 {
+  stroke: rgba(216, 184, 120, 0.2);
+  stroke-dasharray: 2 6;
+}
+
+.hm-ring.r3 {
+  stroke: rgba(111, 208, 171, 0.18);
+}
+
+.hm-sat {
+  fill: #fff6e8;
+  filter: drop-shadow(0 0 6px rgba(255, 214, 160, 0.9));
+}
+
+.hm-sat.warm {
+  fill: #f3cf9a;
+  filter: drop-shadow(0 0 5px rgba(216, 184, 120, 0.85));
+}
+
+.hm-sat.dim {
+  fill: rgba(238, 243, 240, 0.75);
+  filter: drop-shadow(0 0 4px rgba(238, 243, 240, 0.6));
+}
+
+@keyframes hm-orbit-drift {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .hm-hero-inner {
@@ -679,7 +784,20 @@ const marquee = computed(() => countries.map((c) => c.name))
 }
 
 /* ============ 响应式 ============ */
+@media (max-width: 1280px) {
+  .hm-orbit-field {
+    width: 720px;
+    height: 720px;
+  }
+}
+
 @media (max-width: 1024px) {
+  .hm-orbit-field {
+    width: 560px;
+    height: 560px;
+    opacity: 0.75;
+  }
+
   .hm-side,
   .hm-corner {
     display: none;
