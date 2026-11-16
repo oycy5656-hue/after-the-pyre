@@ -225,6 +225,9 @@ const fmt = (n) => {
 
 const specsOf = (name) => deriveSpecialties(geoOf(name), { tech: metalTechOf(name) })
 const currentSpecs = computed(() => (current.value ? specsOf(current.value.name) : []))
+const partsTotal = computed(() => (current.value?.parts || []).reduce((n, p) => n + (p.value || 0), 0) || 1)
+const allocTotal = computed(() => (alloc.value || []).reduce((n, a) => n + (a.value || 0), 0) || 1)
+
 const currentSectors = computed(() => deriveSectors(currentSpecs.value))
 const allSpecs = computed(() =>
   rows.value.map((r) => ({ name: r.name, slug: r.slug, specs: specsOf(r.name) }))
@@ -694,12 +697,28 @@ const resetCfg = () => {
             </li>
           </ul>
 
+          <p class="eco-mini-title">阶层比例</p>
+          <div class="eco-stack slim">
+            <span
+              v-for="(k, i) in currentClasses"
+              :key="k.cls"
+              :style="{ width: k.share * 100 + '%', background: ['#c9a24a','#9c6f9c','#b06a6a','#2f7d63','#6f8ba8','#8a7f8f'][i % 6] }"
+              :title="k.cls + ' ' + (k.share * 100).toFixed(1) + '%'"
+            ></span>
+          </div>
+          <ul class="eco-legend tight">
+            <li v-for="(k, i) in currentClasses" :key="k.cls + '-l'">
+              <i :style="{ background: ['#c9a24a','#9c6f9c','#b06a6a','#2f7d63','#6f8ba8','#8a7f8f'][i % 6] }"></i>
+              {{ k.cls }} {{ (k.share * 100).toFixed(1) }}%
+            </li>
+          </ul>
+
           <p class="eco-mini-title">产出构成</p>
           <div class="eco-stack slim">
             <span
               v-for="p in current.parts"
               :key="p.label"
-              :style="{ width: (p.value / current.gross) * 100 + '%', background: p.color }"
+              :style="{ width: (p.value / partsTotal) * 100 + '%', background: p.color }"
               :title="p.label + ' ' + fmt(p.value) + ' D'"
             ></span>
           </div>
@@ -712,7 +731,7 @@ const resetCfg = () => {
             <span
               v-for="a in alloc"
               :key="a.label"
-              :style="{ width: (a.value / current.gross) * 100 + '%', background: a.color }"
+              :style="{ width: (a.value / allocTotal) * 100 + '%', background: a.color }"
               :title="a.label + ' ' + fmt(a.value) + ' D'"
             ></span>
           </div>
