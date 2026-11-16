@@ -4,6 +4,7 @@ import { TRAITS_BY_COUNTRY } from './traits.mjs'
 import { RESOURCES } from './resources.mjs'
 
 const byId = new Map(RESOURCES.map((r) => [r.id, r]))
+const NAME_TO_ID = new Map(RESOURCES.map((r) => [r.name, r.id]))
 
 /** 每个「角色」的消费倾向（会按本地可得物产过滤） */
 export const ROLE_BASKETS = {
@@ -64,26 +65,26 @@ export const ROLE_BASKETS = {
 const RACE_TEMPLATES = {
   人类: {
     feudal: [
-      ['领主', '上层', 0.04],
-      ['教士', '祭司', 0.05],
-      ['骑士', '武士', 0.1],
-      ['自由农', '农户', 0.5],
-      ['农奴', '贫民', 0.22],
-      ['城市游民', '贫民', 0.09]
+      ['贵族', '上层', 0.04],
+      ['祭司', '祭司', 0.05],
+      ['战士', '武士', 0.1],
+      ['农人', '农户', 0.5],
+      ['隶农', '贫民', 0.22],
+      ['匠户', '工匠', 0.09]
     ],
     republic: [
-      ['元老家族', '上层', 0.06],
-      ['商贾', '工匠', 0.12],
-      ['水手', '水手', 0.14],
-      ['市民', '农户', 0.42],
-      ['工匠与行会', '工匠', 0.12],
-      ['外邦人与奴隶', '奴隶', 0.14]
+      ['世家', '上层', 0.06],
+      ['商旅', '工匠', 0.12],
+      ['桨手', '水手', 0.14],
+      ['农人', '农户', 0.44],
+      ['匠户', '工匠', 0.1],
+      ['奴隶', '奴隶', 0.14]
     ],
     tribal: [
-      ['酋长', '上层', 0.05],
+      ['族长', '上层', 0.05],
       ['祭司', '祭司', 0.06],
       ['勇士', '武士', 0.14],
-      ['牧民', '牧民', 0.55],
+      ['牧人', '牧民', 0.55],
       ['俘户', '贫民', 0.2]
     ]
   },
@@ -91,9 +92,8 @@ const RACE_TEMPLATES = {
     ['林主', '上层', 0.05],
     ['咏者', '祭司', 0.08],
     ['游侠', '武士', 0.12],
-    ['林民', '林民', 0.48],
-    ['林外的流民', '贫民', 0.18],
-    ['外邦商旅', '工匠', 0.09]
+    ['林民', '林民', 0.55],
+    ['林外流民', '贫民', 0.2]
   ],
   小精灵: [
     ['术胄家族', '上层', 0.05],
@@ -166,14 +166,33 @@ export function classesFor(country, specIds) {
     for (const [id, per] of Object.entries(basket)) {
       if (!byId.has(id)) continue
       // 只有本地能产或能加工的物产才计入消费
-      const local = have(id) || (byId.get(id)?.kind === 'processed' && Object.keys(byId.get(id).recipe || {}).some((k) => specIds.has(k) || have(k)))
+      const recipeIds = Object.keys(byId.get(id)?.recipe || {}).map((k) => NAME_TO_ID.get(k)).filter(Boolean)
+      const local = have(id) || (byId.get(id)?.kind === 'processed' && recipeIds.some((k) => specIds.has(k)))
       if (local) out[id] = per
+    }
+    return out
+  }
+
+  const ensureUpper = (basket) => {
+    if (Object.keys(basket).length >= 5) return basket
+    const fallback = ['wine', 'oliveoil', 'woolen', 'linen', 'cheese', 'honey', 'wax', 'amphora', 'bronze_ware', 'mead', 'tallow']
+    const out = { ...basket }
+    for (const id of fallback) {
+      if (Object.keys(out).length >= 5) break
+      if (out[id]) continue
+      if (!byId.has(id)) continue
+      const r = byId.get(id)
+      const recipeIds = Object.keys(r.recipe || {}).map((k) => NAME_TO_ID.get(k)).filter(Boolean)
+      const craftable = r.kind === 'processed' && recipeIds.some((k) => specIds.has(k))
+      if (specIds.has(id) || craftable) out[id] = 0.02
     }
     return out
   }
 
   return tmpl.map(([name, role, share]) => {
     const base = ROLE_BASKETS[role] || ROLE_BASKETS.农户
-    return { name, role, share, basket: available(base) }
+    let basket = available(base)
+    if (role === '上层') basket = ensureUpper(basket)
+    return { name, role, share, basket }
   })
 }
