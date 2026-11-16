@@ -113,11 +113,13 @@ export function deriveBuildings(specs, population, race) {
 }
 
 /** 地块容量 */
-export function slotCapacity(geo, area) {
+export function slotCapacity(geo, area, population = 0) {
   if (!geo) return 12
   const byArea = Math.round(Math.sqrt(Math.max(1, area || 100)) * 1.9)
   const terrain = geo.h > 70 ? 8 : geo.h > 50 ? 12 : 16
-  return Math.max(10, Math.min(64, byArea + terrain + (geo.river > 40 ? 4 : 0) + (geo.coast > 40 ? 4 : 0)))
+  // 人口越多，可用于建设的聚落与工坊空地越多
+  const byPop = Math.min(80, Math.round(Math.max(0, population) / 9000))
+  return Math.max(12, Math.min(180, byArea + terrain + byPop + (geo.river > 40 ? 4 : 0) + (geo.coast > 40 ? 4 : 0)))
 }
 
 export function slotsUsed(list) {

@@ -41,18 +41,27 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
     }
   })
 
-  // 容量约束：地块不够时，从最大的建筑开始削减等级
+  // 容量约束：地块不够时按比例压缩全部建筑等级，保证收敛
   {
-    const cap = slotCapacity(geo, area)
+    const cap = slotCapacity(geo, area, pop)
     let used = slotsUsed(buildings)
-    let guard = 500
+    let rounds = 0
+    while (used > cap && rounds++ < 40) {
+      const factor = Math.max(0.2, (cap / used) * 0.985)
+      for (const b of buildings) {
+        if (b.level > 0) {
+          b.level = Math.floor(b.level * factor)
+          b.overCap = true
+        }
+      }
+      used = slotsUsed(buildings)
+    }
+    // 兜底：仍有超出则从最大者逐级削
+    let guard = 5000
     while (used > cap && guard-- > 0) {
-      const target = buildings
-        .filter((b) => b.level > 0)
-        .sort((a, b) => b.level - a.level)[0]
+      const target = buildings.filter((b) => b.level > 0).sort((a, b) => b.level - a.level)[0]
       if (!target) break
       target.level -= 1
-      target.overCap = true
       used = slotsUsed(buildings)
     }
   }
@@ -157,7 +166,7 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
   }
 
   const gdp = buildings.reduce((n, b) => n + (b.value || 0), 0)
-  const cap = slotCapacity(geo, area)
+  const cap = slotCapacity(geo, area, pop)
   const used = slotsUsed(buildings)
 
   const timberNet = (produced.get('timber') || 0) - (consumed.get('timber') || 0)
