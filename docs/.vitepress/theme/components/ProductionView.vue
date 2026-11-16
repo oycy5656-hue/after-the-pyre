@@ -168,7 +168,7 @@ const fmt = (n) => (n >= 1e4 ? (n / 1e4).toFixed(1) + ' 万' : String(n))
             <td>{{ b.name }}</td>
             <td>{{ resName(b.outRes) }}<em v-if="b.inRes" class="pv-in"> ← {{ resName(b.inRes) }}</em></td>
             <td>{{ b.level }}</td>
-            <td>{{ fmt((b.labor || 0) * b.level) }}</td>
+            <td>{{ fmt(b.laborUsed || (b.labor || 0) * b.level) }}</td>
             <td>{{ b.input ? Math.round((b.eff || 0) * 100) + '%' : '—' }}</td>
             <td>{{ b.value ? (b.value / 1e6).toFixed(1) + 'M' : '—' }}</td>
           </tr>

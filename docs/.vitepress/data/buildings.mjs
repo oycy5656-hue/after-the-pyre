@@ -104,7 +104,12 @@ export function metalAllowed(need, access) {
 export function deriveBuildings(specs, population, race, metalAccess = 'none') {
   const ids = new Set(specs.map((s) => s.id))
   const pop = Math.max(500, population || 1000)
-  const totalLevels = Math.max(6, Math.round(pop / 650))
+  // 可参与生产的劳力：成年人口的约四成
+  const laborPool = pop * 0.42
+  const avgLabor = 700
+  const byLabor = Math.floor(laborPool / avgLabor)
+  const byPop = Math.round(pop / 650)
+  const totalLevels = Math.max(3, Math.min(byLabor || 3, Math.max(3, byPop)))
 
   const pool = BUILDINGS.filter((b) => !b.race || b.race === race).filter((b) => metalAllowed(b.metal, metalAccess))
 
@@ -130,5 +135,17 @@ export function deriveBuildings(specs, population, race, metalAccess = 'none') {
   })
 
   const sum = weights.reduce((n, x) => n + x.w, 0) || 1
-  return weights.map(({ b, w }) => ({ ...b, level: w <= 0 ? 0 : Math.max(1, Math.round((w / sum) * totalLevels)) }))
+  const list = weights.map(({ b, w }) => ({ ...b, level: w <= 0 ? 0 : Math.max(1, Math.round((w / sum) * totalLevels)) }))
+
+  // 用工不超过劳力池：超了就从等级最高的建筑开始削
+  let used = list.reduce((n, b) => n + (b.labor || 700) * b.level, 0)
+  let guard = 2000
+  while (used > laborPool && guard-- > 0) {
+    const target = list.filter((b) => b.level > 0).sort((a, b) => b.level - a.level)[0]
+    if (!target) break
+    target.level -= 1
+    used = list.reduce((n, b) => n + (b.labor || 700) * b.level, 0)
+  }
+
+  return list
 }

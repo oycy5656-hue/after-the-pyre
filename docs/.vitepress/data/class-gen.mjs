@@ -172,26 +172,47 @@ export function classesFor(country, specIds) {
     return out
   }
 
-  const ensureUpper = (basket) => {
-    if (Object.keys(basket).length >= 5) return basket
-    const fallback = ['wine', 'oliveoil', 'woolen', 'linen', 'cheese', 'honey', 'wax', 'amphora', 'bronze_ware', 'mead', 'tallow']
+  const ROLE_FALLBACK = {
+    上层: ['wine', 'oliveoil', 'woolen', 'linen', 'cheese', 'honey', 'wax', 'amphora', 'mead'],
+    祭司: ['herb', 'wax', 'honey', 'amphora', 'wine'],
+    武士: ['leather', 'salt', 'beer', 'cloth', 'iron_tool', 'bronze_tool'],
+    农户: ['pottery', 'salt', 'timber', 'stone', 'cloth', 'charcoal'],
+    贫民: ['pottery', 'salt', 'timber', 'flour', 'wicker'],
+    工匠: ['timber', 'clay', 'charcoal', 'stone'],
+    水手: ['saltedfish', 'rope', 'salt'],
+    牧民: ['cheese', 'wool', 'hide', 'felt'],
+    矿工: ['charcoal', 'bread', 'salt'],
+    奴隶: ['flour', 'pottery', 'salt'],
+    学者: ['herb', 'wax', 'wine'],
+    林民: ['timber', 'herb', 'game', 'honey']
+  }
+
+  const localOrCraftable = (id) => {
+    if (!byId.has(id)) return false
+    if (specIds.has(id)) return true
+    const r = byId.get(id)
+    const recipeIds = Object.keys(r.recipe || {}).map((k) => NAME_TO_ID.get(k)).filter(Boolean)
+    return r.kind === 'processed' && recipeIds.some((k) => specIds.has(k))
+  }
+
+  /** 任何阶层至少要有两项消费，避免小国出现空行 */
+  const ensureMin = (basket, role) => {
+    const need = role === '上层' ? 5 : 2
+    if (Object.keys(basket).length >= need) return basket
     const out = { ...basket }
-    for (const id of fallback) {
-      if (Object.keys(out).length >= 5) break
+    const tries = [...(ROLE_FALLBACK[role] || []), ...(ROLE_FALLBACK.农户 || [])]
+    for (const id of tries) {
+      if (Object.keys(out).length >= need) break
       if (out[id]) continue
-      if (!byId.has(id)) continue
-      const r = byId.get(id)
-      const recipeIds = Object.keys(r.recipe || {}).map((k) => NAME_TO_ID.get(k)).filter(Boolean)
-      const craftable = r.kind === 'processed' && recipeIds.some((k) => specIds.has(k))
-      if (specIds.has(id) || craftable) out[id] = 0.02
+      if (!localOrCraftable(id)) continue
+      out[id] = 0.02
     }
     return out
   }
 
   return tmpl.map(([name, role, share]) => {
     const base = ROLE_BASKETS[role] || ROLE_BASKETS.农户
-    let basket = available(base)
-    if (role === '上层') basket = ensureUpper(basket)
+    const basket = ensureMin(available(base), role)
     return { name, role, share, basket }
   })
 }

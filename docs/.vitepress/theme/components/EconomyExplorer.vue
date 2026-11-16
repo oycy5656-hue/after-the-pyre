@@ -11,7 +11,7 @@ import { COUNTRY_TRAIT_NAMES, TRAIT_ECON_LIST, countryEffects } from '../../data
 import { metalTechOf } from '../../data/country-metal.mjs'
 import { classesFor } from '../../data/class-gen.mjs'
 import { BUILDING_GROUPS, BUILDINGS } from '../../data/buildings.mjs'
-import { simulate } from '../../data/sim.mjs'
+import { CLASS_DEMAND_MULT, simulate } from '../../data/sim.mjs'
 import { DEFAULT_GROWTH, advanceTurn, emptyTurnState, undoTurn, worldSummary, START_YEAR, YEARS_PER_TURN } from '../../data/turn.mjs'
 
 const unit = { name: 'D（当量）', desc: '一名成年人维持一天基本生活所需的商品与劳务。全大陆通用，不依赖货币。' }
@@ -216,6 +216,14 @@ const sortKey = ref('perCapitaSurplus')
 const sorted = computed(() => [...rows.value].sort((a, b) => b[sortKey.value] - a[sortKey.value]))
 const maxGross = computed(() => Math.max(...rows.value.map((r) => r.gross), 1))
 const maxSurplus = computed(() => Math.max(...rows.value.map((r) => Math.abs(r.perCapitaSurplus)), 1))
+
+const fmtQty = (n) => {
+  if (!Number.isFinite(n)) return '—'
+  if (n >= 1000) return (n / 1000).toFixed(1) + 'K'
+  if (n >= 10) return String(Math.round(n))
+  if (n >= 1) return n.toFixed(1)
+  return n.toFixed(2)
+}
 
 const fmt = (n) => {
   if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M'
@@ -430,7 +438,7 @@ const classRows = computed(() => {
       .slice(0, 6)
       .map(([id, per]) => {
         const r = RESOURCES.find((x) => x.id === id)
-        return { name: r?.name || id, per, unit: r?.unit || '', total: Math.round(pop * k.share * per * 1.25) }
+        return { name: r?.name || id, per, unit: r?.unit || '', total: pop * k.share * per * CLASS_DEMAND_MULT }
       })
     return { cls: k.name, share: k.share, people: Math.round(pop * k.share), items }
   })
@@ -810,7 +818,7 @@ const resetCfg = () => {
             <td class="num">{{ (row.share * 100).toFixed(0) }}%</td>
             <td class="num">{{ fmt(row.people) }}</td>
             <td class="eco-class-items">
-              <span v-for="it in row.items" :key="it.name">{{ it.name }} {{ fmt(it.total) }}{{ it.unit }}</span>
+              <span v-for="it in row.items" :key="it.name">{{ it.name }} {{ fmtQty(it.total) }}{{ it.unit }}</span>
             </td>
           </tr>
         </tbody>

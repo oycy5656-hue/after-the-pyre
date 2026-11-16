@@ -277,6 +277,27 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
     }
   }
 
+  // 用工硬约束：所有建筑用工合计不得超过可动员劳力
+  {
+    const laborPool = pop * 0.42
+    const totalLabor = () => buildings.reduce((n, b) => n + (b.labor || 700) * b.level, 0)
+    let guard = 4000
+    while (totalLabor() > laborPool && guard-- > 0) {
+      const target = buildings
+        .filter((b) => b.level > 0)
+        .sort((a, b) => (b.labor || 700) * b.level - (a.labor || 700) * a.level)[0]
+      if (!target) break
+      target.level -= 1
+    }
+    // 口粮保底：再小的地方也至少有一块农田，哪怕人力紧
+    const hasFarm = buildings.some((b) => (b.id === 'farm' || b.id === 'human_manor') && b.level > 0)
+    if (!hasFarm) {
+      const farm = buildings.find((b) => b.id === 'farm' || b.id === 'human_manor')
+      if (farm) farm.level = 1
+    }
+    pass = runPass()
+  }
+
   const { produced, consumed, add } = pass
 
   // 家庭手工业：农户自家纺纱、烧陶，补上作坊产能不足
@@ -332,7 +353,7 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
     for (const [id, per] of Object.entries(cls.basket)) {
       if (!byId.has(id)) continue
       if ((produced.get(id) || 0) <= 0 && (pass.produced.get(id) || 0) <= 0) continue
-      const need = Math.round(cp * per * CLASS_DEMAND_MULT)
+      const need = cp * per * CLASS_DEMAND_MULT
       if (need > 0) add(consumed, id, need)
     }
   }
@@ -340,7 +361,7 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
   // 基础民生兜底：即便阶层篮子未覆盖，也保证盐、燃料有消耗
   for (const [id, per] of [['salt', 0.02], ['charcoal', 0.012]]) {
     if ((produced.get(id) || 0) <= 0) continue
-    add(consumed, id, Math.round(pop * per))
+    add(consumed, id, pop * per)
   }
 
   // 以需定产：多出来的产能不会真的转化为库存，产出向需求收敛
@@ -404,9 +425,20 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
   const exportsValue = exportsValue0 * exchangeMod
   const importsValue = importsValue0 * exchangeMod
 
+  // 用工封顶：总用工不超过劳力池，超出部分按比例摊薄
+  {
+    const pool = Math.round(pop * 0.42)
+    const raw = buildings.reduce((n, b) => n + (b.labor || 700) * b.level, 0)
+    const factor = raw > pool ? pool / raw : 1
+    for (const b of buildings) {
+      b.laborUsed = Math.round((b.labor || 700) * b.level * factor)
+    }
+  }
+
   for (const b of buildings) {
     if (b.level <= 0) {
       b.value = 0
+      b.laborUsed = 0
       continue
     }
     b.eff = b.input ? b.eff ?? 1 : 1
@@ -455,6 +487,7 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
       shortValue: Math.round(importsValue),
       balance: Math.round(exportsValue - importsValue),
       slotsUsed: used,
+      labor: buildings.reduce((n, b) => n + (b.laborUsed || 0), 0),
       slotsCap: cap,
       efficiency: Math.round(avgEff * 100) / 100,
       timber: Math.round(timberNet),
