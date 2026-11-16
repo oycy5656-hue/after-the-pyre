@@ -56,6 +56,7 @@ const mode = ref('biome')
 const flipped = ref(false)
 
 const cells = shallowRef([])
+let borderEdges = []
 const stateById = new Map(mapData.states.map((s) => [s.i, s]))
 const countryByState = new Map()
 for (const [id, st] of stateById) {
@@ -308,23 +309,40 @@ const draw = () => {
   }
   ctx.globalAlpha = 1
 
-  // 国界线（Vic3 风格）：粗描边后用同色填充覆盖内部，只在国境外侧留下线条
-  if (mode.value !== 'pop') {
-    ctx.lineJoin = 'round'
-    ctx.globalAlpha = 0.95
-    for (let i = 0; i < cells.value.length; i++) {
-      const c = cells.value[i]
-      if (c.s <= 0) continue
-      ctx.strokeStyle = stateById.get(c.s)?.color || '#d8b878'
-      ctx.lineWidth = 3.6 / view.scale
-      ctx.stroke(paths[i])
-    }
-    for (let i = 0; i < cells.value.length; i++) {
-      const c = cells.value[i]
-      if (c.s <= 0) continue
-      ctx.globalAlpha = 0.95
-      ctx.fillStyle = colorOf(c)
-      ctx.fill(paths[i])
+  // 国界线（Vic3 风格）：两侧各画一条本国颜色的细线，彼此贴合
+  if (mode.value !== 'pop' && borderEdges.length) {
+    const band = 3.4 / view.scale
+    ctx.lineCap = 'butt'
+    ctx.globalAlpha = 1
+    for (const e of borderEdges) {
+      const ca = cells.value[e.a]
+      const cb = cells.value[e.b]
+      const dx = e.bx - e.ax
+      const dy = e.by - e.ay
+      const len = Math.hypot(dx, dy) || 1
+      const nx = -dy / len
+      const ny = dx / len
+      const mx = (e.ax + e.bx) / 2
+      const my = (e.ay + e.by) / 2
+
+      // 判断边向量哪一侧属于 A
+      const va = (ca.cx - mx) * nx + (ca.cy - my) * ny
+      const side = va >= 0 ? 1 : -1
+
+      // A 侧
+      ctx.strokeStyle = stateById.get(ca.s)?.color || '#d8b878'
+      ctx.lineWidth = band
+      ctx.beginPath()
+      ctx.moveTo(e.ax + nx * side * band * 0.5, e.ay + ny * side * band * 0.5)
+      ctx.lineTo(e.bx + nx * side * band * 0.5, e.by + ny * side * band * 0.5)
+      ctx.stroke()
+
+      // B 侧（无主则深色）
+      ctx.strokeStyle = cb.s > 0 ? stateById.get(cb.s)?.color || '#d8b878' : '#243430'
+      ctx.beginPath()
+      ctx.moveTo(e.ax - nx * side * band * 0.5, e.ay - ny * side * band * 0.5)
+      ctx.lineTo(e.bx - nx * side * band * 0.5, e.by - ny * side * band * 0.5)
+      ctx.stroke()
     }
     ctx.globalAlpha = 1
   }
@@ -536,8 +554,21 @@ onMounted(async () => {
       minY = Math.min(minY, y0)
       maxX = Math.max(maxX, x1)
       maxY = Math.max(maxY, y1)
+      let sumX = 0
+      let sumY = 0
+      let cnt = 0
+      for (const ring of rings) {
+        for (const [px, py] of ring) {
+          sumX += px
+          sumY += py
+          cnt++
+        }
+      }
+
       list.push({
         i: pr.i,
+        cx: cnt ? sumX / cnt : 0,
+        cy: cnt ? sumY / cnt : 0,
         s: pr.s,
         biome: BIOMES[pr.b]?.name || '未知',
         biomeId: pr.b,
@@ -580,6 +611,46 @@ onMounted(async () => {
     bounds = { x: minX, y: minY, w: maxX - minX, h: maxY - minY }
     maxPop.value = Math.max(1, ...list.map((c) => c.p))
     cells.value = list
+
+    // —— 国境边预计算：每条边若属于不同政权，则记录双方颜色 ——
+    {
+      const seen = new Map()
+      const edges = []
+      // 所有地块都参与建边，才能画出与荒野的国境
+      for (let i = 0; i < list.length; i++) {
+        const c = list[i]
+        for (const ring of c.rings) {
+          for (let k = 0; k < ring.length - 1; k++) {
+            const [ax, ay] = ring[k]
+            const [bx, by] = ring[k + 1]
+            const q = (v) => Math.round(v * 2) / 2
+            const qax = q(ax)
+            const qay = q(ay)
+            const qbx = q(bx)
+            const qby = q(by)
+            const key =
+              qax < qbx || (qax === qbx && qay <= qby)
+                ? qax + ',' + qay + '|' + qbx + ',' + qby
+                : qbx + ',' + qby + '|' + qax + ',' + qay
+            if (!seen.has(key)) {
+              seen.set(key, i)
+            } else {
+              const other = seen.get(key)
+              if (other === i || other === -1) continue
+              const oc = list[other]
+              if (oc.s !== c.s) {
+                edges.push({ ax, ay, bx, by, a: i, b: other })
+              } else {
+                // 同国相邻：把边记为内部（不再重复统计）
+                seen.set(key, -1)
+              }
+            }
+          }
+        }
+      }
+      borderEdges = edges
+      window.__bd = { edges: edges.length, owned: list.filter((c) => c.s > 0).length }
+    }
 
     const cv = canvas.value
     const ctx = cv.getContext('2d')
