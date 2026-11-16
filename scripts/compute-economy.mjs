@@ -3,6 +3,8 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { BASE, COUNTRY_TRAITS, GOODS, REGION_MODS, TRAITS } from './economy-model.mjs'
+import { TRAITS_BY_COUNTRY } from '../docs/.vitepress/data/traits.mjs'
+import { countryEffects } from '../docs/.vitepress/data/trait-economy.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const dataDir = join(root, 'docs/.vitepress/data')
@@ -62,13 +64,15 @@ const SYSTEM_MODS = {
 
 const rows = countries.map((c) => {
   const pop = parsePop(c.population)
-  const traits = (COUNTRY_TRAITS[c.name] || []).map((n) => traitByName.get(n)).filter(Boolean)
+  const card = TRAITS_BY_COUNTRY[c.name] || TRAITS_BY_COUNTRY[c.slug]
+  const traits = (card?.traits || []).map((t) => ({ name: t.name, e: (traitByName.get(t.name) || {}).e || {} }))
   const st = findState(c)
   const area = st ? Math.max(1, st.area || 0) : null
 
   // 累加修正
   const mod = { yield: 0, extraction: 0, ritual: 0, exchange: 0, stability: 0, military: 0, labor: 0 }
-  for (const t of traits) for (const [k, v] of Object.entries(t.e)) mod[k] = (mod[k] || 0) + v
+  const traitMod = countryEffects(c.name).mod
+  for (const [k, v] of Object.entries(traitMod)) mod[k] = (mod[k] || 0) + v
   const sm = SYSTEM_MODS[c.politics?.system]
   if (sm) for (const [k, v] of Object.entries(sm)) mod[k] = (mod[k] || 0) + v
 

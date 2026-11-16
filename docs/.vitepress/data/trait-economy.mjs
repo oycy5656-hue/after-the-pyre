@@ -162,6 +162,71 @@ const CATEGORY_DEFAULT = {
 const KEYS = ['yield', 'extraction', 'ritual', 'exchange', 'stability', 'military', 'labor']
 
 /** 单个天赋的经济效果 */
+// === 新增天赋经济效果（2026-11-16 资料集） ===
+Object.assign(TRAIT_ECON, {
+  "地脉衍生": {
+    "stability": 0.02
+  },
+  "草木浮萍": {
+    "exchange": 0.01
+  },
+  "野性精怪": {
+    "military": 0.03
+  },
+  "人口兴旺": {
+    "yield": 0.02,
+    "labor": 0.04
+  },
+  "独特葬俗": {
+    "ritual": 0.02
+  },
+  "元素灵体": {
+    "ritual": 0.02
+  },
+  "地毯孤儿": {
+    "stability": -0.02
+  },
+  "一方霸王": {
+    "military": 0.06,
+    "stability": 0.02
+  },
+  "朝贡体系": {
+    "extraction": 0.04,
+    "stability": 0.01
+  },
+  "门阀习俗": {
+    "extraction": 0.02,
+    "stability": -0.01
+  },
+  "建国主义": {
+    "stability": 0.03
+  },
+  "狂信之众": {
+    "ritual": 0.03,
+    "stability": -0.02
+  },
+  "乐于接济": {
+    "stability": 0.02,
+    "yield": -0.01
+  },
+  "爱好网络": {
+    "exchange": 0.02
+  },
+  "优秀诗歌": {
+    "exchange": 0.02
+  },
+  "边缘民族": {
+    "stability": -0.02,
+    "yield": -0.01
+  },
+  "通用语": {
+    "exchange": 0.04
+  },
+  "游语传统": {
+    "exchange": 0.02
+  }
+})
+
 export function effectOf(trait) {
   const explicit = TRAIT_ECON[trait.name]
   if (explicit) return explicit
@@ -172,7 +237,7 @@ export function effectOf(trait) {
 export function countryEffects(name) {
   const card = TRAITS_BY_COUNTRY[name]
   const mod = Object.fromEntries(KEYS.map((k) => [k, 0]))
-  if (!card) return mod
+  if (!card) return { mod, carriers: [], count: 0 }
 
   const carriers = []
   for (const t of card.traits) {

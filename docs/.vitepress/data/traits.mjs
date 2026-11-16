@@ -6119,3 +6119,103 @@ export function traitPoints(name) {
   if (!card) return 0
   return card.traits.reduce((n, t) => n + (Number(t.points) || 0), 0)
 }
+
+
+// ===== 2026-11-16 资料集新增：天朝 / 帕拉夏教团（据文明登记档案） =====
+const EXTRA_TRAITS = {
+  '天朝': {
+  source: 'archive-2026-11-16',
+  archiveName: '天朝',
+  region: '昉土',
+  race: '人类',
+  intro: [
+    '【物种简介】劣势如朝露般短暂，体魄亦不得天独厚，却拥有无与伦比的适应力、繁衍力与求索欲。他们既会因狂妄与贪婪招致城邦的覆灭，亦能凭借铁血的战法、精巧的器械与永不熄灭的野心，在苦难的大地上重新构筑起广袤的文明，足迹遍布列岛上每一寸角落。',
+    '【文明简介】号为「万仙来朝」，乃神庙道蕴之地，神师与天朝的宗室有千丝万缕的联系。显圣年幼时，神师作为老祖宗担任「监国」代行国政；等皇帝成年亲政后，监国改称「辅政」，继续辅佐并实际操控朝政。'
+  ],
+  leader: {
+    title: '神师',
+    name: '神师',
+    background: '外表为儒生模样，他拥有「一化三身」的强大分身神通，研究以永生为目标的「房中术」。神师调和龙虎，修长生大道，清净悠远，为世人敬仰。'
+  },
+  traits: [
+    { section: '统帅', category: '出身', name: '地脉衍生', desc: '掌受地脉滋养的大妖、仙兽或遗物', points: -2 },
+    { section: '统帅', category: '因果', name: '草木浮萍', desc: '孤家寡人，天地一过客，无仇无怨，天机不显', points: 0 },
+    { section: '统帅', category: '实力', name: '野性精怪', desc: '破坏力有限，是冒险者们的劲敌', points: -1 },
+    { section: '文明', category: '政治', name: '贵族势力', desc: '我们国内有一支本土化的贵族势力，这群老贵族与国同寿，但同时也对国家政治有着很高影响力。', points: 0 },
+    { section: '文明', category: '政治', name: '利益集团', desc: '国内出现了一些代表不同阶层的集团，他们在公共政治上发挥着他们的影响力。', points: 0 },
+    { section: '文明', category: '政治', name: '派系倾轧', desc: '存在两个或多个互相敌视的政治集团', points: 1 },
+    { section: '文明', category: '经济', name: '贡赋经济', desc: '我们的社会建立在清晰的贡赋体系之上。被征服的城镇、部族需定期缴纳固定贡品，手工业或贵金属。', points: 0 },
+    { section: '文明', category: '经济', name: '以物易物', desc: '我们的内部市场尚未货币化，仍然依赖传统的实物交换。', points: 0 },
+    { section: '文明', category: '经济', name: '人口兴旺', desc: '出于种种原因，该文明拥有更多的人口', points: -1 },
+    { section: '文明', category: '文化', name: '家庭纽带', desc: '家庭乃至家族关系具有神圣性，促使人们铭记共同祖先和传承', points: 0 },
+    { section: '文明', category: '文化', name: '慈善主义', desc: '该民族热衷于通过再分配安抚底层那些不幸的倒霉蛋', points: 0 },
+    { section: '文明', category: '文化', name: '和谐劳作', desc: '该民族热衷于集体互助，崇尚和睦', points: 0 },
+    { section: '文明', category: '文化', name: '恪守祖训', desc: '传统就是传统，不可改变也不可偏移。', points: 0 },
+    { section: '文明', category: '文化', name: '独特葬俗', desc: '该民族有一套和周围异族截然有区别的殡葬仪式', points: 0 },
+    { section: '文明', category: '文化', name: '农耕传统', desc: '该民族依赖农业活动来维持生存', points: -1 },
+    { section: '文明', category: '文化', name: '文化孤岛', desc: '该民族被不同的民族所包围（与【部族方言】冲突）', points: 2 },
+    { section: '文明', category: '军事', name: '依赖征召', desc: '这个政权的动员体系依赖于征召平民', points: 0 },
+    { section: '地理', category: '地理', name: '粮食产地', desc: '我们控制着一处当地主要粮食产地，可重复选择', points: -3 },
+    { section: '地理', category: '地理', name: '凹凸河岸', desc: '聚居点占据大河曲流环绕的平岛台地，被天然水系屏蔽包围。', points: 0 }
+  ]
+},
+  '帕拉夏教团': {
+  source: 'archive-2026-11-16',
+  archiveName: '帕拉夏教团',
+  region: '昉土',
+  race: '精灵',
+  intro: [
+    '【物种简介】精灵是一种美貌、优雅而神秘的种族，自视为伊甸的先民。他们身形修长、感知敏锐，极端排外，对其他种族往往流露出鄙夷之色，却在漫长的岁月里守着自己的技艺与秘法。',
+    '【文明简介】图兰精灵曾是伊瑟兰世界的一份子。因阿纳亚图拉的显圣引发伊瑟兰的第一次分裂，白枝议长团结几乎所有的伊瑟兰精灵将其放逐；仍有精灵追随其步伐消失于草原之中，自称「图兰精灵」。北方的人类帝国成为他们的第二家园，教团在草原与河谷间以香火与朝贡维系着信仰。'
+  ],
+  leader: {
+    title: '第一先知',
+    name: '阿纳亚图拉',
+    background: '以有死之躯者，干涉生民者，身披夜幕之天光，帕拉夏教团的精神导师与第一先知，拥有着惊世的魅力。'
+  },
+  traits: [
+    { section: '统帅', category: '出身', name: '元素灵体', desc: '由纯粹的元素构成或形成，亦可能存在人类之里', points: -1 },
+    { section: '统帅', category: '因果', name: '地毯孤儿', desc: '生为贱民的孩子，拥有低劣的出生', points: -1 },
+    { section: '统帅', category: '实力', name: '一方霸王', desc: '武力卓绝，仅凭自身能力便可折服一方', points: -3 },
+    { section: '文明', category: '政治', name: '缓冲地带', desc: '我们是一个夹在几个国家之间的缓冲地带国', points: 0 },
+    { section: '文明', category: '政治', name: '朝贡体系', desc: '我们以朝贡体系维系与周边部族、城邦的关系', points: 1 },
+    { section: '文明', category: '政治', name: '僧侣集团', desc: '我们国内有组织严密的神职集团，他们参与公共事务', points: 0 },
+    { section: '文明', category: '政治', name: '门阀习俗', desc: '我们国家中存在一些有权势的家族集团。', points: 0 },
+    { section: '文明', category: '政治', name: '建国主义', desc: '我们是率先建立的国家，因此更具威信，宗教势力拥有权势。', points: 0 },
+    { section: '文明', category: '政治', name: '广场政治', desc: '在我们的传统中民众集会有着重要的地位', points: 0 },
+    { section: '文明', category: '政治', name: '贵族势力', desc: '我们国内有一支本土化的贵族势力，这群老贵族与国同寿。', points: 0 },
+    { section: '文明', category: '经济', name: '佣兵经济', desc: '我们拥有人口比例较重的庞大数量的雇佣兵。', points: 0 },
+    { section: '文明', category: '文化', name: '狂信之众', desc: '该民族狂热的信仰，对异教徒非常缺乏容忍度', points: -1 },
+    { section: '文明', category: '文化', name: '乐于接济', desc: '该民族非常乐于接济他人，哪怕自己可能因此受贫', points: -1 },
+    { section: '文明', category: '文化', name: '文化孤岛', desc: '该民族被不同的民族所包围（与【部族方言】冲突）', points: 2 },
+    { section: '文明', category: '文化', name: '爱好网络', desc: '该民族聚集于若干集中居住的社区，社区内依托感情结为紧密联结', points: 0 },
+    { section: '文明', category: '文化', name: '四海为家', desc: '该民族在一个国家内分布很广，他们时常迁移或分散居住', points: 0 },
+    { section: '文明', category: '文化', name: '诗人传统', desc: '该民族有崇尚诗歌与文学艺术的传统', points: 0 },
+    { section: '文明', category: '文化', name: '尚武传统', desc: '该民族将勇敢视为品行，具有战斗传统', points: 0 },
+    { section: '文明', category: '文化', name: '优秀诗歌', desc: '诗歌在该民族中拥有卓然的艺术地位', points: 0 },
+    { section: '文明', category: '文化', name: '边缘民族', desc: '该民族生活在文明的边缘地带，常常被视为化外之民', points: 0 },
+    { section: '文明', category: '文化', name: '家庭纽带', desc: '家庭乃至家族关系具有神圣性，促使人们铭记共同祖先和传承', points: 0 },
+    { section: '文明', category: '文化', name: '社会等级', desc: '该民族在观念或传统上带有鲜明的社会等级观念', points: 0 },
+    { section: '文明', category: '文化', name: '慈善主义', desc: '该民族热衷于通过再分配安抚底层那些不幸的倒霉蛋', points: 0 },
+    { section: '文明', category: '文化', name: '通用语', desc: '该民族有一门通用的语言', points: -1 },
+    { section: '文明', category: '文化', name: '游语传统', desc: '该民族有口头传唱与游吟的传统', points: 0 },
+    { section: '文明', category: '文化', name: '大迁徙的记忆', desc: '该民族怀有先辈被迫离开故土的痛楚', points: 0 },
+    { section: '文明', category: '文化', name: '浪漫主义', desc: '该民族崇尚激情与想象，胜过审慎与算计', points: 0 },
+    { section: '文明', category: '军事', name: '依赖征召', desc: '这个政权的动员体系依赖于征召平民', points: 0 },
+    { section: '地理', category: '地理', name: '凹凸河岸', desc: '聚居点占据大河曲流环绕的平岛台地，被天然水系屏蔽包围。', points: 0 }
+  ]
+}
+}
+
+for (const [civ, card] of Object.entries(EXTRA_TRAITS)) {
+  if (!TRAITS_BY_COUNTRY[civ]) TRAITS_BY_COUNTRY[civ] = card
+}
+
+// 依全量卡片重建天赋索引
+for (const key of Object.keys(TRAIT_INDEX)) delete TRAIT_INDEX[key]
+for (const [civ, card] of Object.entries(TRAITS_BY_COUNTRY)) {
+  for (const t of card.traits || []) {
+    const cur = TRAIT_INDEX[t.name] || (TRAIT_INDEX[t.name] = { name: t.name, category: t.category, desc: t.desc, points: t.points, civs: [] })
+    if (!cur.civs.includes(civ)) cur.civs.push(civ)
+  }
+}

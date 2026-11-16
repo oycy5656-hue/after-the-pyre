@@ -456,7 +456,7 @@ const toc = computed(() => [
         <h2>军事</h2>
         <div class="wp-mil-stats">
           <div><strong>{{ legions.length }}</strong><span>军团</span></div>
-          <div><strong>{{ totalTroops.toLocaleString() }}</strong><span>总兵力</span></div>
+          <div><strong>{{ (totalTroops || 0).toLocaleString() }}</strong><span>总兵力</span></div>
           <div><strong>{{ totalCards }}</strong><span>兵牌</span></div>
         </div>
 
@@ -468,7 +468,7 @@ const toc = computed(() => [
                 <span v-if="legion.training">{{ legion.training }}</span>
                 <span v-if="legion.loyalty !== null">忠诚 {{ legion.loyalty }}</span>
                 <span>{{ legion.cards }} 张兵牌</span>
-                <strong>{{ legion.total.toLocaleString() }} 人</strong>
+                <strong>{{ (legion.total || 0).toLocaleString() }} 人</strong>
               </p>
             </header>
             <div class="wp-cards">
@@ -481,7 +481,7 @@ const toc = computed(() => [
                 <p v-if="card.gear && card.gear.length" class="wp-card-gear">
                   <span v-for="g in card.gear" :key="g.slot + g.name" :title="g.desc">{{ g.slotLabel }} {{ g.name }}</span>
                 </p>
-                <p class="wp-card-total">{{ card.size }} 人/牌 · 小计 {{ card.total.toLocaleString() }}</p>
+                <p class="wp-card-total">{{ card.size }} 人/牌 · 小计 {{ (card.total || 0).toLocaleString() }}</p>
               </div>
             </div>
           </article>

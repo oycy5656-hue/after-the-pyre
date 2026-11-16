@@ -12,6 +12,9 @@ export const GEO_ALIAS = {
 }
 
 export const GEO = {
+  // 资料集 2026-11-16 新增，按地区描述推定
+  帕拉夏教团: { h: 38, river: 26, coast: 12, biomes: [['热带草原', 58], ['温带落叶阔叶林', 24], ['湿地', 18]], inferred: true },
+  天朝: { h: 29, river: 71, coast: 24, biomes: [['温带落叶阔叶林', 54], ['湿地', 26], ['亚热带常绿阔叶林带', 20]], inferred: true },
   维瑞亚帝国: { h: 46, river: 42, coast: 30, biomes: [['亚热带常绿阔叶林带', 70], ['温带落叶阔叶林', 30]], inferred: true },
   薪炎龙庭: { h: 58, river: 22, coast: 18, biomes: [['热带草原', 55], ['热带沙漠', 25], ['寒漠', 20]], inferred: true },
   玉海国: { h: 42, river: 12, coast: 60, biomes: [['湿地', 44], ['热带季雨林', 36], ['热带雨林', 12], ['温带落叶阔叶林', 4]] },
