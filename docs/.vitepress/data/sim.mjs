@@ -86,7 +86,7 @@ const AUX_TABLE = {
 
 const MIN_EFF = 0.12
 /** 阶层消费强度：整体放大，避免大量货物堆在仓里 */
-export const CLASS_DEMAND_MULT = 1.6
+export const CLASS_DEMAND_MULT = 1.25
 const AUTO_DOWNGRADE_BELOW = 0.55
 
 function pickResource(category, specIds, valueOf, allowProcessed = false, mode = 'output', explicit = null) {
@@ -343,7 +343,7 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
 
   // 影子经济：农户自纺、自酿、自烧的部分不进市场统计，但确实被消费掉了
   {
-    const shadowGoods = ['cloth', 'linen', 'woolen', 'felt', 'leather', 'hornware', 'pottery', 'amphora', 'beer', 'mead', 'bread', 'flour', 'cheese', 'saltedfish', 'fishsauce', 'wicker', 'rope', 'stone_tool', 'bone_tool']
+    const shadowGoods = ['cloth', 'linen', 'woolen', 'felt', 'leather', 'hornware', 'pottery', 'amphora', 'beer', 'mead', 'bread', 'flour', 'cheese', 'saltedfish', 'fishsauce', 'wicker', 'rope', 'stone_tool', 'bone_tool', 'clay', 'wheat', 'barley', 'rye', 'oats', 'millet', 'rice', 'tuber', 'turnip', 'beans']
     for (const id of shadowGoods) {
       const supply = produced.get(id) || 0
       const demand = consumed.get(id) || 0
