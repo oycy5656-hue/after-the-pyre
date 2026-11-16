@@ -61,13 +61,29 @@ export const CIVIC_DEMAND = {
   ivory: 0.001,
   amber: 0.001,
   jade: 0.001,
-  bronze_ware: 0.002
+  bronze_ware: 0.002,
+  // 原料的直接民生用途：建房、燃料、鲜食
+  stone: 0.006,
+  timber: 0.008,
+  clay: 0.004,
+  grape: 0.006,
+  fig: 0.004,
+  pig: 0.012,
+  cattle: 0.002,
+  fishhook: 0.001
 }
 
 const MIN_EFF = 0.12
 const AUTO_DOWNGRADE_BELOW = 0.55
 
-function pickResource(category, specIds, valueOf, allowProcessed = false, mode = 'output') {
+function pickResource(category, specIds, valueOf, allowProcessed = false, mode = 'output', explicit = null) {
+  if (Array.isArray(explicit) && explicit.length) {
+    const valid = explicit.filter((id) => byId.has(id))
+    const owned = valid.filter((id) => specIds.has(id))
+    // 产出：本国有的优先，否则用清单里第一个（加工品不需要"拥有"原料清单）
+    const pool = owned.length ? owned : valid
+    return pool[0] || null
+  }
   const base = CATEGORY[category] || []
   const extra = allowProcessed ? OUTPUT_CATEGORY[category] || [] : []
   const pool0 = allowProcessed && extra.length ? extra : base
@@ -97,8 +113,8 @@ export function simulate({ specs, population, race, geo, area, levels = {}, pric
     return {
       ...b,
       level,
-      outRes: b.output.category === 'service' ? null : pickResource(b.output.category, specIds, priceOf, !!b.input),
-      inRes: b.input ? pickResource(b.input.category, specIds, priceOf, false, 'input') : null,
+      outRes: b.output.category === 'service' ? null : pickResource(b.output.category, specIds, priceOf, !!b.input, 'output', b.outputs),
+      inRes: b.input ? pickResource(b.input.category, specIds, priceOf, false, 'input', b.inputs) : null,
       downgraded: 0
     }
   })
