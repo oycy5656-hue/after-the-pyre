@@ -42,6 +42,68 @@ const loadTurn = async () => {
   if (ov && typeof ov.turn === 'number') turn.value = { ...emptyTurnState(), ...ov }
 }
 
+const download = (filename, text, type) => {
+  const blob = new Blob([text], { type })
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(blob)
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(a.href)
+}
+
+const exportTurnJson = () => {
+  const st = turn.value || {}
+  const data = {
+    导出时间: new Date().toLocaleString('zh-CN', { hour12: false }),
+    回合: st.turn,
+    纪元: st.year,
+    一回合年数: YEARS_PER_TURN,
+    国家: {}
+  }
+  for (const c of countries) {
+    const t = st.countries?.[c.name]
+    if (!t) continue
+    data.国家[c.name] = {
+      人口: t.pop,
+      建筑产值: t.gdp,
+      贸易差额: t.balance,
+      建筑等级: t.levels,
+      备注: t.entries || []
+    }
+  }
+  download('回合' + st.turn + '-纪元' + st.year + '.json', JSON.stringify(data, null, 2), 'application/json')
+}
+
+const exportTurnText = () => {
+  const st = turn.value || {}
+  const lines = []
+  lines.push('葬火之后 · 回合数据导出')
+  lines.push('导出时间：' + new Date().toLocaleString('zh-CN', { hour12: false }))
+  lines.push('回合：第 ' + st.turn + ' 回合　纪元 ' + st.year + ' 年　（一回合 ' + YEARS_PER_TURN + ' 年）')
+  lines.push('')
+  lines.push('国家'.padEnd(12) + '人口'.padEnd(12) + '建筑产值'.padEnd(14) + '贸易差额'.padEnd(14) + '建筑总级')
+  lines.push('-'.repeat(66))
+  let popSum = 0
+  let gdpSum = 0
+  for (const c of countries) {
+    const t = st.countries?.[c.name]
+    if (!t) continue
+    const lv = Object.values(t.levels || {}).reduce((a, b) => a + b, 0)
+    popSum += t.pop || 0
+    gdpSum += t.gdp || 0
+    lines.push(
+      c.name.padEnd(12) +
+        String(Math.round(t.pop || 0)).padEnd(12) +
+        ((t.gdp / 1e6).toFixed(1) + 'M').padEnd(14) +
+        ((t.balance >= 0 ? '+' : '') + (t.balance / 1e6).toFixed(1) + 'M').padEnd(14) +
+        lv
+    )
+  }
+  lines.push('-'.repeat(66))
+  lines.push('全境人口：' + Math.round(popSum) + '　总产值：' + (gdpSum / 1e6).toFixed(1) + 'M D')
+  download('回合' + st.turn + '-纪元' + st.year + '.txt', lines.join('\n'), 'text/plain;charset=utf-8')
+}
+
 const doAdvance = async () => {
   if (!isAdminUser.value || turnBusy.value) return
   turnBusy.value = true
@@ -463,6 +525,8 @@ const resetCfg = () => {
           {{ turnBusy ? '推进中…' : '推进 ' + YEARS_PER_TURN + ' 年' }}
         </button>
         <button type="button" class="eco-btn" :disabled="turnBusy || !summary?.canUndo" @click="doUndo">撤销上一回合</button>
+        <button type="button" class="eco-btn" @click="exportTurnJson">导出 JSON</button>
+        <button type="button" class="eco-btn" @click="exportTurnText">导出 TXT</button>
       </template>
       <span v-else class="eco-turn-lock">仅管理员可推进回合</span>
       <span v-if="turnMsg" class="eco-turn-msg">{{ turnMsg }}</span>
