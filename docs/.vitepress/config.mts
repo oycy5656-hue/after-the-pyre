@@ -29,6 +29,8 @@ export default defineConfig({
     image: { lazyLoading: true }
   },
 
+  appearance: 'force-dark',
+
   themeConfig: {
     logo: '/logo.svg',
 
