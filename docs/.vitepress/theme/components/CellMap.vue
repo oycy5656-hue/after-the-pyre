@@ -8,6 +8,7 @@ import { geoOf } from '../../data/geography.mjs'
 import { metalTechOf } from '../../data/country-metal.mjs'
 import { BUILDINGS } from '../../data/buildings.mjs'
 import { simulate } from '../../data/sim.mjs'
+import RIVERS from '../../data/rivers.mjs'
 
 // FMG 生物群系 id → 名称/配色（0–12 为标准集，13 为该图自定义）
 const BIOMES = {
@@ -311,6 +312,9 @@ const draw = () => {
   }
   ctx.globalAlpha = 1
 
+  // 河流层
+  if (mode.value !== 'pop') drawRivers(ctx)
+
   // 国界线（Vic3 风格）：两侧各画一条本国颜色的细线，彼此贴合
   if (mode.value !== 'pop' && borderEdges.length) {
     const band = 3.4 / view.scale
@@ -428,6 +432,23 @@ const draw = () => {
       ctx.restore()
     }
   }
+}
+
+const drawRivers = (ctx) => {
+  if (!RIVERS.length) return
+  ctx.save()
+  ctx.globalAlpha = 0.85
+  ctx.strokeStyle = '#6aa6cc'
+  ctx.lineCap = 'round'
+  ctx.lineJoin = 'round'
+  ctx.lineWidth = 1.15 / view.scale
+  for (const r of RIVERS) {
+    ctx.beginPath()
+    ctx.moveTo(r.pts[0][0], r.pts[0][1])
+    for (let i = 1; i < r.pts.length; i++) ctx.lineTo(r.pts[i][0], r.pts[i][1])
+    ctx.stroke()
+  }
+  ctx.restore()
 }
 
 const requestDraw = () => {
