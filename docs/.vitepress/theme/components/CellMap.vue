@@ -57,6 +57,7 @@ const flipped = ref(false)
 
 const cells = shallowRef([])
 let borderEdges = []
+let borderPaths = []
 const stateById = new Map(mapData.states.map((s) => [s.i, s]))
 const countryByState = new Map()
 for (const [id, st] of stateById) {
@@ -311,74 +312,32 @@ const draw = () => {
   }
   ctx.globalAlpha = 1
 
-  // 国界线（Vic3 风格）：两侧各画一条本国颜色的细线，彼此贴合
-  if (mode.value !== 'pop' && borderEdges.length) {
-    const band = 3.4 / view.scale
-    ctx.lineCap = 'butt'
-    ctx.globalAlpha = 1
-    for (const e of borderEdges) {
-      const ca = cells.value[e.a]
-      if (!ca) continue
-
-      const dx = e.bx - e.ax
-      const dy = e.by - e.ay
-      const len = Math.hypot(dx, dy) || 1
-      const ux = dx / len
-      const uy = dy / len
-      const nx = -uy
-      const ny = ux
-      // 端点外扩，闭合拐角处的缺口
-      const ext = band * 0.75
-      const axE = e.ax - ux * ext
-      const ayE = e.ay - uy * ext
-      const bxE = e.bx + ux * ext
-      const byE = e.by + uy * ext
-
-      const strokeLine = (offset) => {
-        ctx.beginPath()
-        ctx.moveTo(axE + nx * offset, ayE + ny * offset)
-        ctx.lineTo(bxE + nx * offset, byE + ny * offset)
-        ctx.stroke()
+  // 国界线：裁剪到本政权领土内再描边（闭合、无缺口、双色贴合）
+  if (mode.value !== 'pop' && borderPaths.length) {
+    const band = 3.2 / view.scale
+    ctx.lineJoin = 'round'
+    ctx.lineCap = 'round'
+    for (const path of borderPaths) {
+      const color = stateById.get(path.s)?.color || '#d8b878'
+      const clipPath = new Path2D()
+      for (let i = 0; i < cells.value.length; i++) {
+        if (cells.value[i].s !== path.s) continue
+        const pth = paths[i]
+        if (pth) clipPath.addPath(pth)
       }
-
-      // 孤立边（海岸 / 缺格）：单条本国色
-      if (e.b < 0) {
-        if (ca.s <= 0) continue
-        ctx.strokeStyle = stateById.get(ca.s)?.color || '#d8b878'
-        ctx.lineWidth = band * 0.6
-        strokeLine(0)
-        continue
-      }
-
-      const cb = cells.value[e.b]
-      if (!cb) continue
-      const caOwned = ca.s > 0
-      const cbOwned = cb.s > 0
-      if (!caOwned && !cbOwned) continue
-
-      // 一国对荒野：单条
-      if (!caOwned || !cbOwned) {
-        const owned = caOwned ? ca : cb
-        ctx.strokeStyle = stateById.get(owned.s)?.color || '#d8b878'
-        ctx.lineWidth = band * 0.6
-        strokeLine(0)
-        continue
-      }
-
-      // 两国相接：各占一半，贴合
-      const mx = (e.ax + e.bx) / 2
-      const my = (e.ay + e.by) / 2
-      const va = (ca.cx - mx) * nx + (ca.cy - my) * ny
-      const side = va >= 0 ? 1 : -1
-
-      ctx.strokeStyle = stateById.get(ca.s)?.color || '#d8b878'
+      ctx.save()
+      ctx.clip(clipPath)
+      ctx.beginPath()
+      ctx.moveTo(path.pts[0][0], path.pts[0][1])
+      for (let i = 1; i < path.pts.length; i++) ctx.lineTo(path.pts[i][0], path.pts[i][1])
+      ctx.closePath()
+      ctx.strokeStyle = color
       ctx.lineWidth = band
-      strokeLine(side * band * 0.25)
-
-      ctx.strokeStyle = stateById.get(cb.s)?.color || '#d8b878'
-      strokeLine(-side * band * 0.25)
+      ctx.stroke()
+      ctx.restore()
     }
   }
+
 
   ctx.restore()
 
@@ -655,49 +614,82 @@ onMounted(async () => {
     maxPop.value = Math.max(1, ...list.map((c) => c.p))
     cells.value = list
 
-    // —— 国境边预计算：成对边（两国/荒野）与孤立边（海岸、缺格） ——
+    // —— 国境边界：按政权把边界边串成连续折线（闭合无缺口、无毛刺） ——
     {
-      const seen = new Map()
-      const edges = []
+      const q = (v) => Math.round(v * 2) / 2
+      const keyOf = (ax, ay, bx, by) => {
+        const qax = q(ax), qay = q(ay), qbx = q(bx), qby = q(by)
+        return qax < qbx || (qax === qbx && qay <= qby)
+          ? qax + ',' + qay + '|' + qbx + ',' + qby
+          : qbx + ',' + qby + '|' + qax + ',' + qay
+      }
+
+      // 每条边被哪些格子共享
+      const edgeCells = new Map()
       for (let i = 0; i < list.length; i++) {
         const c = list[i]
         for (const ring of c.rings) {
           for (let k = 0; k < ring.length - 1; k++) {
             const [ax, ay] = ring[k]
             const [bx, by] = ring[k + 1]
-            const q = (v) => Math.round(v * 2) / 2
-            const qax = q(ax)
-            const qay = q(ay)
-            const qbx = q(bx)
-            const qby = q(by)
-            const key =
-              qax < qbx || (qax === qbx && qay <= qby)
-                ? qax + ',' + qay + '|' + qbx + ',' + qby
-                : qbx + ',' + qby + '|' + qax + ',' + qay
-            if (!seen.has(key)) {
-              seen.set(key, { first: i, paired: false, ax, ay, bx, by })
-              continue
-            }
-            const rec = seen.get(key)
-            if (rec.paired || rec.first === i) continue
-            rec.paired = true
-            const oc = list[rec.first]
-            if (oc.s !== c.s) {
-              edges.push({ ax, ay, bx, by, a: rec.first, b: i })
-            }
+            const key = keyOf(ax, ay, bx, by)
+            if (!edgeCells.has(key)) edgeCells.set(key, [])
+            const arr = edgeCells.get(key)
+            if (!arr.includes(i)) arr.push(i)
           }
         }
       }
 
-      // 未被配对的边＝海岸线或缺格边界，本国一侧也要描边
-      for (const rec of seen.values()) {
-        if (rec.paired) continue
-        const c = list[rec.first]
-        if (!c || c.s <= 0) continue
-        edges.push({ ax: rec.ax, ay: rec.ay, bx: rec.bx, by: rec.by, a: rec.first, b: -1 })
+      // 每个政权的边界有向边
+      const perState = new Map()
+      for (let i = 0; i < list.length; i++) {
+        const c = list[i]
+        if (c.s <= 0) continue
+        for (const ring of c.rings) {
+          for (let k = 0; k < ring.length - 1; k++) {
+            const [ax, ay] = ring[k]
+            const [bx, by] = ring[k + 1]
+            const others = edgeCells.get(keyOf(ax, ay, bx, by)) || []
+            const isBoundary = others.every((j) => j === i || list[j].s !== c.s)
+            if (!isBoundary) continue
+            if (!perState.has(c.s)) perState.set(c.s, [])
+            perState.get(c.s).push([ax, ay, bx, by])
+          }
+        }
       }
 
-      borderEdges = edges
+      // 首尾相接串成折线
+      borderPaths = []
+      for (const [sid, edges] of perState) {
+        const byStart = new Map()
+        for (const e of edges) {
+          const k = q(e[0]) + ',' + q(e[1])
+          if (!byStart.has(k)) byStart.set(k, [])
+          byStart.get(k).push(e)
+        }
+        const used = new Set()
+        for (const e of edges) {
+          const ek = e.join(',')
+          if (used.has(ek)) continue
+          const pts = [[e[0], e[1]], [e[2], e[3]]]
+          used.add(ek)
+          let cx = e[2]
+          let cy = e[3]
+          let guard = 5000
+          while (guard-- > 0) {
+            const k = q(cx) + ',' + q(cy)
+            const cands = byStart.get(k) || []
+            const next = cands.find((n) => !used.has(n.join(',')))
+            if (!next) break
+            used.add(next.join(','))
+            pts.push([next[2], next[3]])
+            cx = next[2]
+            cy = next[3]
+            if (q(cx) === q(pts[0][0]) && q(cy) === q(pts[0][1])) break
+          }
+          if (pts.length >= 3) borderPaths.push({ s: sid, pts })
+        }
+      }
     }
 
     const cv = canvas.value
