@@ -7,3 +7,6 @@ Thumbs.db
 .preview
 .publish
 .tools
+
+.tmp/
+
