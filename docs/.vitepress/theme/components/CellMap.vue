@@ -318,41 +318,54 @@ const draw = () => {
     ctx.globalAlpha = 1
     for (const e of borderEdges) {
       const ca = cells.value[e.a]
-      // 孤立边（海岸）：只画本国一条线
-      if (e.b < 0) {
-        if (ca.s <= 0) continue
-        ctx.strokeStyle = stateById.get(ca.s)?.color || '#d8b878'
-        ctx.lineWidth = band * 0.55
-        ctx.beginPath()
-        ctx.moveTo(e.ax, e.ay)
-        ctx.lineTo(e.bx, e.by)
-        ctx.stroke()
-        continue
-      }
-      const cb = cells.value[e.b]
-      const caOwned = ca.s > 0
-      const cbOwned = cb.s > 0
-      if (!caOwned && !cbOwned) continue
+      if (!ca) continue
 
       const dx = e.bx - e.ax
       const dy = e.by - e.ay
       const len = Math.hypot(dx, dy) || 1
-      const nx = -dy / len
-      const ny = dx / len
+      const ux = dx / len
+      const uy = dy / len
+      const nx = -uy
+      const ny = ux
+      // 端点外扩，闭合拐角处的缺口
+      const ext = band * 0.75
+      const axE = e.ax - ux * ext
+      const ayE = e.ay - uy * ext
+      const bxE = e.bx + ux * ext
+      const byE = e.by + uy * ext
 
-      // 一方是荒野：只沿边画一条细线，居中不偏移（避免双线重影）
-      if (!caOwned || !cbOwned) {
-        const owned = caOwned ? ca : cb
-        ctx.strokeStyle = stateById.get(owned.s)?.color || '#d8b878'
-        ctx.lineWidth = band * 0.55
+      const strokeLine = (offset) => {
         ctx.beginPath()
-        ctx.moveTo(e.ax, e.ay)
-        ctx.lineTo(e.bx, e.by)
+        ctx.moveTo(axE + nx * offset, ayE + ny * offset)
+        ctx.lineTo(bxE + nx * offset, byE + ny * offset)
         ctx.stroke()
+      }
+
+      // 孤立边（海岸 / 缺格）：单条本国色
+      if (e.b < 0) {
+        if (ca.s <= 0) continue
+        ctx.strokeStyle = stateById.get(ca.s)?.color || '#d8b878'
+        ctx.lineWidth = band * 0.6
+        strokeLine(0)
         continue
       }
 
-      // 两国相接：各画一条，彼此贴合
+      const cb = cells.value[e.b]
+      if (!cb) continue
+      const caOwned = ca.s > 0
+      const cbOwned = cb.s > 0
+      if (!caOwned && !cbOwned) continue
+
+      // 一国对荒野：单条
+      if (!caOwned || !cbOwned) {
+        const owned = caOwned ? ca : cb
+        ctx.strokeStyle = stateById.get(owned.s)?.color || '#d8b878'
+        ctx.lineWidth = band * 0.6
+        strokeLine(0)
+        continue
+      }
+
+      // 两国相接：各占一半，贴合
       const mx = (e.ax + e.bx) / 2
       const my = (e.ay + e.by) / 2
       const va = (ca.cx - mx) * nx + (ca.cy - my) * ny
@@ -360,16 +373,10 @@ const draw = () => {
 
       ctx.strokeStyle = stateById.get(ca.s)?.color || '#d8b878'
       ctx.lineWidth = band
-      ctx.beginPath()
-      ctx.moveTo(e.ax + nx * side * band * 0.5, e.ay + ny * side * band * 0.5)
-      ctx.lineTo(e.bx + nx * side * band * 0.5, e.by + ny * side * band * 0.5)
-      ctx.stroke()
+      strokeLine(side * band * 0.25)
 
       ctx.strokeStyle = stateById.get(cb.s)?.color || '#d8b878'
-      ctx.beginPath()
-      ctx.moveTo(e.ax - nx * side * band * 0.5, e.ay - ny * side * band * 0.5)
-      ctx.lineTo(e.bx - nx * side * band * 0.5, e.by - ny * side * band * 0.5)
-      ctx.stroke()
+      strokeLine(-side * band * 0.25)
     }
   }
 
