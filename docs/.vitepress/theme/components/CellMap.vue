@@ -318,6 +318,17 @@ const draw = () => {
     ctx.globalAlpha = 1
     for (const e of borderEdges) {
       const ca = cells.value[e.a]
+      // 孤立边（海岸）：只画本国一条线
+      if (e.b < 0) {
+        if (ca.s <= 0) continue
+        ctx.strokeStyle = stateById.get(ca.s)?.color || '#d8b878'
+        ctx.lineWidth = band * 0.55
+        ctx.beginPath()
+        ctx.moveTo(e.ax, e.ay)
+        ctx.lineTo(e.bx, e.by)
+        ctx.stroke()
+        continue
+      }
       const cb = cells.value[e.b]
       const caOwned = ca.s > 0
       const cbOwned = cb.s > 0
@@ -637,11 +648,10 @@ onMounted(async () => {
     maxPop.value = Math.max(1, ...list.map((c) => c.p))
     cells.value = list
 
-    // —— 国境边预计算：每条边若属于不同政权，则记录双方颜色 ——
+    // —— 国境边预计算：成对边（两国/荒野）与孤立边（海岸、缺格） ——
     {
       const seen = new Map()
       const edges = []
-      // 所有地块都参与建边，才能画出与荒野的国境
       for (let i = 0; i < list.length; i++) {
         const c = list[i]
         for (const ring of c.rings) {
@@ -658,23 +668,29 @@ onMounted(async () => {
                 ? qax + ',' + qay + '|' + qbx + ',' + qby
                 : qbx + ',' + qby + '|' + qax + ',' + qay
             if (!seen.has(key)) {
-              seen.set(key, i)
-            } else {
-              const other = seen.get(key)
-              if (other === i || other === -1) continue
-              const oc = list[other]
-              if (oc.s !== c.s) {
-                edges.push({ ax, ay, bx, by, a: i, b: other })
-              } else {
-                // 同国相邻：把边记为内部（不再重复统计）
-                seen.set(key, -1)
-              }
+              seen.set(key, { first: i, paired: false, ax, ay, bx, by })
+              continue
+            }
+            const rec = seen.get(key)
+            if (rec.paired || rec.first === i) continue
+            rec.paired = true
+            const oc = list[rec.first]
+            if (oc.s !== c.s) {
+              edges.push({ ax, ay, bx, by, a: rec.first, b: i })
             }
           }
         }
       }
+
+      // 未被配对的边＝海岸线或缺格边界，本国一侧也要描边
+      for (const rec of seen.values()) {
+        if (rec.paired) continue
+        const c = list[rec.first]
+        if (!c || c.s <= 0) continue
+        edges.push({ ax: rec.ax, ay: rec.ay, bx: rec.bx, by: rec.by, a: rec.first, b: -1 })
+      }
+
       borderEdges = edges
-      window.__bd = { edges: edges.length, owned: list.filter((c) => c.s > 0).length }
     }
 
     const cv = canvas.value
