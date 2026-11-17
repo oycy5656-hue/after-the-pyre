@@ -37,7 +37,6 @@ export default defineConfig({
     nav: [
       { text: '首页', link: '/' },
       { text: '国家', link: '/countries/', activeMatch: '/countries/' },
-      { text: '地图', link: '/map/', activeMatch: '/map/' },
       { text: '文化', link: '/cultures/', activeMatch: '/cultures/' },
       { text: '经济', link: '/economy/', activeMatch: '/economy/' },
       { text: '生产', link: '/production/', activeMatch: '/production/' },

@@ -38,7 +38,7 @@ const entries = computed(() => [
   {
     title: '世界地图',
     desc: '地形、势力、文化三套视图，缩放平移，点国名直接进档案。',
-    to: '/map/',
+    to: '/tiles/',
     tag: `${stats.value.states} 政权 · ${stats.value.burgs} 城邑`,
     num: '02'
   },
@@ -134,7 +134,7 @@ const marquee = computed(() => countries.map((c) => c.name))
 
         <div class="hm-actions">
           <a class="hm-btn primary" :href="withBase('/countries/')">进入档案</a>
-          <a class="hm-btn ghost" :href="withBase('/map/')">查看世界地图</a>
+          <a class="hm-btn ghost" :href="withBase('/tiles/')">查看地块地图</a>
         </div>
 
         <dl class="hm-stats">

@@ -3,7 +3,6 @@ import type { Theme } from 'vitepress'
 import type { App } from 'vue'
 import CountryPage from './components/CountryPage.vue'
 import CountryExplorer from './components/CountryExplorer.vue'
-import MapViewer from './components/MapViewer.vue'
 import EconomyExplorer from './components/EconomyExplorer.vue'
 import HomePage from './components/HomePage.vue'
 import AccountPage from './components/AccountPage.vue'
@@ -71,7 +70,6 @@ export default {
     }
     app.component('CountryPage', CountryPage)
     app.component('CountryExplorer', CountryExplorer)
-    app.component('MapViewer', MapViewer)
   app.component('EconomyExplorer', EconomyExplorer)
   app.component('HomePage', HomePage)
   app.component('AccountPage', AccountPage)
