@@ -46,7 +46,7 @@ const stats = computed(() => ({
 }))
 
 const stageStyle = computed(() => ({
-  transform: `scale(${zoom.value}) scaleY(${flipped.value ? -1 : 1}) translate(${offset.value.x}px, ${offset.value.y}px)`
+  transform: `translate(${offset.value.x}px, ${offset.value.y}px) scale(${zoom.value})`
 }))
 
 function resetView() {
@@ -321,8 +321,10 @@ onBeforeUnmount(() => {
         @mouseleave="onStageLeave"
       >
         <div ref="stageEl" class="mv-stage" :class="{ 'burgs-off': !showBurgs }" :style="stageStyle">
-          <img class="mv-img" :src="viewImage" alt="世界地图" draggable="false" />
-          <svg ref="overlayEl" class="mv-overlay" viewBox="0 0 1912 956" preserveAspectRatio="none"></svg>
+          <div class="mv-flip-layer" :class="{ flipped: flipped }">
+            <img class="mv-img" :src="viewImage" alt="世界地图" draggable="false" />
+            <svg ref="overlayEl" class="mv-overlay" viewBox="0 0 1912 956" preserveAspectRatio="none"></svg>
+          </div>
         </div>
         <p v-if="loading" class="mv-loading">地图加载中…</p>
         <p v-if="errorMsg" class="mv-error">{{ errorMsg }}</p>
@@ -450,9 +452,20 @@ onBeforeUnmount(() => {
   cursor: grabbing;
 }
 
+.mv-flip-layer {
+  position: relative;
+  width: 100%;
+  transform-origin: center center;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mv-flip-layer.flipped {
+  transform: scaleY(-1);
+}
+
 .mv-stage {
   position: relative;
-  transform-origin: center center;
+  transform-origin: 0 0;
   transition: transform 0.08s linear;
   will-change: transform;
 }
