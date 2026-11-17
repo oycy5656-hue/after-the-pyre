@@ -89,7 +89,7 @@ const restShare = (row, n = 4) => {
           <h3>{{ active.name }}</h3>
           <em>{{ fmt(active.population) }} 人 · {{ active.cells }} 格</em>
         </header>
-        <p class="cl-label">主要分布</p>
+        <p class="cl-label">分布国家（占该国人口比例 · 人口）</p>
         <ul class="cl-bars">
           <li v-for="c in active.countries" :key="c.name">
             <span class="cl-bar-name">{{ c.name }}</span>
@@ -102,33 +102,49 @@ const restShare = (row, n = 4) => {
     </section>
 
     <section class="cl-block">
-      <h2>各国文化构成</h2>
-      <p class="cl-sub">百分比为该文化在本地块人口中的占比；总人口取国家档案数值。</p>
+      <h2>各国内部的文化构成</h2>
+      <p class="cl-sub">
+        每个政权内部有多少种文化、各自占本国人口的比例与对应人口。
+      </p>
 
       <div class="cl-rows">
         <article v-for="row in states" :key="row.stateId" class="cl-row">
           <header class="cl-row-head">
             <a v-if="row.slug" :href="withBase('/countries/' + row.slug + '.html')">{{ row.country }}</a>
             <span v-else class="cl-raw">{{ row.stateName }}</span>
+            <span class="cl-count">国内文化数 {{ row.cultures.filter((c) => c.id !== 0).length }}</span>
             <em v-if="row.officialPopulation">{{ fmt(row.officialPopulation) }} 人</em>
             <em v-else>地图人口 {{ row.cells }} 格</em>
           </header>
 
           <div class="cl-stack">
             <span
-              v-for="c in topCulturesOf(row)"
+              v-for="c in row.cultures.filter((c) => c.id !== 0).slice(0, 8)"
               :key="c.id"
               :style="{ width: (c.share * 100).toFixed(1) + '%', background: c.color }"
-              :title="`${c.name} ${pct(c.share)}`"
+              :title="`${c.name} ${pct(c.share)} · ${fmt(c.pop)} 人`"
             />
-            <span v-if="restShare(row) > 0.01" class="cl-stack-rest" :style="{ width: (restShare(row) * 100).toFixed(1) + '%' }" />
+            <span
+              v-if="row.cultures.find((c) => c.id === 0)"
+              class="cl-stack-rest"
+              :style="{ width: (row.cultures.find((c) => c.id === 0).share * 100).toFixed(1) + '%' }"
+              title="无归属"
+            />
           </div>
 
-          <ul class="cl-legend">
-            <li v-for="c in topCulturesOf(row)" :key="c.id + '-l'">
-              <i :style="{ background: c.color }" />{{ c.name }}<b>{{ pct(c.share) }}</b>
+          <ul class="cl-culture-list">
+            <li v-for="c in row.cultures.filter((x) => x.id !== 0)" :key="c.id + '-c'">
+              <i :style="{ background: c.color }" />
+              <span class="cl-culture-name">{{ c.name }}</span>
+              <b>{{ pct(c.share) }}</b>
+              <em>{{ fmt(c.pop) }} 人</em>
             </li>
-            <li v-if="restShare(row) > 0.01" class="cl-legend-rest">其他 <b>{{ pct(restShare(row)) }}</b></li>
+            <li v-if="row.cultures.find((c) => c.id === 0)" class="cl-culture-none">
+              <i class="cl-none-dot" />
+              <span class="cl-culture-name">无归属</span>
+              <b>{{ pct(row.cultures.find((c) => c.id === 0).share) }}</b>
+              <em>{{ fmt(row.cultures.find((c) => c.id === 0).pop) }} 人</em>
+            </li>
           </ul>
         </article>
       </div>
@@ -373,6 +389,67 @@ const restShare = (row, n = 4) => {
 
 .cl-stack-rest {
   background: rgba(255, 255, 255, 0.14);
+}
+
+.cl-count {
+  padding: 1px 8px;
+  font-size: 10px;
+  color: var(--vp-c-text-3);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 999px;
+}
+
+.cl-culture-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 4px 12px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cl-culture-list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 0;
+  font-size: 11.5px;
+  color: var(--vp-c-text-2);
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.06);
+}
+
+.cl-culture-list i {
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+  flex: none;
+}
+
+.cl-none-dot {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.cl-culture-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cl-culture-list b {
+  margin-left: auto;
+  font-weight: 600;
+  color: var(--vp-c-text-1);
+}
+
+.cl-culture-list em {
+  min-width: 66px;
+  font-style: normal;
+  text-align: right;
+  color: var(--vp-c-text-3);
+}
+
+.cl-culture-none {
+  opacity: 0.75;
 }
 
 .cl-legend {
