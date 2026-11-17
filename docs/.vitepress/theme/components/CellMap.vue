@@ -57,6 +57,18 @@ const mode = ref('biome')
 const flipped = ref(false)
 
 const cells = shallowRef([])
+// 河流按长度分权重，主河略粗、支流更细
+const riverWeights = (() => {
+  const lens = RIVERS.map((r) => {
+    let len = 0
+    for (let i = 1; i < r.pts.length; i++) {
+      len += Math.hypot(r.pts[i][0] - r.pts[i - 1][0], r.pts[i][1] - r.pts[i - 1][1])
+    }
+    return len
+  })
+  const max = Math.max(1, ...lens)
+  return lens.map((len) => 0.55 + 0.75 * Math.min(1, len / max))
+})()
 let borderEdges = []
 const stateById = new Map(mapData.states.map((s) => [s.i, s]))
 const countryByState = new Map()
@@ -437,15 +449,30 @@ const draw = () => {
 const drawRivers = (ctx) => {
   if (!RIVERS.length) return
   ctx.save()
-  ctx.globalAlpha = 0.85
-  ctx.strokeStyle = '#6aa6cc'
   ctx.lineCap = 'round'
   ctx.lineJoin = 'round'
-  ctx.lineWidth = 1.15 / view.scale
-  for (const r of RIVERS) {
+
+  for (let idx = 0; idx < RIVERS.length; idx++) {
+    const r = RIVERS[idx]
+    const weight = riverWeights[idx] || 0.8
+    // 屏幕像素宽度 → 地图单位（随缩放保持视觉粗细稳定但不过粗）
+    const corePx = 0.7 + weight * 0.7
+    const core = corePx / view.scale
+
     ctx.beginPath()
     ctx.moveTo(r.pts[0][0], r.pts[0][1])
     for (let i = 1; i < r.pts.length; i++) ctx.lineTo(r.pts[i][0], r.pts[i][1])
+
+    // 外层柔光
+    ctx.globalAlpha = 0.16
+    ctx.strokeStyle = '#3f7794'
+    ctx.lineWidth = core * 2.8
+    ctx.stroke()
+
+    // 内层亮线
+    ctx.globalAlpha = 0.95
+    ctx.strokeStyle = '#7cbcd8'
+    ctx.lineWidth = core
     ctx.stroke()
   }
   ctx.restore()
