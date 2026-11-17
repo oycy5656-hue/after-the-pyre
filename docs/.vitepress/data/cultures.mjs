@@ -57,7 +57,7 @@ export default {
   },
   {
    "id": 44,
-   "name": "Shinto",
+   "name": "伊瑟兰",
    "color": "#2ced87",
    "cells": 71,
    "population": 390966,
@@ -157,8 +157,8 @@ export default {
   },
   {
    "id": 54,
-   "name": "未命名文化 54",
-   "color": "#8a9a94",
+   "name": "洛阳",
+   "color": "#e5b32e",
    "cells": 4,
    "population": 254715,
    "countries": [
@@ -185,8 +185,8 @@ export default {
   },
   {
    "id": 55,
-   "name": "未命名文化 55",
-   "color": "#8a9a94",
+   "name": "通昆",
+   "color": "#19c9c0",
    "cells": 14,
    "population": 231037,
    "countries": [
@@ -199,8 +199,8 @@ export default {
   },
   {
    "id": 56,
-   "name": "未命名文化 56",
-   "color": "#8a9a94",
+   "name": "戎",
+   "color": "#664dbe",
    "cells": 8,
    "population": 222037,
    "countries": [
@@ -213,8 +213,8 @@ export default {
   },
   {
    "id": 58,
-   "name": "未命名文化 58",
-   "color": "#8a9a94",
+   "name": "桂",
+   "color": "#29eb8c",
    "cells": 7,
    "population": 219175,
    "countries": [
@@ -355,8 +355,8 @@ export default {
   },
   {
    "id": 57,
-   "name": "未命名文化 57",
-   "color": "#8a9a94",
+   "name": "狄",
+   "color": "#4a71dc",
    "cells": 6,
    "population": 177358,
    "countries": [
@@ -388,8 +388,8 @@ export default {
   },
   {
    "id": 48,
-   "name": "未命名文化 48",
-   "color": "#8a9a94",
+   "name": "赫奇顿（蜥）",
+   "color": "#cfcc36",
    "cells": 18,
    "population": 169574,
    "countries": [
@@ -458,16 +458,16 @@ export default {
   },
   {
    "id": 51,
-   "name": "未命名文化 51",
-   "color": "#8a9a94",
+   "name": "阿",
+   "color": "#ff5178",
    "cells": 11,
    "population": 111000,
    "countries": []
   },
   {
    "id": 52,
-   "name": "未命名文化 52",
-   "color": "#8a9a94",
+   "name": "西古提",
+   "color": "#df40a1",
    "cells": 17,
    "population": 105451,
    "countries": [
@@ -566,8 +566,8 @@ export default {
   },
   {
    "id": 46,
-   "name": "未命名文化 46",
-   "color": "#8a9a94",
+   "name": "伊萨卡",
+   "color": "#4cf56a",
    "cells": 10,
    "population": 74168,
    "countries": [
@@ -580,8 +580,8 @@ export default {
   },
   {
    "id": 47,
-   "name": "未命名文化 47",
-   "color": "#8a9a94",
+   "name": "祖鲁",
+   "color": "#ff6b53",
    "cells": 12,
    "population": 72037,
    "countries": [
@@ -724,8 +724,8 @@ export default {
   },
   {
    "id": 49,
-   "name": "克洛斯文化",
-   "color": "#8a9a94",
+   "name": "克洛斯（虫）",
+   "color": "#1cbecb",
    "cells": 2,
    "population": 28000,
    "countries": [
@@ -817,8 +817,8 @@ export default {
   },
   {
    "id": 50,
-   "name": "未命名文化 50",
-   "color": "#8a9a94",
+   "name": "薪炎龙蜥",
+   "color": "#3390e1",
    "cells": 2,
    "population": 3518,
    "countries": [
@@ -873,8 +873,8 @@ export default {
   },
   {
    "id": 53,
-   "name": "未命名文化 53",
-   "color": "#8a9a94",
+   "name": "图兰",
+   "color": "#a03db3",
    "cells": 1,
    "population": 2100,
    "countries": [
@@ -933,35 +933,35 @@ export default {
    "cultures": [
     {
      "id": 54,
-     "name": "未命名文化 54",
+     "name": "洛阳",
      "cells": 4,
      "share": 0.252,
      "pop": 254715
     },
     {
      "id": 55,
-     "name": "未命名文化 55",
+     "name": "通昆",
      "cells": 3,
      "share": 0.189,
      "pop": 191037
     },
     {
      "id": 56,
-     "name": "未命名文化 56",
+     "name": "戎",
      "cells": 3,
      "share": 0.189,
      "pop": 191037
     },
     {
      "id": 58,
-     "name": "未命名文化 58",
+     "name": "桂",
      "cells": 3,
      "share": 0.181,
      "pop": 183175
     },
     {
      "id": 57,
-     "name": "未命名文化 57",
+     "name": "狄",
      "cells": 2,
      "share": 0.126,
      "pop": 127358
@@ -1332,7 +1332,7 @@ export default {
    "cultures": [
     {
      "id": 49,
-     "name": "未命名文化 49",
+     "name": "克洛斯（虫）",
      "cells": 1,
      "share": 1,
      "pop": 22000
@@ -1380,7 +1380,7 @@ export default {
    "cultures": [
     {
      "id": 47,
-     "name": "未命名文化 47",
+     "name": "祖鲁",
      "cells": 2,
      "share": 0.327,
      "pop": 5037
@@ -1394,14 +1394,14 @@ export default {
     },
     {
      "id": 50,
-     "name": "未命名文化 50",
+     "name": "薪炎龙蜥",
      "cells": 2,
      "share": 0.228,
      "pop": 3518
     },
     {
      "id": 46,
-     "name": "未命名文化 46",
+     "name": "伊萨卡",
      "cells": 1,
      "share": 0.141,
      "pop": 2168
@@ -1418,7 +1418,7 @@ export default {
    "cultures": [
     {
      "id": 44,
-     "name": "Shinto",
+     "name": "伊瑟兰",
      "cells": 6,
      "share": 1,
      "pop": 14800
@@ -1435,14 +1435,14 @@ export default {
    "cultures": [
     {
      "id": 52,
-     "name": "未命名文化 52",
+     "name": "西古提",
      "cells": 2,
      "share": 0.667,
      "pop": 4200
     },
     {
      "id": 53,
-     "name": "未命名文化 53",
+     "name": "图兰",
      "cells": 1,
      "share": 0.333,
      "pop": 2100
@@ -1590,7 +1590,7 @@ export default {
     },
     {
      "id": 44,
-     "name": "Shinto",
+     "name": "伊瑟兰",
      "cells": 50,
      "share": 0.004,
      "pop": 256000
@@ -1667,7 +1667,7 @@ export default {
     },
     {
      "id": 57,
-     "name": "未命名文化 57",
+     "name": "狄",
      "cells": 4,
      "share": 0.001,
      "pop": 50000
@@ -1681,21 +1681,21 @@ export default {
     },
     {
      "id": 55,
-     "name": "未命名文化 55",
+     "name": "通昆",
      "cells": 11,
      "share": 0.001,
      "pop": 40000
     },
     {
      "id": 56,
-     "name": "未命名文化 56",
+     "name": "戎",
      "cells": 5,
      "share": 0.001,
      "pop": 31000
     },
     {
      "id": 58,
-     "name": "未命名文化 58",
+     "name": "桂",
      "cells": 4,
      "share": 0.001,
      "pop": 36000
@@ -1723,28 +1723,28 @@ export default {
     },
     {
      "id": 51,
-     "name": "未命名文化 51",
+     "name": "阿",
      "cells": 11,
      "share": 0.001,
      "pop": 111000
     },
     {
      "id": 48,
-     "name": "未命名文化 48",
+     "name": "赫奇顿（蜥）",
      "cells": 7,
      "share": 0.001,
      "pop": 64000
     },
     {
      "id": 46,
-     "name": "未命名文化 46",
+     "name": "伊萨卡",
      "cells": 9,
      "share": 0.001,
      "pop": 72000
     },
     {
      "id": 47,
-     "name": "未命名文化 47",
+     "name": "祖鲁",
      "cells": 9,
      "share": 0.001,
      "pop": 61000
@@ -1828,7 +1828,7 @@ export default {
     },
     {
      "id": 49,
-     "name": "未命名文化 49",
+     "name": "克洛斯（虫）",
      "cells": 1,
      "share": 0,
      "pop": 6000
@@ -1842,7 +1842,7 @@ export default {
     },
     {
      "id": 52,
-     "name": "未命名文化 52",
+     "name": "西古提",
      "cells": 2,
      "share": 0,
      "pop": 14000
@@ -2187,7 +2187,7 @@ export default {
     },
     {
      "id": 48,
-     "name": "未命名文化 48",
+     "name": "赫奇顿（蜥）",
      "cells": 11,
      "share": 0.16,
      "pop": 105574
@@ -2235,7 +2235,7 @@ export default {
     },
     {
      "id": 47,
-     "name": "未命名文化 47",
+     "name": "祖鲁",
      "cells": 1,
      "share": 0.124,
      "pop": 6000
@@ -2252,7 +2252,7 @@ export default {
    "cultures": [
     {
      "id": 52,
-     "name": "未命名文化 52",
+     "name": "西古提",
      "cells": 4,
      "share": 0.908,
      "pop": 37788
@@ -2276,7 +2276,7 @@ export default {
    "cultures": [
     {
      "id": 52,
-     "name": "未命名文化 52",
+     "name": "西古提",
      "cells": 9,
      "share": 0.933,
      "pop": 49463
@@ -2300,7 +2300,7 @@ export default {
    "cultures": [
     {
      "id": 44,
-     "name": "Shinto",
+     "name": "伊瑟兰",
      "cells": 3,
      "share": 1,
      "pop": 16062
@@ -2317,7 +2317,7 @@ export default {
    "cultures": [
     {
      "id": 44,
-     "name": "Shinto",
+     "name": "伊瑟兰",
      "cells": 4,
      "share": 1,
      "pop": 31149
@@ -2334,7 +2334,7 @@ export default {
    "cultures": [
     {
      "id": 44,
-     "name": "Shinto",
+     "name": "伊瑟兰",
      "cells": 5,
      "share": 1,
      "pop": 44628
@@ -2351,7 +2351,7 @@ export default {
    "cultures": [
     {
      "id": 44,
-     "name": "Shinto",
+     "name": "伊瑟兰",
      "cells": 3,
      "share": 1,
      "pop": 28327
