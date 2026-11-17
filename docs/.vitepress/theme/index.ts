@@ -14,6 +14,7 @@ import ProductionView from './components/ProductionView.vue'
 import CellMap from './components/CellMap.vue'
 import DiplomacyBoard from './components/DiplomacyBoard.vue'
 import DispatchBoard from './components/DispatchBoard.vue'
+import CultureBoard from './components/CultureBoard.vue'
 import './style.css'
 import './ui-refresh.css'
 import './wide.css'
@@ -81,5 +82,6 @@ export default {
   app.component('CellMap', CellMap)
   app.component('DiplomacyBoard', DiplomacyBoard)
   app.component('DispatchBoard', DispatchBoard)
+  app.component('CultureBoard', CultureBoard)
   }
 } satisfies Theme
