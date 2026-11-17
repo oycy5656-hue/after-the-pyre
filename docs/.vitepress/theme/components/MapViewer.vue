@@ -203,16 +203,33 @@ function layoutLabels() {
     const sy = (item.state.capital.y - 7) * pxPerUnit
     const halfW = (item.state.name.length * 11) / 2
     const priority = !!item.state.slug
-    const overlap =
-      (!priority && placed.length >= maxLabels) ||
-      (!priority &&
-        placed.some((p) => Math.abs(p.x - sx) < p.halfW + halfW + 12 && Math.abs(p.y - sy) < 18))
-    if (overlap) {
-      el.style.display = 'none'
-    } else {
-      el.style.display = ''
-      placed.push({ x: sx, y: sy, halfW })
+    const hits = (yy) =>
+      placed.some((p) => Math.abs(p.x - sx) < p.halfW + halfW + 12 && Math.abs(p.y - yy) < 18)
+
+    if (!priority) {
+      if (placed.length >= maxLabels || hits(sy)) {
+        el.style.display = 'none'
+      } else {
+        el.style.display = ''
+        placed.push({ x: sx, y: sy, halfW })
+      }
+      continue
     }
+
+    // 有档案政权：错位排列，保证都能显示
+    let yy = sy
+    let ok = false
+    for (const stagger of [0, -16, 16, -32, 32, -48, 48]) {
+      yy = sy + stagger
+      if (!hits(yy)) {
+        ok = true
+        break
+      }
+    }
+    if (!ok) yy = sy + (placed.length % 5) * 16 - 32
+    el.setAttribute('y', String(yy / pxPerUnit))
+    el.style.display = ''
+    placed.push({ x: sx, y: yy, halfW })
   }
 
   for (const dot of burgDots) {
